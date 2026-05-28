@@ -157,7 +157,8 @@ const ActionTarget = ({
 
 
 export default function AndroidExplorer() {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
+
   const [wifi, setWifi] = useState(false);
   const [wifiConnected, setWifiConnected] = useState(null);
   const [bluetooth, setBluetooth] = useState(false);
