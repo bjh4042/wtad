@@ -125,28 +125,36 @@ const CuteStudent = ({ seed }) => {
 const ActionTarget = ({
   id, children, onClick, onTouchStart, onTouchEnd, onTouchMove,
   onMouseDown, onMouseMove, onMouseUp, onMouseLeave, onPointerDown, onPointerMove, onPointerUp,
-  className = "", style = {}, currentTargetId, advanceQuest, disableClickAdvance
+  className = "", style = {}, currentTargetId, advanceQuest, disableClickAdvance,
+  extraTargetIds = [], tooltipPosition = 'top', tooltipText = '여기를 누르세요!'
 }) => {
-  const isTarget = currentTargetId === id;
+  const isTarget = currentTargetId === id || extraTargetIds.includes(currentTargetId);
+  const tooltipClasses = tooltipPosition === 'bottom'
+    ? 'absolute -bottom-12 left-1/2 transform -translate-x-1/2'
+    : 'absolute -top-12 left-1/2 transform -translate-x-1/2';
+  const arrowClasses = tooltipPosition === 'bottom'
+    ? 'absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600'
+    : 'absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600';
   return (
     <div
       onClick={(e) => { if(onClick) onClick(e); if(!disableClickAdvance) advanceQuest(id); }}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchMove={onTouchMove}
       onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
-      className={`relative ${className} ${isTarget ? 'ring-4 ring-yellow-400 animate-pulse z-50 rounded-2xl bg-yellow-400/20' : ''}`}
+      className={`relative ${className} ${isTarget ? 'ring-4 ring-yellow-400 animate-pulse z-[70] rounded-2xl bg-yellow-400/20' : ''}`}
       style={style}
     >
       {isTarget && (
-        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[13px] px-4 py-2 rounded-xl shadow-xl whitespace-nowrap z-[100] pointer-events-none font-bold">
-          여기를 누르세요!
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600"></div>
+        <div className={`${tooltipClasses} bg-blue-600 text-white text-[13px] px-4 py-2 rounded-xl shadow-xl whitespace-nowrap z-[110] pointer-events-none font-bold`}>
+          {tooltipText}
+          <div className={arrowClasses}></div>
         </div>
       )}
       {children}
     </div>
   );
 };
+
 
 export default function AndroidExplorer() {
   const [time, setTime] = useState(new Date());
