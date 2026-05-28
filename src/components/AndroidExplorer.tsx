@@ -453,7 +453,7 @@ export default function AndroidExplorer() {
       </div>
 
       <div className="text-white mb-10 pl-6 absolute top-16 left-4 md:left-8">
-        <div className="text-6xl font-light tracking-wide drop-shadow-lg">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+        <div className="text-6xl font-light tracking-wide drop-shadow-lg">{timeStr}</div>
         <div className="text-base mt-2 font-medium opacity-90 drop-shadow-md flex items-center gap-2"><Sun size={18} className="text-yellow-400"/> 서울 시청 21°C</div>
       </div>
 
