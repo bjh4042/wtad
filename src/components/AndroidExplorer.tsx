@@ -157,7 +157,8 @@ const ActionTarget = ({
 
 
 export default function AndroidExplorer() {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
+
   const [wifi, setWifi] = useState(false);
   const [wifiConnected, setWifiConnected] = useState(null);
   const [bluetooth, setBluetooth] = useState(false);
@@ -212,9 +213,13 @@ export default function AndroidExplorer() {
   const currentTargetId = QUESTS[questIdx]?.targetId;
 
   useEffect(() => {
+    setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
+
 
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
@@ -448,7 +453,7 @@ export default function AndroidExplorer() {
       </div>
 
       <div className="text-white mb-10 pl-6 absolute top-16 left-4 md:left-8">
-        <div className="text-6xl font-light tracking-wide drop-shadow-lg">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+        <div className="text-6xl font-light tracking-wide drop-shadow-lg">{timeStr}</div>
         <div className="text-base mt-2 font-medium opacity-90 drop-shadow-md flex items-center gap-2"><Sun size={18} className="text-yellow-400"/> 서울 시청 21°C</div>
       </div>
 
@@ -593,7 +598,7 @@ export default function AndroidExplorer() {
         tooltipText="↓ 아래로 드래그(또는 탭)하세요"
         className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-[80] select-none bg-gradient-to-b from-black/40 to-transparent"
       >
-        <span className="font-medium drop-shadow-md">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+        <span className="font-medium drop-shadow-md">{timeStr}</span>
         <div className="flex space-x-2 items-center drop-shadow-md">
           {airplane && <Plane size={16} strokeWidth={2.5} />}
           {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
