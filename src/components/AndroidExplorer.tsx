@@ -577,24 +577,36 @@ export default function AndroidExplorer() {
   );
 
   const renderStatusBar = () => (
-    <ActionTarget
-      id="swipe-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true}
-      onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
-      className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-40 select-none bg-gradient-to-b from-black/40 to-transparent"
-    >
-      <span className="font-medium drop-shadow-md">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-      <div className="flex space-x-2 items-center drop-shadow-md">
-        {airplane && <Plane size={16} strokeWidth={2.5} />}
-        {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
-        {bluetooth && <Bluetooth size={16} strokeWidth={2.5} />}
-        {soundMode === 'vibrate' && <Vibrate size={16} strokeWidth={2.5} />}
-        {soundMode === 'mute' && <VolumeX size={16} strokeWidth={2.5} />}
-        <Signal size={16} strokeWidth={2.5} />
-        <span className="text-xs font-bold ml-1">98%</span>
-        <BatteryMedium size={18} strokeWidth={2.5} />
-      </div>
-    </ActionTarget>
+    <>
+      <ActionTarget
+        id="swipe-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true}
+        onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
+        onClick={() => { if (!quickPanelOpen) { setQuickPanelOpen(true); advanceQuest('swipe-trigger'); } }}
+        tooltipPosition="bottom"
+        tooltipText="↓ 아래로 드래그(또는 탭)하세요"
+        className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-[80] select-none bg-gradient-to-b from-black/40 to-transparent"
+      >
+        <span className="font-medium drop-shadow-md">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+        <div className="flex space-x-2 items-center drop-shadow-md">
+          {airplane && <Plane size={16} strokeWidth={2.5} />}
+          {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
+          {bluetooth && <Bluetooth size={16} strokeWidth={2.5} />}
+          {soundMode === 'vibrate' && <Vibrate size={16} strokeWidth={2.5} />}
+          {soundMode === 'mute' && <VolumeX size={16} strokeWidth={2.5} />}
+          <Signal size={16} strokeWidth={2.5} />
+          <span className="text-xs font-bold ml-1">98%</span>
+          <BatteryMedium size={18} strokeWidth={2.5} />
+        </div>
+      </ActionTarget>
+      {currentTargetId === 'swipe-trigger' && (
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none flex flex-col items-center animate-bounce">
+          <div className="w-1 h-10 bg-yellow-400 rounded-full"></div>
+          <div className="w-4 h-4 border-r-4 border-b-4 border-yellow-400 rotate-45 -mt-2"></div>
+        </div>
+      )}
+    </>
   );
+
 
   const renderQuickPanel = () => (
     <div className={`absolute inset-0 bg-black/50 backdrop-blur-md z-50 transition-opacity duration-300 flex justify-center pt-4 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
