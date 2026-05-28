@@ -231,19 +231,20 @@ export default function AndroidExplorer() {
   };
 
   const handleGlobalMove = (e) => {
-    if (isDraggingExp) {
-      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-      setExpPos({
-        x: dragRefExp.current.initX + (clientX - dragRefExp.current.startX),
-        y: dragRefExp.current.initY + (clientY - dragRefExp.current.startY)
-      });
-    }
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-      if (!quickPanelOpen && currentY - touchStartY > 30) {
+      if (!quickPanelOpen && currentY - touchStartY > 15) {
         setQuickPanelOpen(true);
         advanceQuest('swipe-trigger');
+        setTouchStartY(null);
+      } else if (quickPanelOpen && touchStartY - currentY > 15) {
+        setQuickPanelOpen(false);
+        advanceQuest('quick-panel-bg');
+        setTouchStartY(null);
+      }
+    }
+  };
+
         setTouchStartY(null);
       } else if (quickPanelOpen && touchStartY - currentY > 30) {
         setQuickPanelOpen(false);
