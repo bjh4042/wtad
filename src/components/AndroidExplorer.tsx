@@ -598,7 +598,7 @@ export default function AndroidExplorer() {
         tooltipText="↓ 아래로 드래그(또는 탭)하세요"
         className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-[80] select-none bg-gradient-to-b from-black/40 to-transparent"
       >
-        <span className="font-medium drop-shadow-md">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+        <span className="font-medium drop-shadow-md">{timeStr}</span>
         <div className="flex space-x-2 items-center drop-shadow-md">
           {airplane && <Plane size={16} strokeWidth={2.5} />}
           {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
