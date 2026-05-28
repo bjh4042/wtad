@@ -125,28 +125,36 @@ const CuteStudent = ({ seed }) => {
 const ActionTarget = ({
   id, children, onClick, onTouchStart, onTouchEnd, onTouchMove,
   onMouseDown, onMouseMove, onMouseUp, onMouseLeave, onPointerDown, onPointerMove, onPointerUp,
-  className = "", style = {}, currentTargetId, advanceQuest, disableClickAdvance
+  className = "", style = {}, currentTargetId, advanceQuest, disableClickAdvance,
+  extraTargetIds = [], tooltipPosition = 'top', tooltipText = '여기를 누르세요!'
 }) => {
-  const isTarget = currentTargetId === id;
+  const isTarget = currentTargetId === id || extraTargetIds.includes(currentTargetId);
+  const tooltipClasses = tooltipPosition === 'bottom'
+    ? 'absolute -bottom-12 left-1/2 transform -translate-x-1/2'
+    : 'absolute -top-12 left-1/2 transform -translate-x-1/2';
+  const arrowClasses = tooltipPosition === 'bottom'
+    ? 'absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600'
+    : 'absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600';
   return (
     <div
       onClick={(e) => { if(onClick) onClick(e); if(!disableClickAdvance) advanceQuest(id); }}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchMove={onTouchMove}
       onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
-      className={`relative ${className} ${isTarget ? 'ring-4 ring-yellow-400 animate-pulse z-50 rounded-2xl bg-yellow-400/20' : ''}`}
+      className={`relative ${className} ${isTarget ? 'ring-4 ring-yellow-400 animate-pulse z-[70] rounded-2xl bg-yellow-400/20' : ''}`}
       style={style}
     >
       {isTarget && (
-        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-[13px] px-4 py-2 rounded-xl shadow-xl whitespace-nowrap z-[100] pointer-events-none font-bold">
-          여기를 누르세요!
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600"></div>
+        <div className={`${tooltipClasses} bg-blue-600 text-white text-[13px] px-4 py-2 rounded-xl shadow-xl whitespace-nowrap z-[110] pointer-events-none font-bold`}>
+          {tooltipText}
+          <div className={arrowClasses}></div>
         </div>
       )}
       {children}
     </div>
   );
 };
+
 
 export default function AndroidExplorer() {
   const [time, setTime] = useState(new Date());
@@ -233,17 +241,18 @@ export default function AndroidExplorer() {
     }
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-      if (!quickPanelOpen && currentY - touchStartY > 30) {
+      if (!quickPanelOpen && currentY - touchStartY > 15) {
         setQuickPanelOpen(true);
         advanceQuest('swipe-trigger');
         setTouchStartY(null);
-      } else if (quickPanelOpen && touchStartY - currentY > 30) {
+      } else if (quickPanelOpen && touchStartY - currentY > 15) {
         setQuickPanelOpen(false);
         advanceQuest('quick-panel-bg');
         setTouchStartY(null);
       }
     }
   };
+
 
   const handleGlobalEnd = () => { setIsDraggingExp(false); setTouchStartY(null); };
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
@@ -402,6 +411,13 @@ export default function AndroidExplorer() {
       <ActionTarget
         key={index}
         id={`app-icon-${appName}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+        extraTargetIds={appName === 'Camera' ? ['app-icon-Camera-long-press', 'drag-camera'] : []}
+        tooltipText={
+          appName === 'Camera' && currentTargetId === 'app-icon-Camera-long-press' ? '꾹~ 길게 누르세요'
+          : appName === 'Camera' && currentTargetId === 'drag-camera' ? '다른 칸으로 끌어 옮기세요'
+          : '여기를 누르세요!'
+        }
+
         onClick={() => {
           if (isEditMode) return;
           if (appName === 'PlayStore') { setIsSearched(false); setSearchText(''); setKeyboardOpen(false); setTypingIndex(0); setKeyboardShift(false); }
@@ -568,24 +584,36 @@ export default function AndroidExplorer() {
   );
 
   const renderStatusBar = () => (
-    <ActionTarget
-      id="swipe-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true}
-      onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
-      className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-40 select-none bg-gradient-to-b from-black/40 to-transparent"
-    >
-      <span className="font-medium drop-shadow-md">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-      <div className="flex space-x-2 items-center drop-shadow-md">
-        {airplane && <Plane size={16} strokeWidth={2.5} />}
-        {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
-        {bluetooth && <Bluetooth size={16} strokeWidth={2.5} />}
-        {soundMode === 'vibrate' && <Vibrate size={16} strokeWidth={2.5} />}
-        {soundMode === 'mute' && <VolumeX size={16} strokeWidth={2.5} />}
-        <Signal size={16} strokeWidth={2.5} />
-        <span className="text-xs font-bold ml-1">98%</span>
-        <BatteryMedium size={18} strokeWidth={2.5} />
-      </div>
-    </ActionTarget>
+    <>
+      <ActionTarget
+        id="swipe-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true}
+        onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
+        onClick={() => { if (!quickPanelOpen) { setQuickPanelOpen(true); advanceQuest('swipe-trigger'); } }}
+        tooltipPosition="bottom"
+        tooltipText="↓ 아래로 드래그(또는 탭)하세요"
+        className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-[80] select-none bg-gradient-to-b from-black/40 to-transparent"
+      >
+        <span className="font-medium drop-shadow-md">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+        <div className="flex space-x-2 items-center drop-shadow-md">
+          {airplane && <Plane size={16} strokeWidth={2.5} />}
+          {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
+          {bluetooth && <Bluetooth size={16} strokeWidth={2.5} />}
+          {soundMode === 'vibrate' && <Vibrate size={16} strokeWidth={2.5} />}
+          {soundMode === 'mute' && <VolumeX size={16} strokeWidth={2.5} />}
+          <Signal size={16} strokeWidth={2.5} />
+          <span className="text-xs font-bold ml-1">98%</span>
+          <BatteryMedium size={18} strokeWidth={2.5} />
+        </div>
+      </ActionTarget>
+      {currentTargetId === 'swipe-trigger' && (
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none flex flex-col items-center animate-bounce">
+          <div className="w-1 h-10 bg-yellow-400 rounded-full"></div>
+          <div className="w-4 h-4 border-r-4 border-b-4 border-yellow-400 rotate-45 -mt-2"></div>
+        </div>
+      )}
+    </>
   );
+
 
   const renderQuickPanel = () => (
     <div className={`absolute inset-0 bg-black/50 backdrop-blur-md z-50 transition-opacity duration-300 flex justify-center pt-4 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
