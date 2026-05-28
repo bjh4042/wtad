@@ -213,9 +213,13 @@ export default function AndroidExplorer() {
   const currentTargetId = QUESTS[questIdx]?.targetId;
 
   useEffect(() => {
+    setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
+
 
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
