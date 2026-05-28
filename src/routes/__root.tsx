@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "안드로이드 탐험대" },
+      { name: "description", content: "Galaxy Tab Explorers is a tutorial web app for elementary students to learn Android OS." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "안드로이드 탐험대" },
+      { property: "og:description", content: "Galaxy Tab Explorers is a tutorial web app for elementary students to learn Android OS." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "안드로이드 탐험대" },
+      { name: "twitter:description", content: "Galaxy Tab Explorers is a tutorial web app for elementary students to learn Android OS." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dd81628a-a8ec-416e-bda8-1aa0ea5569a2/id-preview-864c500a--53bd1cf1-896f-4c3b-8f3f-513de909e7ce.lovable.app-1780012579988.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dd81628a-a8ec-416e-bda8-1aa0ea5569a2/id-preview-864c500a--53bd1cf1-896f-4c3b-8f3f-513de909e7ce.lovable.app-1780012579988.png" },
     ],
     links: [
       {
