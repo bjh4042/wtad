@@ -411,6 +411,13 @@ export default function AndroidExplorer() {
       <ActionTarget
         key={index}
         id={`app-icon-${appName}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+        extraTargetIds={appName === 'Camera' ? ['app-icon-Camera-long-press', 'drag-camera'] : []}
+        tooltipText={
+          appName === 'Camera' && currentTargetId === 'app-icon-Camera-long-press' ? '꾹~ 길게 누르세요'
+          : appName === 'Camera' && currentTargetId === 'drag-camera' ? '다른 칸으로 끌어 옮기세요'
+          : '여기를 누르세요!'
+        }
+
         onClick={() => {
           if (isEditMode) return;
           if (appName === 'PlayStore') { setIsSearched(false); setSearchText(''); setKeyboardOpen(false); setTypingIndex(0); setKeyboardShift(false); }
