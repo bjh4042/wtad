@@ -1735,7 +1735,7 @@ export default function AndroidExplorer() {
           {renderQuickPanel()}
 
           {mathAppOpen && (
-            <div className="absolute inset-0 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-14">
+            <div className="absolute left-0 right-0 top-0 bottom-14 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-4">
               <div className="text-white text-7xl font-black drop-shadow-lg mb-4">1 + 2 = ?</div>
               <div className="text-white text-2xl font-bold mb-10 drop-shadow">똑똑수학탐험대에 오신 걸 환영해요!</div>
               <div className="flex gap-6">
