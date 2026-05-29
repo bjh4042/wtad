@@ -705,9 +705,7 @@ export default function AndroidExplorer() {
         </div>
       </div>
 
-          ))}
-        </div>
-      </div>
+
 
       <div className="flex-1 p-10 bg-[#000000] overflow-y-auto min-h-0">
         {settingsMenu === 'connections' && (
