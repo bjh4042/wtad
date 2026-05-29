@@ -1392,11 +1392,37 @@ export default function AndroidExplorer() {
             </div>
           </div>
         ) : (
-          <div className="text-center text-gray-500 mt-40">
-            <div className="mb-4 text-2xl font-medium">추천 게임 및 앱</div>
-            <div className="text-lg">화면 상단의 검색창을 터치하여 검색을 시작하세요.</div>
+          <div className="max-w-3xl mx-auto">
+            <div className="text-2xl font-bold mb-4">추천 게임 및 앱</div>
+            <div className="text-sm text-gray-500 mb-6">아래 앱을 설치해보세요. 설치 후 홈 화면과 앱 서랍에 추가돼요.</div>
+            <div className="space-y-3">
+              {PLAYSTORE_APPS.map(app => {
+                const installed = installedApps.includes(app.id);
+                return (
+                  <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-3xl shadow-md shrink-0" style={{ background: app.color }}>{app.label}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-lg font-bold truncate">{app.name}</div>
+                      <div className="text-xs text-gray-500 truncate">{app.dev} · 4.{Math.floor(Math.random()*9)+1} ★</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (installed) {
+                          setInstalledApps(prev => prev.filter(x => x !== app.id));
+                        } else {
+                          setInstalledApps(prev => [...prev, app.id]);
+                        }
+                      }}
+                      className={`px-6 py-2 rounded-full font-bold text-sm transition-all active:scale-95 shrink-0 ${installed ? 'bg-gray-200 text-gray-700' : 'bg-[#01875f] text-white hover:bg-[#01704e]'}`}
+                    >{installed ? '제거' : '설치'}</button>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-8 text-center text-xs text-gray-400">상단 검색창에서 '똑똑수학탐험대'를 검색할 수도 있어요.</div>
           </div>
         )}
+
       </div>
       {renderVirtualKeyboard()}
     </div>
