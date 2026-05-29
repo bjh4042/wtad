@@ -528,7 +528,30 @@ export default function AndroidExplorer() {
 
 
   const renderHome = () => (
-    <div className="flex-1 pt-16 p-6 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0" style={{ background: wallpaper, backgroundSize: 'cover' }}>
+    <div
+      className="flex-1 pt-16 p-6 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0"
+      style={{ background: wallpaper, backgroundSize: 'cover' }}
+      onContextMenu={(e) => { e.preventDefault(); setHomeMenuOpen(true); }}
+      onMouseDown={(e) => {
+        if (isEditMode) return;
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-slot-idx]') || target.closest('button')) return;
+        if (homeLongPressTimer) clearTimeout(homeLongPressTimer);
+        const t = setTimeout(() => setHomeMenuOpen(true), 700);
+        setHomeLongPressTimer(t);
+      }}
+      onMouseUp={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+      onMouseLeave={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+      onTouchStart={(e) => {
+        if (isEditMode) return;
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-slot-idx]') || target.closest('button')) return;
+        if (homeLongPressTimer) clearTimeout(homeLongPressTimer);
+        const t = setTimeout(() => setHomeMenuOpen(true), 700);
+        setHomeLongPressTimer(t);
+      }}
+      onTouchEnd={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+    >
       <div className="w-full max-w-xl mx-auto mb-16 bg-white rounded-full h-12 flex items-center px-4 shadow-lg opacity-95 shrink-0 transition-transform active:scale-[0.98]">
         <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 flex items-center justify-center"><div className="w-4 h-4 bg-white rounded-full font-bold text-blue-600 text-[10px] flex items-center justify-center">G</div></div>
         <div className="flex-1"></div>
@@ -536,30 +559,55 @@ export default function AndroidExplorer() {
       </div>
 
       {/* Home widgets row */}
-      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 pointer-events-none flex-wrap">
-        {/* Clock widget */}
-        <div className="bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 shadow-xl border border-white/20 flex flex-col text-white flex-1 min-w-[150px]">
-          <div className="text-4xl md:text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
-          <div className="text-xs md:text-sm mt-1 md:mt-2 opacity-90 font-medium truncate">{dateStr}</div>
-        </div>
-        {/* Weather widget */}
-        <div className="bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-3 md:py-4 shadow-xl border border-white/20 flex items-center gap-2 md:gap-4 text-white">
-          <Sun size={36} className="md:hidden text-yellow-300 drop-shadow-md"/>
-          <Sun size={56} className="hidden md:block text-yellow-300 drop-shadow-md"/>
-          <div>
-            <div className="text-xl md:text-3xl font-bold leading-none">21°</div>
-            <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1">서울 · 맑음</div>
-            <div className="hidden md:block text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5]">
+        {widgets.includes('clock') && (
+          <div className="group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 shadow-xl border border-white/20 flex flex-col text-white flex-1 min-w-[150px]">
+            <div className="text-4xl md:text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
+            <div className="text-xs md:text-sm mt-1 md:mt-2 opacity-90 font-medium truncate">{dateStr}</div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'clock')); }}>×</button>
           </div>
-        </div>
-        {/* Calendar widget — hidden on mobile */}
-        <div className="hidden md:flex bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex-col items-center text-white min-w-[100px]">
-          <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">
-            {time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}
+        )}
+        {widgets.includes('weather') && (
+          <div className="group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-3 md:py-4 shadow-xl border border-white/20 flex items-center gap-2 md:gap-4 text-white">
+            <Sun size={36} className="md:hidden text-yellow-300 drop-shadow-md"/>
+            <Sun size={56} className="hidden md:block text-yellow-300 drop-shadow-md"/>
+            <div>
+              <div className="text-xl md:text-3xl font-bold leading-none">21°</div>
+              <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1">서울 · 맑음</div>
+              <div className="hidden md:block text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+            </div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'weather')); }}>×</button>
           </div>
-          <div className="text-5xl font-bold leading-none mt-1">{time ? time.getDate() : ''}</div>
-          <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
-        </div>
+        )}
+        {widgets.includes('calendar') && (
+          <div className="group relative hidden md:flex bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex-col items-center text-white min-w-[100px]">
+            <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">{time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}</div>
+            <div className="text-5xl font-bold leading-none mt-1">{time ? time.getDate() : ''}</div>
+            <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'calendar')); }}>×</button>
+          </div>
+        )}
+        {widgets.includes('music') && (
+          <div className="group relative bg-purple-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 py-3 shadow-xl border border-white/20 flex items-center gap-3 text-white min-w-[180px]">
+            <div className="w-10 h-10 rounded-lg bg-white/30 flex items-center justify-center text-2xl">🎵</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold truncate">동요 메들리</div>
+              <div className="text-[11px] opacity-80 truncate">아이유 · 좋은 날</div>
+            </div>
+            <Play size={20} className="text-white"/>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'music')); }}>×</button>
+          </div>
+        )}
+        {widgets.includes('fitness') && (
+          <div className="group relative bg-emerald-500/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 py-3 shadow-xl border border-white/20 flex items-center gap-3 text-white min-w-[160px]">
+            <div className="text-3xl">👟</div>
+            <div>
+              <div className="text-2xl font-bold leading-none">3,248</div>
+              <div className="text-[10px] opacity-90 mt-1">걸음 / 오늘</div>
+            </div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'fitness')); }}>×</button>
+          </div>
+        )}
       </div>
 
 
@@ -584,8 +632,15 @@ export default function AndroidExplorer() {
               <span className="text-white text-sm font-medium drop-shadow-md truncate w-full text-center">수학탐험대</span>
             </ActionTarget>
           )}
+          {PLAYSTORE_APPS.filter(a => installedApps.includes(a.id)).map(app => (
+            <div key={app.id} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 active:scale-95 transition-transform">
+              <div className="w-[72px] h-[72px] md:w-20 md:h-20 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl group-hover:scale-105 transition-transform" style={{ background: app.color }}>{app.label}</div>
+              <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{app.name}</span>
+            </div>
+          ))}
         </div>
       </div>
+
 
       <div className="absolute bottom-6 w-full flex justify-center gap-2 left-0">
         <div className="w-2 h-2 bg-white rounded-full"></div>
