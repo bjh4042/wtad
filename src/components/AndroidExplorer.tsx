@@ -2064,6 +2064,21 @@ export default function AndroidExplorer() {
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setIsCompact(c => !c)}
+                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title={isCompact ? '확대' : '축소'}
+              >
+                {isCompact ? <ChevronUp size={18}/> : <Minus size={18}/>}
+              </button>
+              <button
+                onClick={() => setShowExpMenu(false)}
+                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title="닫기"
+              >
+                <X size={20}/>
+              </button>
+            </div>
+          </div>
           {!isCompact ? (
             <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
               <div className="flex justify-between items-end mb-2">
@@ -2134,20 +2149,6 @@ export default function AndroidExplorer() {
               </div>
             </div>
           )}
-              </button>
-              <button
-                onClick={() => { if (confirm('모든 진행도를 초기화하고 미션을 처음부터 다시 시작합니다. 계속할까요?')) resetProgress(); }}
-                className="px-3 py-2 rounded-xl text-sm font-bold text-white active:scale-95 transition-all flex items-center gap-1"
-                style={{ background: '#ef4444' }}
-                title="처음부터 다시"
-              >
-                <RefreshCcw size={14}/> 재시작
-              </button>
-            </div>
-            <div className="text-[10px] text-gray-500 mt-2 text-center">
-              ◀▶ 로 완료한 미션을 다시 연습할 수 있어요 ({completedQuests.length}/{QUESTS.length} 완료)
-            </div>
-          </div>
         </div>
       )}
 
