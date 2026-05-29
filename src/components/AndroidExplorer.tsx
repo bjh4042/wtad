@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 const QUESTS = [
-  { id: 0, text: "탐험을 시작합니다. '시작' 버튼을 누르세요.", targetId: 'start-btn', exp: 10 },
+  { id: 0, text: "갤럭시탭이 잠겨있어요. 잠금화면을 위로 밀어 올려 잠금을 해제하세요.", targetId: 'lock-swipe', exp: 10 },
   { id: 1, text: "상단 표시줄을 드래그하여 퀵패널을 여세요.", targetId: 'swipe-trigger', exp: 20 },
   { id: 2, text: "와이파이 아이콘의 이름을 눌러 와이파이 설정을 켜세요.", targetId: 'quick-wifi-toggle', exp: 20 },
   { id: 3, text: "'탐험대_WiFi' 네트워크를 선택하세요.", targetId: 'wifi-net-0', exp: 20 },
@@ -1025,46 +1025,109 @@ export default function AndroidExplorer() {
     </div>
   );
 
+  const handleLockSwipeStart = (e: any) => {
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    setLockSwipeY(y);
+  };
+  const handleLockSwipeMove = (e: any) => {
+    if (lockSwipeY === null) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const delta = Math.max(0, lockSwipeY - y);
+    setLockOffset(delta);
+  };
+  const handleLockSwipeEnd = () => {
+    if (lockSwipeY === null) return;
+    if (lockOffset > 100) {
+      setLocked(false);
+      setLockOffset(0);
+      if (currentTargetId === 'lock-swipe') advanceQuest('lock-swipe');
+    } else {
+      setLockOffset(0);
+    }
+    setLockSwipeY(null);
+  };
+
   return (
-    <div className="fixed inset-0 w-full h-full bg-black flex flex-col overflow-hidden select-none font-sans" onMouseMove={handleGlobalMove} onTouchMove={handleGlobalMove} onMouseUp={handleGlobalEnd} onTouchEnd={handleGlobalEnd} onMouseLeave={handleGlobalEnd}>
+    <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center overflow-hidden select-none font-sans p-4" onMouseMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onTouchMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onMouseUp={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onTouchEnd={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onMouseLeave={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes wiggle { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+        @keyframes pulseUp { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-10px); opacity: 1; } }
         .animate-wiggle { animation: wiggle 0.25s ease-in-out infinite; }
+        .animate-pulse-up { animation: pulseUp 1.6s ease-in-out infinite; }
       `}</style>
 
-      <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
+      {/* Galaxy Tab S10 Ultra bezel frame */}
+      <div className="relative w-full h-full max-w-[1600px] max-h-[1080px] aspect-[16/10] bg-black rounded-[36px] p-[14px] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
+        {/* front camera dot */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-[6px] w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+        <div className="relative w-full h-full rounded-[24px] overflow-hidden bg-black flex flex-col">
 
-      {renderStatusBar()}
+          <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
 
-      <div className="flex-1 relative flex flex-col bg-black overflow-hidden min-h-0 z-0">
-        {currentApp === null && renderHome()}
-        {currentApp === 'Settings' && renderSettings()}
-        {currentApp === 'Camera' && renderCamera()}
-        {currentApp === 'Gallery' && renderGallery()}
-        {currentApp === 'PlayStore' && renderPlayStore()}
+          {renderStatusBar()}
+
+          <div className="flex-1 relative flex flex-col bg-black overflow-hidden min-h-0 z-0">
+            {currentApp === null && renderHome()}
+            {currentApp === 'Settings' && renderSettings()}
+            {currentApp === 'Camera' && renderCamera()}
+            {currentApp === 'Gallery' && renderGallery()}
+            {currentApp === 'PlayStore' && renderPlayStore()}
+          </div>
+
+          <div className="shrink-0 z-40">{renderNavigationBar()}</div>
+
+          {renderQuickPanel()}
+
+          {mathAppOpen && (
+            <div className="absolute inset-0 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-14">
+              <div className="text-white text-7xl font-black drop-shadow-lg mb-4">1 + 2 = ?</div>
+              <div className="text-white text-2xl font-bold mb-10 drop-shadow">똑똑수학탐험대에 오신 걸 환영해요!</div>
+              <div className="flex gap-6">
+                {[2, 3, 4].map(n => (
+                  <div key={n} className={`w-24 h-24 rounded-3xl flex items-center justify-center text-4xl font-black shadow-xl cursor-pointer active:scale-90 transition-all ${n===3 ? 'bg-white text-green-600' : 'bg-white/80 text-gray-700'}`}>{n}</div>
+                ))}
+              </div>
+              <div className="mt-10 text-white text-sm opacity-80">홈 버튼을 눌러 종료하세요</div>
+            </div>
+          )}
+
+          {/* Lock screen overlay */}
+          {locked && (
+            <div
+              className="absolute inset-0 z-[150] cursor-grab active:cursor-grabbing overflow-hidden"
+              style={{
+                background: wallpaper,
+                backgroundSize: 'cover',
+                transform: `translateY(${-lockOffset}px)`,
+                transition: lockSwipeY === null ? 'transform 0.3s ease-out' : 'none',
+              }}
+              onMouseDown={handleLockSwipeStart}
+              onTouchStart={handleLockSwipeStart}
+            >
+              <div className="absolute inset-0 bg-black/40"></div>
+              <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
+                <Lock size={40} className="mb-4 opacity-80" />
+                <div className="text-[120px] font-thin leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
+                <div className="text-2xl mt-3 opacity-90 drop-shadow">{dateStr}</div>
+                <div className="absolute bottom-20 flex flex-col items-center pointer-events-none">
+                  <ChevronUp size={48} className={`text-white/80 ${currentTargetId === 'lock-swipe' ? 'animate-pulse-up' : 'opacity-60'}`} />
+                  <div className="text-white/90 text-lg mt-2 font-medium drop-shadow">위로 밀어 잠금해제</div>
+                </div>
+                {currentTargetId === 'lock-swipe' && (
+                  <div className="absolute top-24 bg-blue-600 text-white text-sm px-4 py-2 rounded-xl shadow-xl font-bold pointer-events-none animate-bounce">
+                    👆 여기서부터 위로 스와이프!
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="shrink-0 z-40">{renderNavigationBar()}</div>
-
-      {renderQuickPanel()}
-
-      {mathAppOpen && (
-        <div className="absolute inset-0 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-14">
-          <div className="text-white text-7xl font-black drop-shadow-lg mb-4">1 + 2 = ?</div>
-          <div className="text-white text-2xl font-bold mb-10 drop-shadow">똑똑수학탐험대에 오신 걸 환영해요!</div>
-          <div className="flex gap-6">
-            {[2, 3, 4].map(n => (
-              <div key={n} className={`w-24 h-24 rounded-3xl flex items-center justify-center text-4xl font-black shadow-xl cursor-pointer active:scale-90 transition-all ${n===3 ? 'bg-white text-green-600' : 'bg-white/80 text-gray-700'}`}>{n}</div>
-            ))}
-          </div>
-          <div className="mt-10 text-white text-sm opacity-80">홈 버튼을 눌러 종료하세요</div>
-        </div>
-      )}
-
       {showExpMenu && (
-        <div className="absolute z-[100] bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
+        <div className="absolute z-[300] bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
           <div className="bg-blue-600 text-white p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
             <div className="flex items-center gap-2 font-bold text-lg"><GripHorizontal size={22}/> 미션 센터</div>
             <X size={24} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
@@ -1078,13 +1141,6 @@ export default function AndroidExplorer() {
               <div className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%` }}></div>
             </div>
             <div className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm relative min-h-[140px] flex flex-col justify-center">
-              {questIdx === 0 && (
-                <div className="absolute inset-0 bg-white/90 z-10 flex items-center justify-center backdrop-blur-sm rounded-2xl">
-                  <ActionTarget id="start-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest}>
-                    <button className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-10 py-4 rounded-full font-bold text-xl shadow-lg animate-bounce transition-all">시작하기</button>
-                  </ActionTarget>
-                </div>
-              )}
               <div className="text-base font-bold text-blue-500 mb-2">현재 임무 ({questIdx}/{QUESTS.length - 1})</div>
               <div className="text-gray-800 font-bold text-[19px] leading-relaxed break-keep">
                 {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
@@ -1095,7 +1151,7 @@ export default function AndroidExplorer() {
       )}
 
       {!showExpMenu && (
-        <div className="absolute bottom-24 right-8 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[100] animate-bounce" onClick={() => setShowExpMenu(true)}>
+        <div className="absolute bottom-8 right-8 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
           <Check size={32} className="text-white" />
         </div>
       )}
