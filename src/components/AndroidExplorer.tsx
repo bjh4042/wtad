@@ -205,6 +205,7 @@ export default function AndroidExplorer() {
   const [currentCameraSeed, setCurrentCameraSeed] = useState(Date.now());
   const [wallpaper, setWallpaper] = useState('radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a');
   const [mathAppOpen, setMathAppOpen] = useState(false);
+  const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
   const initialApps = Array(24).fill(null);
   initialApps[8] = 'GameLauncher'; initialApps[9] = 'Store'; initialApps[10] = 'Camera'; initialApps[11] = 'Gallery';
@@ -1463,11 +1464,41 @@ export default function AndroidExplorer() {
             <div className="flex-1 flex flex-col justify-center gap-1">
               <h2 className="text-4xl font-bold mb-2">똑똑수학탐험대</h2>
               <p className="text-lg text-green-700 font-medium">교육부</p>
-              <p className="text-sm text-gray-500 mb-6">인앱 구매 · 교육</p>
               {installedApps.includes('math') ? (
                 <button className="bg-gray-100 text-gray-700 py-3.5 px-12 rounded-full font-bold self-start w-full max-w-[240px] text-lg active:scale-95 transition-transform">열기</button>
+              ) : mathInstallProgress !== null ? (
+                <div className="w-full max-w-[240px] self-start">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-[#01875f]">설치 중... {mathInstallProgress}%</span>
+                    <span className="text-xs text-gray-500">{(mathInstallProgress * 0.42).toFixed(1)}MB / 42MB</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#01875f] transition-all duration-200" style={{ width: `${mathInstallProgress}%` }} />
+                  </div>
+                  <div className="text-xs text-gray-400 mt-2">
+                    {mathInstallProgress < 30 ? '다운로드 중...' : mathInstallProgress < 80 ? '파일 압축 해제 중...' : '설치 마무리 중...'}
+                  </div>
+                </div>
               ) : (
-                <ActionTarget id="playstore-install-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setInstalledApps([...installedApps, 'math'])}>
+                <ActionTarget id="playstore-install-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => {
+                  if (mathInstallProgress !== null) return;
+                  setMathInstallProgress(0);
+                  const interval = setInterval(() => {
+                    setMathInstallProgress(p => {
+                      if (p === null) { clearInterval(interval); return null; }
+                      const next = p + Math.floor(Math.random() * 8) + 3;
+                      if (next >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                          setInstalledApps(prev => prev.includes('math') ? prev : [...prev, 'math']);
+                          setMathInstallProgress(null);
+                        }, 400);
+                        return 100;
+                      }
+                      return next;
+                    });
+                  }, 200);
+                }}>
                   <button className="bg-[#01875f] hover:bg-[#01704e] text-white py-3.5 px-12 rounded-full font-bold self-start w-full max-w-[240px] transition-all active:scale-95 text-lg shadow-md pointer-events-none">설치</button>
                 </ActionTarget>
               )}
@@ -1704,7 +1735,7 @@ export default function AndroidExplorer() {
           {renderQuickPanel()}
 
           {mathAppOpen && (
-            <div className="absolute inset-0 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-14">
+            <div className="absolute left-0 right-0 top-0 bottom-14 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-4">
               <div className="text-white text-7xl font-black drop-shadow-lg mb-4">1 + 2 = ?</div>
               <div className="text-white text-2xl font-bold mb-10 drop-shadow">똑똑수학탐험대에 오신 걸 환영해요!</div>
               <div className="flex gap-6">
