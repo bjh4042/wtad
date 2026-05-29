@@ -665,30 +665,46 @@ export default function AndroidExplorer() {
     </div>
   );
 
-  const renderSettings = () => (
-    <div className="flex-1 bg-[#000000] text-white flex pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
       <div className="w-1/3 md:w-1/4 border-r border-gray-800 bg-[#000000] flex flex-col py-4 overflow-y-auto min-h-0 shrink-0">
-        <div className="px-8 mb-6 flex justify-between items-center">
-          <div className="text-3xl font-light">설정</div>
-          <Search size={24} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" />
+        <div className="px-3 md:px-6 mb-3">
+          <div className="text-2xl md:text-3xl font-light mb-3">설정</div>
+          <div className="flex items-center gap-2 bg-[#1c1c1e] rounded-full px-3 py-2">
+            <Search size={16} className="text-gray-400 shrink-0" />
+            <input
+              value={settingsSearch}
+              onChange={(e) => setSettingsSearch(e.target.value)}
+              placeholder="검색"
+              className="bg-transparent outline-none text-sm text-white w-full min-w-0"
+            />
+            {settingsSearch && (
+              <X size={14} className="text-gray-400 cursor-pointer shrink-0" onClick={() => setSettingsSearch('')}/>
+            )}
+          </div>
         </div>
         <div className="flex flex-col gap-1 px-2 pb-10">
-          <div className="px-6 py-4 flex items-center gap-4 bg-[#1c1c1e] rounded-2xl mb-2 cursor-pointer active:scale-[0.98] transition-transform">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center"><User size={20} className="text-white"/></div>
-            <div className="flex flex-col"><span className="font-semibold text-base">내 계정</span><span className="text-xs text-gray-400">삼성 계정</span></div>
+          <div className="px-3 py-2.5 flex items-center gap-3 bg-[#1c1c1e] rounded-2xl mb-2 cursor-pointer active:scale-[0.98] transition-transform">
+            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center shrink-0"><User size={18} className="text-white"/></div>
+            <div className="flex flex-col min-w-0"><span className="font-semibold text-sm truncate">내 계정</span><span className="text-[11px] text-gray-400 truncate">삼성 계정</span></div>
           </div>
-          {SETTINGS_MENUS.map((menu) => (
+          {SETTINGS_MENUS.filter(m => !settingsSearch || m.title.includes(settingsSearch) || m.sub.includes(settingsSearch)).map((menu) => (
             <ActionTarget
               key={menu.id} id={`settings-menu-${menu.id}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
               onClick={() => setSettingsMenu(menu.id)}
-              className={`px-4 py-3 flex items-center gap-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] ${settingsMenu === menu.id ? 'bg-[#1c1c1e]' : 'hover:bg-[#1c1c1e]/50'}`}
+              className={`px-3 py-2.5 flex items-center gap-3 rounded-2xl cursor-pointer transition-all active:scale-[0.98] ${settingsMenu === menu.id ? 'bg-[#1c1c1e]' : 'hover:bg-[#1c1c1e]/50'}`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${menu.bg}`}>{menu.icon}</div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${menu.bg}`}>{menu.icon}</div>
               <div className="flex flex-col flex-1 overflow-hidden">
-                <span className={`text-base font-medium truncate ${settingsMenu === menu.id ? 'text-blue-400' : 'text-gray-200'}`}>{menu.title}</span>
-                <span className="text-[11px] text-gray-500 truncate">{menu.sub}</span>
+                <span className={`text-xs md:text-sm font-medium truncate ${settingsMenu === menu.id ? 'text-blue-400' : 'text-gray-200'}`}>{menu.title}</span>
+                <span className="text-[10px] text-gray-500 truncate hidden md:block">{menu.sub}</span>
               </div>
             </ActionTarget>
+          ))}
+          {settingsSearch && SETTINGS_MENUS.filter(m => m.title.includes(settingsSearch) || m.sub.includes(settingsSearch)).length === 0 && (
+            <div className="text-center text-gray-500 text-xs py-8">검색 결과 없음</div>
+          )}
+        </div>
+      </div>
+
           ))}
         </div>
       </div>
