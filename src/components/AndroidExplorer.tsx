@@ -258,9 +258,10 @@ export default function AndroidExplorer() {
   const [locked, setLocked] = useState(true);
   const [lockSwipeY, setLockSwipeY] = useState<number | null>(null);
   const [lockOffset, setLockOffset] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
-  const [fontScale, setFontScale] = useState(1);
-  const [widgets, setWidgets] = useState<string[]>(['clock', 'weather', 'calendar']);
+  const [darkMode, setDarkMode] = useState<boolean>(() => loadLS().darkMode ?? false);
+  const [fontScale, setFontScale] = useState<number>(() => loadLS().fontScale ?? 1);
+  const [widgets, setWidgets] = useState<string[]>(() => loadLS().widgets ?? ['clock', 'weather', 'calendar']);
+
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [homeMenuOpen, setHomeMenuOpen] = useState(false);
   const [homeLongPressTimer, setHomeLongPressTimer] = useState<any>(null);
