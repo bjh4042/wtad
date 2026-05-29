@@ -292,6 +292,14 @@ export default function AndroidExplorer() {
     }
   }, [questIdx]);
 
+  // 최근 사용 앱 추적
+  useEffect(() => {
+    if (currentApp) {
+      setRecentApps(prev => [currentApp, ...prev.filter(a => a !== currentApp)].slice(0, 5));
+    }
+  }, [currentApp]);
+
+
 
 
 
