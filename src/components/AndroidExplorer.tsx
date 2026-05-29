@@ -277,7 +277,8 @@ export default function AndroidExplorer() {
   const [uninstallTarget, setUninstallTarget] = useState<string | null>(null);
   const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
 
-  // 신규: 테마/권한/최근 앱/분할 화면
+  const [themeColor, setThemeColor] = useState<string>(() => loadLS().themeColor ?? '#3b82f6');
+
   const [themeColor, setThemeColor] = useState('#3b82f6');
   const [recentAppsOpen, setRecentAppsOpen] = useState(false);
   const [recentApps, setRecentApps] = useState<string[]>([]);
