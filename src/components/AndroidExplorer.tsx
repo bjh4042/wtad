@@ -1125,18 +1125,34 @@ export default function AndroidExplorer() {
         tooltipText="↓ 아래로 드래그(또는 탭)하세요"
         className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-[80] select-none bg-gradient-to-b from-black/40 to-transparent"
       >
-        <span className="font-medium drop-shadow-md">{timeStr}</span>
-        <div className="flex space-x-2 items-center drop-shadow-md">
-          {airplane && <Plane size={16} strokeWidth={2.5} />}
-          {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
-          {bluetooth && <Bluetooth size={16} strokeWidth={2.5} />}
-          {soundMode === 'vibrate' && <Vibrate size={16} strokeWidth={2.5} />}
-          {soundMode === 'mute' && <VolumeX size={16} strokeWidth={2.5} />}
-          <Signal size={16} strokeWidth={2.5} />
-          <span className="text-xs font-bold ml-1">98%</span>
-          <BatteryMedium size={18} strokeWidth={2.5} />
+        <div className="flex items-center gap-2">
+          <span className="font-semibold drop-shadow-md tracking-tight">{timeStr}</span>
+          {notifications.length > 0 && (
+            <div className="flex items-center gap-1 bg-red-500/90 px-1.5 rounded-full text-[10px] font-bold leading-none py-0.5">
+              <Bell size={9} strokeWidth={3}/> {notifications.length}
+            </div>
+          )}
+        </div>
+        <div className="flex space-x-1.5 items-center drop-shadow-md">
+          {airplane && <Plane size={14} strokeWidth={2.5} />}
+          {wifiConnected && !airplane && <Wifi size={14} strokeWidth={2.5} />}
+          {bluetooth && <Bluetooth size={14} strokeWidth={2.5} />}
+          {soundMode === 'vibrate' && <Vibrate size={14} strokeWidth={2.5} />}
+          {soundMode === 'mute' && <VolumeX size={14} strokeWidth={2.5} />}
+          {!airplane && (
+            <>
+              <Signal size={14} strokeWidth={2.5} />
+              <span className="text-[10px] font-bold tracking-wider">LTE</span>
+            </>
+          )}
+          <span className="text-[11px] font-bold ml-1 tabular-nums">98%</span>
+          <div className="relative w-7 h-3.5 border-2 border-white rounded-[3px] flex items-center px-0.5">
+            <div className="h-full w-[88%] bg-white rounded-sm"></div>
+            <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-0.5 h-1.5 bg-white rounded-r"></div>
+          </div>
         </div>
       </ActionTarget>
+
       {currentTargetId === 'swipe-trigger' && (
         <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none flex flex-col items-center animate-bounce">
           <div className="w-1 h-10 bg-yellow-400 rounded-full"></div>
