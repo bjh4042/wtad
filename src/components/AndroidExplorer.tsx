@@ -298,14 +298,18 @@ export default function AndroidExplorer() {
   const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-
-
-  const [questIdx, setQuestIdx] = useState(0);
-  const [exp, setExp] = useState(0);
+  const [questIdx, setQuestIdx] = useState<number>(() => loadLS().questIdx ?? 0);
+  const [exp, setExp] = useState<number>(() => loadLS().exp ?? 0);
+  const [completedQuests, setCompletedQuests] = useState<number[]>(() => loadLS().completedQuests ?? []);
+  const [drawerSearch, setDrawerSearch] = useState('');
+  const [appLaunchKey, setAppLaunchKey] = useState(0);
   const [showExpMenu, setShowExpMenu] = useState(true);
   const [expPos, setExpPos] = useState({ x: 20, y: 60 });
   const [isDraggingExp, setIsDraggingExp] = useState(false);
   const dragRefExp = useRef(null);
+  const expMenuRef = useRef(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+
   const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
 
