@@ -503,23 +503,24 @@ export default function AndroidExplorer() {
       </div>
 
       {/* Home widgets row */}
-      <div className="absolute top-16 left-4 md:left-8 right-4 md:right-8 flex gap-4 pointer-events-none">
+      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 pointer-events-none flex-wrap">
         {/* Clock widget */}
-        <div className="bg-white/15 backdrop-blur-md rounded-3xl px-6 py-4 shadow-xl border border-white/20 flex flex-col text-white min-w-[260px]">
-          <div className="text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
-          <div className="text-sm mt-2 opacity-90 font-medium">{dateStr}</div>
+        <div className="bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 shadow-xl border border-white/20 flex flex-col text-white flex-1 min-w-[150px]">
+          <div className="text-4xl md:text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
+          <div className="text-xs md:text-sm mt-1 md:mt-2 opacity-90 font-medium truncate">{dateStr}</div>
         </div>
         {/* Weather widget */}
-        <div className="bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex items-center gap-4 text-white">
-          <Sun size={56} className="text-yellow-300 drop-shadow-md"/>
+        <div className="bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-3 md:py-4 shadow-xl border border-white/20 flex items-center gap-2 md:gap-4 text-white">
+          <Sun size={36} className="md:hidden text-yellow-300 drop-shadow-md"/>
+          <Sun size={56} className="hidden md:block text-yellow-300 drop-shadow-md"/>
           <div>
-            <div className="text-3xl font-bold leading-none">21°</div>
-            <div className="text-xs opacity-90 mt-1">서울 · 맑음</div>
-            <div className="text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+            <div className="text-xl md:text-3xl font-bold leading-none">21°</div>
+            <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1">서울 · 맑음</div>
+            <div className="hidden md:block text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
           </div>
         </div>
-        {/* Calendar widget */}
-        <div className="bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex flex-col items-center text-white min-w-[100px]">
+        {/* Calendar widget — hidden on mobile */}
+        <div className="hidden md:flex bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex-col items-center text-white min-w-[100px]">
           <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">
             {time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}
           </div>
@@ -527,6 +528,7 @@ export default function AndroidExplorer() {
           <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
         </div>
       </div>
+
 
       <div className="flex-1 flex flex-col justify-end pb-8">
         <div className="grid grid-cols-4 md:grid-cols-8 gap-y-10 gap-x-4 md:gap-x-6 px-4 md:px-8 w-full max-w-[1200px] justify-items-center self-center">
@@ -666,30 +668,47 @@ export default function AndroidExplorer() {
   const renderSettings = () => (
     <div className="flex-1 bg-[#000000] text-white flex pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
       <div className="w-1/3 md:w-1/4 border-r border-gray-800 bg-[#000000] flex flex-col py-4 overflow-y-auto min-h-0 shrink-0">
-        <div className="px-8 mb-6 flex justify-between items-center">
-          <div className="text-3xl font-light">설정</div>
-          <Search size={24} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" />
+
+        <div className="px-3 md:px-6 mb-3">
+          <div className="text-2xl md:text-3xl font-light mb-3">설정</div>
+          <div className="flex items-center gap-2 bg-[#1c1c1e] rounded-full px-3 py-2">
+            <Search size={16} className="text-gray-400 shrink-0" />
+            <input
+              value={settingsSearch}
+              onChange={(e) => setSettingsSearch(e.target.value)}
+              placeholder="검색"
+              className="bg-transparent outline-none text-sm text-white w-full min-w-0"
+            />
+            {settingsSearch && (
+              <X size={14} className="text-gray-400 cursor-pointer shrink-0" onClick={() => setSettingsSearch('')}/>
+            )}
+          </div>
         </div>
         <div className="flex flex-col gap-1 px-2 pb-10">
-          <div className="px-6 py-4 flex items-center gap-4 bg-[#1c1c1e] rounded-2xl mb-2 cursor-pointer active:scale-[0.98] transition-transform">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center"><User size={20} className="text-white"/></div>
-            <div className="flex flex-col"><span className="font-semibold text-base">내 계정</span><span className="text-xs text-gray-400">삼성 계정</span></div>
+          <div className="px-3 py-2.5 flex items-center gap-3 bg-[#1c1c1e] rounded-2xl mb-2 cursor-pointer active:scale-[0.98] transition-transform">
+            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center shrink-0"><User size={18} className="text-white"/></div>
+            <div className="flex flex-col min-w-0"><span className="font-semibold text-sm truncate">내 계정</span><span className="text-[11px] text-gray-400 truncate">삼성 계정</span></div>
           </div>
-          {SETTINGS_MENUS.map((menu) => (
+          {SETTINGS_MENUS.filter(m => !settingsSearch || m.title.includes(settingsSearch) || m.sub.includes(settingsSearch)).map((menu) => (
             <ActionTarget
               key={menu.id} id={`settings-menu-${menu.id}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
               onClick={() => setSettingsMenu(menu.id)}
-              className={`px-4 py-3 flex items-center gap-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] ${settingsMenu === menu.id ? 'bg-[#1c1c1e]' : 'hover:bg-[#1c1c1e]/50'}`}
+              className={`px-3 py-2.5 flex items-center gap-3 rounded-2xl cursor-pointer transition-all active:scale-[0.98] ${settingsMenu === menu.id ? 'bg-[#1c1c1e]' : 'hover:bg-[#1c1c1e]/50'}`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${menu.bg}`}>{menu.icon}</div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${menu.bg}`}>{menu.icon}</div>
               <div className="flex flex-col flex-1 overflow-hidden">
-                <span className={`text-base font-medium truncate ${settingsMenu === menu.id ? 'text-blue-400' : 'text-gray-200'}`}>{menu.title}</span>
-                <span className="text-[11px] text-gray-500 truncate">{menu.sub}</span>
+                <span className={`text-xs md:text-sm font-medium truncate ${settingsMenu === menu.id ? 'text-blue-400' : 'text-gray-200'}`}>{menu.title}</span>
+                <span className="text-[10px] text-gray-500 truncate hidden md:block">{menu.sub}</span>
               </div>
             </ActionTarget>
           ))}
+          {settingsSearch && SETTINGS_MENUS.filter(m => m.title.includes(settingsSearch) || m.sub.includes(settingsSearch)).length === 0 && (
+            <div className="text-center text-gray-500 text-xs py-8">검색 결과 없음</div>
+          )}
         </div>
       </div>
+
+
 
       <div className="flex-1 p-10 bg-[#000000] overflow-y-auto min-h-0">
         {settingsMenu === 'connections' && (
@@ -718,12 +737,10 @@ export default function AndroidExplorer() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
         {settingsMenu === 'display' && (
           <div className="animate-[fadeIn_0.3s_ease-out]">
             <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 디스플레이</h2>
-            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-8">
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-8 mb-4">
               <div className="text-xl font-medium mb-6">밝기</div>
               <div className="flex items-center gap-6">
                 <Sun size={28} className="text-gray-400" />
@@ -734,6 +751,35 @@ export default function AndroidExplorer() {
                 </ActionTarget>
               </div>
             </div>
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8 mb-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <Moon size={24} className="text-blue-300 shrink-0"/>
+                <div className="min-w-0">
+                  <div className="text-lg md:text-xl font-medium">다크 모드</div>
+                  <div className="text-xs md:text-sm text-gray-400 mt-1">눈이 편안한 어두운 화면</div>
+                </div>
+              </div>
+              <div className={`w-14 h-8 rounded-full p-1 cursor-pointer transition-colors shrink-0 ${darkMode ? 'bg-blue-500' : 'bg-gray-600'}`} onClick={() => setDarkMode(!darkMode)}>
+                <div className={`w-6 h-6 bg-white rounded-full transform transition-transform ${darkMode ? 'translate-x-6' : ''} shadow-md`}></div>
+              </div>
+            </div>
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <Type size={22} className="text-gray-400"/>
+                <div className="text-lg md:text-xl font-medium">글자 크기</div>
+              </div>
+              <div className="text-white mb-4 truncate" style={{ fontSize: `${fontScale * 16}px` }}>안드로이드 탐험대</div>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-gray-400">가</span>
+                <input type="range" min="0.8" max="1.4" step="0.1" value={fontScale}
+                  onChange={(e) => setFontScale(parseFloat(e.target.value))}
+                  className="flex-1 accent-blue-500 h-3 bg-gray-700 rounded-full appearance-none cursor-pointer" />
+                <span className="text-2xl text-gray-300">가</span>
+              </div>
+            </div>
+          </div>
+        )}
+
           </div>
         )}
         {settingsMenu === 'wallpaper' && (
@@ -824,10 +870,27 @@ export default function AndroidExplorer() {
             <div className="flex flex-col"><span className="font-semibold text-lg">블루투스</span><span className="text-sm opacity-80">{bluetooth ? '켜짐' : '꺼짐'}</span></div>
           </div>
 
+          <div onClick={() => {
+            const flash = document.createElement('div');
+            flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-90';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 200);
+            setPhotos(prev => [...prev, { id: Date.now(), seed: Math.floor(Math.random()*1000) }]);
+          }} className="p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer bg-[#2c2c2c] text-gray-200">
+            <div className="p-3 bg-white/10 rounded-full"><Camera size={24} /></div>
+            <div className="flex flex-col"><span className="font-semibold text-lg">스크린샷</span><span className="text-sm opacity-80">화면 캡처</span></div>
+          </div>
+
+          <div onClick={() => setDarkMode(!darkMode)} className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${darkMode ? 'bg-indigo-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}>
+            <div className="p-3 bg-white/10 rounded-full"><Moon size={24} /></div>
+            <div className="flex flex-col"><span className="font-semibold text-lg">다크 모드</span><span className="text-sm opacity-80">{darkMode ? '켜짐' : '꺼짐'}</span></div>
+          </div>
+
           <div className="p-5 rounded-3xl flex items-center gap-4 bg-[#2c2c2c] text-gray-200">
             <div className="p-3 bg-white/10 rounded-full"><Flashlight size={24} /></div>
             <div className="flex flex-col"><span className="font-semibold text-lg">손전등</span><span className="text-sm opacity-80">꺼짐</span></div>
           </div>
+
         </div>
 
         {/* 소리 모드 */}
@@ -930,6 +993,28 @@ export default function AndroidExplorer() {
 
   const renderCamera = () => (
     <div className="flex-1 bg-black relative flex flex-col overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
+      {!cameraPermissionAsked && (
+        <div className="absolute inset-0 z-[120] bg-black/85 flex items-center justify-center backdrop-blur">
+          <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 mx-4 w-full max-w-[360px] shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0"><Camera size={24} className="text-blue-400"/></div>
+              <div>
+                <div className="font-bold text-lg">카메라 권한</div>
+                <div className="text-xs text-gray-400">카메라 앱이 다음을 요청합니다</div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-300 leading-relaxed mb-6">
+              사진을 찍고 동영상을 녹화할 수 있도록 <span className="font-bold text-white">카메라</span>에 액세스 권한을 허용하시겠어요?
+            </div>
+            <div className="flex flex-col gap-2">
+              <button className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all font-bold" onClick={() => setCameraPermissionAsked(true)}>앱 사용 중에만 허용</button>
+              <button className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all font-medium" onClick={() => setCameraPermissionAsked(true)}>이번만 허용</button>
+              <button className="w-full py-2 text-red-400 active:scale-95 text-sm" onClick={() => { setCameraPermissionAsked(true); setCurrentApp(null); }}>허용 안 함</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 relative flex items-center justify-center overflow-hidden pt-8 bg-[#111]">
         <div className="w-80 h-80 opacity-95"><CuteStudent seed={currentCameraSeed} /></div>
         <div className="absolute top-6 right-6 flex flex-col gap-6 text-white"><Settings size={28} className="drop-shadow-md cursor-pointer active:scale-90 transition-transform"/></div>
@@ -1003,24 +1088,59 @@ export default function AndroidExplorer() {
     }
     return (
       <div className="flex-1 bg-black text-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
-        <div className="p-4 flex justify-between items-center px-8 shrink-0">
-          <div className="text-3xl font-bold">사진</div>
-          <div className="flex gap-6 text-gray-300"><Search size={24} className="cursor-pointer hover:text-white active:scale-90 transition-transform"/><MoreHorizontal size={24} className="cursor-pointer hover:text-white active:scale-90 transition-transform"/></div>
+        <div className="p-4 flex justify-between items-center px-4 md:px-8 shrink-0 gap-2">
+          <div className="text-2xl md:text-3xl font-bold truncate">{multiSelectMode ? `${selectedPhotoIds.length}개 선택` : '사진'}</div>
+          <div className="flex gap-3 md:gap-6 text-gray-300 items-center shrink-0">
+            {multiSelectMode ? (
+              <>
+                <button className="text-sm text-blue-400 font-medium active:scale-95" onClick={() => { setMultiSelectMode(false); setSelectedPhotoIds([]); }}>취소</button>
+                <button className="text-sm text-red-400 font-bold disabled:opacity-50 active:scale-95" disabled={selectedPhotoIds.length === 0} onClick={() => { setPhotos(prev => prev.filter(p => !selectedPhotoIds.includes(p.id))); setSelectedPhotoIds([]); setMultiSelectMode(false); }}>삭제</button>
+              </>
+            ) : (
+              <>
+                <Search size={22} className="cursor-pointer hover:text-white active:scale-90 transition-transform"/>
+                <button className="text-sm text-blue-400 font-medium active:scale-95" onClick={() => setMultiSelectMode(true)}>선택</button>
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex-1 p-4 px-8 grid grid-cols-4 md:grid-cols-5 gap-2 content-start overflow-y-auto min-h-0">
+        <div className="flex-1 p-4 px-4 md:px-8 grid grid-cols-3 md:grid-cols-5 gap-2 content-start overflow-y-auto min-h-0">
           {photos.length === 0 ? (
             <div className="col-span-full text-center text-gray-500 mt-32 text-lg font-medium">항목 없음</div>
           ) : (
-            photos.map((photo, i) => (
-              <ActionTarget key={photo.id} id={`gallery-photo-${i}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setViewPhoto(photo)}>
-                <div className="aspect-square bg-[#1a1a1a] rounded-xl overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-80 active:scale-95 transition-all p-2">
-                  <div className="w-full h-full"><CuteStudent seed={photo.seed} /></div>
-                </div>
-              </ActionTarget>
-            ))
+            photos.map((photo, i) => {
+              const selected = selectedPhotoIds.includes(photo.id);
+              const lp: any = (typeof window !== 'undefined' ? window : {}) as any;
+              return (
+                <ActionTarget key={photo.id} id={`gallery-photo-${i}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                  onClick={() => {
+                    if (multiSelectMode) {
+                      setSelectedPhotoIds(prev => prev.includes(photo.id) ? prev.filter(x => x !== photo.id) : [...prev, photo.id]);
+                    } else {
+                      setViewPhoto(photo);
+                    }
+                  }}
+                  onMouseDown={() => { if (!multiSelectMode) { lp.__galleryLP = setTimeout(() => { setMultiSelectMode(true); setSelectedPhotoIds([photo.id]); }, 500); } }}
+                  onMouseUp={() => { if (lp.__galleryLP) { clearTimeout(lp.__galleryLP); lp.__galleryLP = null; } }}
+                  onMouseLeave={() => { if (lp.__galleryLP) { clearTimeout(lp.__galleryLP); lp.__galleryLP = null; } }}
+                  onTouchStart={() => { if (!multiSelectMode) { lp.__galleryLP = setTimeout(() => { setMultiSelectMode(true); setSelectedPhotoIds([photo.id]); }, 500); } }}
+                  onTouchEnd={() => { if (lp.__galleryLP) { clearTimeout(lp.__galleryLP); lp.__galleryLP = null; } }}
+                >
+                  <div className={`relative aspect-square bg-[#1a1a1a] rounded-xl overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-80 active:scale-95 transition-all p-2 ${selected ? 'ring-4 ring-blue-500' : ''}`}>
+                    <div className="w-full h-full"><CuteStudent seed={photo.seed} /></div>
+                    {multiSelectMode && (
+                      <div className={`absolute top-2 right-2 w-6 h-6 rounded-full border-2 ${selected ? 'bg-blue-500 border-blue-500' : 'border-white/80 bg-black/30'} flex items-center justify-center`}>
+                        {selected && <Check size={14} className="text-white"/>}
+                      </div>
+                    )}
+                  </div>
+                </ActionTarget>
+              );
+            })
           )}
         </div>
       </div>
+
     );
   };
 
@@ -1178,12 +1298,13 @@ export default function AndroidExplorer() {
       `}</style>
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
-      <div className="relative w-full h-full max-w-[1600px] max-h-[1080px] aspect-[16/10] bg-black rounded-[36px] p-[14px] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
+      <div className="relative w-full h-full md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] bg-black rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
         {/* front camera dot */}
         <div className="absolute top-1/2 -translate-y-1/2 left-[6px] w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
-        <div className="relative w-full h-full rounded-[24px] overflow-hidden bg-black flex flex-col">
+        <div className="relative w-full h-full rounded-[14px] md:rounded-[24px] overflow-hidden bg-black flex flex-col" style={{ fontSize: `${fontScale}rem` }}>
 
           <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
+          {darkMode && <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-[59] mix-blend-multiply"></div>}
 
           {renderStatusBar()}
 
@@ -1246,22 +1367,22 @@ export default function AndroidExplorer() {
       </div>
 
       {showExpMenu && (
-        <div className="absolute z-[300] bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
-          <div className="bg-blue-600 text-white p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
-            <div className="flex items-center gap-2 font-bold text-lg"><GripHorizontal size={22}/> 미션 센터</div>
-            <X size={24} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
+        <div className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
+          <div className="bg-blue-600 text-white p-3 md:p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
+            <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
+            <X size={20} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
           </div>
-          <div className="p-6 bg-blue-50/50">
-            <div className="flex justify-between items-end mb-3">
-              <span className="text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
-              <span className="text-lg text-blue-600 font-bold">{exp} EXP</span>
+          <div className="p-3 md:p-6 bg-blue-50/50">
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
+              <span className="text-sm md:text-lg text-blue-600 font-bold">{exp} EXP</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-6 shadow-inner">
-              <div className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%` }}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 md:mb-6 shadow-inner">
+              <div className="bg-blue-600 h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%` }}></div>
             </div>
-            <div className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm relative min-h-[140px] flex flex-col justify-center">
-              <div className="text-base font-bold text-blue-500 mb-2">현재 임무 ({questIdx}/{QUESTS.length - 1})</div>
-              <div className="text-gray-800 font-bold text-[19px] leading-relaxed break-keep">
+            <div className="bg-white p-3 md:p-6 rounded-2xl border border-blue-100 shadow-sm relative min-h-[90px] md:min-h-[140px] flex flex-col justify-center">
+              <div className="text-xs md:text-base font-bold text-blue-500 mb-1 md:mb-2">현재 임무 ({questIdx}/{QUESTS.length - 1})</div>
+              <div className="text-gray-800 font-bold text-sm md:text-[19px] leading-relaxed break-keep">
                 {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
               </div>
             </div>
@@ -1270,10 +1391,11 @@ export default function AndroidExplorer() {
       )}
 
       {!showExpMenu && (
-        <div className="absolute bottom-8 right-8 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
-          <Check size={32} className="text-white" />
+        <div className="fixed md:absolute bottom-4 right-4 md:bottom-8 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
+          <Check size={28} className="text-white" />
         </div>
       )}
+
     </div>
   );
 }
