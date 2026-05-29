@@ -1843,13 +1843,16 @@ export default function AndroidExplorer() {
           {renderStatusBar()}
 
           <div className="flex-1 relative flex flex-col bg-black overflow-hidden min-h-0 z-0">
-            {currentApp === null && renderHome()}
-            {currentApp === 'Settings' && renderSettings()}
-            {currentApp === 'Camera' && renderCamera()}
-            {currentApp === 'Gallery' && renderGallery()}
-            {currentApp === 'PlayStore' && renderPlayStore()}
-            {currentApp === 'Notes' && renderNotes()}
+            <div key={`app-${appLaunchKey}`} className="absolute inset-0 flex flex-col animate-app-enter">
+              {currentApp === null && renderHome()}
+              {currentApp === 'Settings' && renderSettings()}
+              {currentApp === 'Camera' && renderCamera()}
+              {currentApp === 'Gallery' && renderGallery()}
+              {currentApp === 'PlayStore' && renderPlayStore()}
+              {currentApp === 'Notes' && renderNotes()}
+            </div>
           </div>
+
 
           <div className="shrink-0 z-40">{renderNavigationBar()}</div>
 
