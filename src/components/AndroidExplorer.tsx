@@ -289,6 +289,7 @@ export default function AndroidExplorer() {
   const [expPos, setExpPos] = useState({ x: 20, y: 60 });
   const [isDraggingExp, setIsDraggingExp] = useState(false);
   const dragRefExp = useRef(null);
+  const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
 
   const currentTargetId = QUESTS[questIdx]?.targetId;
@@ -339,13 +340,15 @@ export default function AndroidExplorer() {
   };
 
   const handleGlobalMove = (e) => {
-    if (isDraggingExp) {
+    if (isDraggingExp && expMenuRef.current && dragRefExp.current) {
       const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
       const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-      setExpPos({
-        x: dragRefExp.current.initX + (clientX - dragRefExp.current.startX),
-        y: dragRefExp.current.initY + (clientY - dragRefExp.current.startY)
-      });
+      const dx = clientX - dragRefExp.current.startX;
+      const dy = clientY - dragRefExp.current.startY;
+      expMenuRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      expMenuRef.current.style.willChange = 'transform';
+      dragRefExp.current.lastDx = dx;
+      dragRefExp.current.lastDy = dy;
     }
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -362,7 +365,28 @@ export default function AndroidExplorer() {
   };
 
 
-  const handleGlobalEnd = () => { setIsDraggingExp(false); setTouchStartY(null); };
+  const handleGlobalEnd = () => {
+    if (isDraggingExp && expMenuRef.current && dragRefExp.current) {
+      const dx = dragRefExp.current.lastDx || 0;
+      const dy = dragRefExp.current.lastDy || 0;
+      expMenuRef.current.style.transition = 'none';
+      expMenuRef.current.style.transform = 'none';
+      expMenuRef.current.style.willChange = '';
+      setExpPos({
+        x: dragRefExp.current.initX + dx,
+        y: dragRefExp.current.initY + dy
+      });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (expMenuRef.current) {
+            expMenuRef.current.style.transition = '';
+          }
+        });
+      });
+    }
+    setIsDraggingExp(false);
+    setTouchStartY(null);
+  };
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
 
   const handleAppPressStart = (appName) => {
@@ -1932,7 +1956,7 @@ export default function AndroidExplorer() {
       </div>
 
       {showExpMenu && (
-        <div className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
+        <div ref={expMenuRef} className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
           <div className="bg-blue-600 text-white p-3 md:p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
             <X size={20} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
