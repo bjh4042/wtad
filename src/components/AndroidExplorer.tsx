@@ -2059,28 +2059,110 @@ export default function AndroidExplorer() {
       </div>
 
       {showExpMenu && (
-        <div ref={expMenuRef} className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
-          <div className="bg-blue-600 text-white p-3 md:p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
+        <div ref={expMenuRef} className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x, borderColor: `${themeColor}55` }}>
+          <div className="text-white p-3 md:p-4 flex justify-between items-center cursor-move" style={{ background: themeColor }} onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
             <X size={20} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
           </div>
-          <div className="p-3 md:p-6 bg-blue-50/50">
+          <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
             <div className="flex justify-between items-end mb-2">
               <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
-              <span className="text-sm md:text-lg text-blue-600 font-bold">{exp} EXP</span>
+              <span className="text-sm md:text-lg font-bold" style={{ color: themeColor }}>{exp} EXP</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 md:mb-6 shadow-inner">
-              <div className="bg-blue-600 h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%` }}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 shadow-inner">
+              <div className="h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%`, background: themeColor }}></div>
             </div>
-            <div className="bg-white p-3 md:p-6 rounded-2xl border border-blue-100 shadow-sm relative min-h-[90px] md:min-h-[140px] flex flex-col justify-center">
-              <div className="text-xs md:text-base font-bold text-blue-500 mb-1 md:mb-2">현재 임무 ({questIdx}/{QUESTS.length - 1})</div>
-              <div className="text-gray-800 font-bold text-sm md:text-[19px] leading-relaxed break-keep">
+            <div className="bg-white p-3 md:p-4 rounded-2xl border shadow-sm relative min-h-[90px] flex flex-col justify-center" style={{ borderColor: `${themeColor}33` }}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs md:text-sm font-bold" style={{ color: themeColor }}>현재 임무 {questIdx + 1}/{QUESTS.length}</div>
+                {completedQuests.includes(questIdx) && (
+                  <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1"><Check size={10}/> 완료</div>
+                )}
+              </div>
+              <div className="text-gray-800 font-bold text-sm md:text-[17px] leading-relaxed break-keep">
                 {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
               </div>
+            </div>
+            {/* Mission navigation controls */}
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={() => gotoQuest(questIdx - 1)}
+                disabled={questIdx === 0}
+                className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              >
+                <ChevronLeft size={16}/> 이전
+              </button>
+              <button
+                onClick={() => gotoQuest(questIdx + 1)}
+                disabled={!completedQuests.includes(questIdx) || questIdx >= QUESTS.length - 1}
+                className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              >
+                다음 <ChevronLeft size={16} className="rotate-180"/>
+              </button>
+              <button
+                onClick={() => { if (confirm('모든 진행도를 초기화하고 미션을 처음부터 다시 시작합니다. 계속할까요?')) resetProgress(); }}
+                className="px-3 py-2 rounded-xl text-sm font-bold text-white active:scale-95 transition-all flex items-center gap-1"
+                style={{ background: '#ef4444' }}
+                title="처음부터 다시"
+              >
+                <RefreshCcw size={14}/> 재시작
+              </button>
+            </div>
+            <div className="text-[10px] text-gray-500 mt-2 text-center">
+              ◀▶ 로 완료한 미션을 다시 연습할 수 있어요 ({completedQuests.length}/{QUESTS.length} 완료)
             </div>
           </div>
         </div>
       )}
+
+      {/* App icon long-press context menu */}
+      {appContextMenu && (
+        <div
+          className="fixed inset-0 z-[310] bg-black/40 flex items-center justify-center animate-[fadeIn_0.15s_ease-out]"
+          onClick={() => setAppContextMenu(null)}
+        >
+          <div className="bg-[#1c1c1e] text-white rounded-3xl w-[280px] overflow-hidden shadow-2xl animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-white/10 flex items-center gap-3">
+              <div className="w-12 h-12">{renderAppIcon(appContextMenu.appName, -99)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold truncate">{appContextMenu.appName}</div>
+                <div className="text-[11px] text-white/50">길게 눌러서 옵션 표시</div>
+              </div>
+            </div>
+            <div className="py-2">
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
+                onClick={() => { setIsEditMode(true); setAppContextMenu(null); }}
+              >
+                <GripHorizontal size={18} className="text-blue-400"/> 이동
+              </button>
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
+                onClick={() => { setAppContextMenu(null); setWidgetPickerOpen(true); }}
+              >
+                <span className="text-blue-400">🧩</span> 위젯 추가
+              </button>
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
+                onClick={() => { setAppContextMenu(null); setCurrentApp('Settings'); setSettingsMenu('apps'); }}
+              >
+                <Settings size={18} className="text-gray-300"/> 앱 정보
+              </button>
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors text-red-400"
+                onClick={() => { setUninstallTarget(appContextMenu.appName); setAppContextMenu(null); }}
+              >
+                <Trash2 size={18}/> 삭제
+              </button>
+            </div>
+            <button
+              className="w-full py-3 border-t border-white/10 text-sm font-medium text-white/70 hover:bg-white/5 active:bg-white/10 transition-colors"
+              onClick={() => setAppContextMenu(null)}
+            >취소</button>
+          </div>
+        </div>
+      )}
+
 
       {!showExpMenu && (
         <div className="fixed md:absolute bottom-4 right-4 md:bottom-8 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
