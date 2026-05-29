@@ -208,6 +208,31 @@ export default function AndroidExplorer() {
 
   const [viewPhoto, setViewPhoto] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
+
+  // 신규 상태들
+  const [locked, setLocked] = useState(true);
+  const [lockSwipeY, setLockSwipeY] = useState<number | null>(null);
+  const [lockOffset, setLockOffset] = useState(0);
+  const [darkMode, setDarkMode] = useState(false);
+  const [fontScale, setFontScale] = useState(1);
+  const [widgets, setWidgets] = useState<string[]>([]);
+  const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
+  const [homeMenuOpen, setHomeMenuOpen] = useState(false);
+  const [homeLongPressTimer, setHomeLongPressTimer] = useState<any>(null);
+  const [appDrawerOpen, setAppDrawerOpen] = useState(false);
+  const [drawerSwipeStart, setDrawerSwipeStart] = useState<number | null>(null);
+  const [notifications, setNotifications] = useState([
+    { id: 1, app: 'KakaoTalk', appName: '카카오톡', title: '엄마', body: '학교 끝나면 바로 와~', color: 'bg-yellow-400' },
+    { id: 2, app: 'Messages', appName: '메시지', title: '010-1234-5678', body: '[Web발신] 택배가 도착했습니다.', color: 'bg-blue-500' },
+  ]);
+  const [cameraPermissionAsked, setCameraPermissionAsked] = useState(false);
+  const [cameraPermissionPrompt, setCameraPermissionPrompt] = useState(false);
+  const [settingsSearch, setSettingsSearch] = useState('');
+  const [uninstallTarget, setUninstallTarget] = useState<string | null>(null);
+  const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
+
 
   const [questIdx, setQuestIdx] = useState(0);
   const [exp, setExp] = useState(0);
