@@ -824,17 +824,36 @@ export default function AndroidExplorer() {
       {/* App Drawer overlay */}
       {appDrawerOpen && (
         <div className="absolute inset-0 z-[90] bg-black/85 backdrop-blur-xl animate-[slideUp_0.3s_ease-out] flex flex-col pt-6">
-          <div className="flex items-center justify-between px-8 mb-4">
+          <div className="flex items-center justify-between px-8 mb-3">
             <div className="text-white text-2xl font-bold">앱 서랍</div>
             <button
               className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
-              onClick={() => setAppDrawerOpen(false)}
+              onClick={() => { setAppDrawerOpen(false); setDrawerSearch(''); }}
             >
               <X size={20}/>
             </button>
           </div>
+          <div className="px-8 mb-4">
+            <div className="relative">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50"/>
+              <input
+                value={drawerSearch}
+                onChange={(e) => setDrawerSearch(e.target.value)}
+                placeholder="앱 검색…"
+                className="w-full bg-white/10 border border-white/15 text-white placeholder-white/40 rounded-full pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:bg-white/15"
+              />
+            </div>
+          </div>
           <div className="flex-1 overflow-y-auto px-6 pb-8">
+            {(() => {
+              const all = homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []);
+              const filtered = drawerSearch
+                ? all.filter(a => a.toLowerCase().includes(drawerSearch.toLowerCase()))
+                : all;
+              return (
             <div className="grid grid-cols-6 md:grid-cols-8 gap-y-8 gap-x-4 justify-items-center">
+              {filtered.map((appName, i) => (
+
               {homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []).map((appName, i) => (
                 <div
                   key={`drawer-${appName}-${i}`}
