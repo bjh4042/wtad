@@ -889,9 +889,11 @@ export default function AndroidExplorer() {
               <div className="text-white mb-4 truncate" style={{ fontSize: `${fontScale * 16}px` }}>안드로이드 탐험대</div>
               <div className="flex items-center gap-4">
                 <span className="text-xs text-gray-400">가</span>
-                <input type="range" min="0.8" max="1.4" step="0.1" value={fontScale}
-                  onChange={(e) => setFontScale(parseFloat(e.target.value))}
-                  className="flex-1 accent-blue-500 h-3 bg-gray-700 rounded-full appearance-none cursor-pointer" />
+                <ActionTarget id="settings-fontsize-slider" currentTargetId={currentTargetId} advanceQuest={advanceQuest} className="flex-1">
+                  <input type="range" min="0.8" max="1.4" step="0.1" value={fontScale}
+                    onChange={(e) => { setFontScale(parseFloat(e.target.value)); advanceQuest('settings-fontsize-slider'); }}
+                    className="w-full accent-blue-500 h-3 bg-gray-700 rounded-full appearance-none cursor-pointer" />
+                </ActionTarget>
                 <span className="text-2xl text-gray-300">가</span>
               </div>
             </div>
