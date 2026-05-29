@@ -1527,6 +1527,119 @@ export default function AndroidExplorer() {
             </div>
           )}
 
+          {/* Split-screen overlay */}
+          {splitScreen && (
+            <div className="absolute inset-0 z-[85] flex flex-col bg-black pt-8 animate-[fadeIn_0.2s_ease-out]">
+              <div className="flex-1 border-b-2 border-white/20 relative overflow-hidden flex items-center justify-center" style={{ background: PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.color || '#1f2937' }}>
+                <div className="text-white text-center">
+                  <div className="text-5xl font-black mb-3">{PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.label || splitScreen.top[0]}</div>
+                  <div className="text-xl font-bold">{PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.name || splitScreen.top}</div>
+                  <div className="text-xs opacity-70 mt-1">상단 화면</div>
+                </div>
+                <button onClick={() => setSplitScreen(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 text-white text-xs">×</button>
+              </div>
+              <div className="h-1.5 bg-white/30 flex items-center justify-center"><div className="w-12 h-1 bg-white/60 rounded-full"/></div>
+              <div className="flex-1 relative overflow-hidden flex items-center justify-center" style={{ background: PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.color || '#374151' }}>
+                <div className="text-white text-center">
+                  <div className="text-5xl font-black mb-3">{PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.label || splitScreen.bottom[0]}</div>
+                  <div className="text-xl font-bold">{PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.name || splitScreen.bottom}</div>
+                  <div className="text-xs opacity-70 mt-1">하단 화면</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recent apps overlay */}
+          {recentAppsOpen && (
+            <div className="absolute inset-0 z-[88] bg-black/90 backdrop-blur-md flex flex-col pt-12 px-6 animate-[fadeIn_0.2s_ease-out]" onClick={() => setRecentAppsOpen(false)}>
+              <div className="text-white text-xl font-bold mb-4 px-2">최근 사용한 앱</div>
+              {recentApps.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-white/60">최근 사용한 앱이 없습니다</div>
+              ) : (
+                <div className="flex-1 overflow-x-auto flex gap-4 pb-8 items-start" onClick={(e) => e.stopPropagation()}>
+                  {recentApps.map((app, i) => {
+                    const psApp = PLAYSTORE_APPS.find(a => a.id === app);
+                    const bg = psApp?.color || ['#1e3a8a','#7c2d12','#065f46','#581c87','#7f1d1d'][i%5];
+                    const label = psApp?.label || app[0];
+                    const name = psApp?.name || app;
+                    return (
+                      <div key={`${app}-${i}`} className="w-[200px] shrink-0 flex flex-col items-center gap-3">
+                        <div className="w-full h-[300px] rounded-2xl shadow-2xl flex flex-col items-center justify-center text-white" style={{ background: bg }}>
+                          <div className="text-7xl font-black mb-3">{label}</div>
+                          <div className="text-lg font-bold">{name}</div>
+                        </div>
+                        <div className="flex gap-2 w-full">
+                          <button onClick={() => { setCurrentApp(app); setRecentAppsOpen(false); }} className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold active:scale-95">열기</button>
+                          <button
+                            onClick={() => {
+                              const other = recentApps.find(a => a !== app) || PLAYSTORE_APPS[0].id;
+                              setSplitScreen({ top: app, bottom: other });
+                              setRecentAppsOpen(false);
+                            }}
+                            className="flex-1 py-2 rounded-xl bg-purple-600 text-white text-sm font-bold active:scale-95"
+                          >분할</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="flex gap-3 justify-center pb-6">
+                <button onClick={(e) => { e.stopPropagation(); setRecentApps([]); setRecentAppsOpen(false); }} className="px-6 py-2 rounded-full bg-white/10 text-white text-sm font-medium active:scale-95">모두 닫기</button>
+                <button onClick={() => setRecentAppsOpen(false)} className="px-6 py-2 rounded-full bg-white/10 text-white text-sm font-medium active:scale-95">취소</button>
+              </div>
+            </div>
+          )}
+
+          {/* Home long-press menu */}
+          {homeMenuOpen && (
+            <div className="absolute inset-0 z-[92] bg-black/60 flex items-end animate-[fadeIn_0.2s_ease-out]" onClick={() => setHomeMenuOpen(false)}>
+              <div className="w-full bg-[#1c1c1e] text-white rounded-t-3xl p-6 animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+                <div className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-6"/>
+                <div className="grid grid-cols-3 gap-4">
+                  <button onClick={() => { setHomeMenuOpen(false); setWidgetPickerOpen(true); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
+                    <div className="text-3xl">🧩</div><div className="text-sm font-medium">위젯</div>
+                  </button>
+                  <button onClick={() => { setHomeMenuOpen(false); setCurrentApp('Settings'); setSettingsMenu('wallpaper'); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
+                    <div className="text-3xl">🖼️</div><div className="text-sm font-medium">배경화면</div>
+                  </button>
+                  <button onClick={() => { setHomeMenuOpen(false); setCurrentApp('Settings'); setSettingsMenu('wallpaper'); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
+                    <div className="text-3xl">🎨</div><div className="text-sm font-medium">테마</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Widget picker */}
+          {widgetPickerOpen && (
+            <div className="absolute inset-0 z-[93] bg-black/70 flex items-end animate-[fadeIn_0.2s_ease-out]" onClick={() => setWidgetPickerOpen(false)}>
+              <div className="w-full bg-[#1c1c1e] text-white rounded-t-3xl p-6 max-h-[70%] overflow-y-auto animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+                <div className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-4"/>
+                <div className="text-xl font-bold mb-4">위젯 추가</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {WIDGET_CATALOG.map(w => {
+                    const added = widgets.includes(w.id);
+                    return (
+                      <div key={w.id} className="bg-[#2c2c2e] rounded-2xl p-4 flex items-center gap-3">
+                        <div className="text-3xl">{w.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-sm truncate">{w.name}</div>
+                          <div className="text-[11px] text-gray-400 truncate">{w.desc}</div>
+                        </div>
+                        <button
+                          onClick={() => setWidgets(prev => added ? prev.filter(x => x !== w.id) : [...prev, w.id])}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg active:scale-90 transition-all ${added ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}
+                        >{added ? '−' : '+'}</button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button onClick={() => setWidgetPickerOpen(false)} className="w-full mt-6 py-3 rounded-2xl bg-blue-600 font-bold active:scale-95">완료</button>
+              </div>
+            </div>
+          )}
+
           {/* Lock screen overlay */}
           {locked && (
             <div
