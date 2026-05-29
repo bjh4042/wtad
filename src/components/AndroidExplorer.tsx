@@ -363,10 +363,29 @@ export default function AndroidExplorer() {
 
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
-      setExp(e => e + QUESTS[questIdx].exp);
-      setQuestIdx(q => q + 1);
+      if (!completedQuests.includes(questIdx)) {
+        setExp(e => e + QUESTS[questIdx].exp);
+        setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
+      }
+      setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
     }
   };
+
+  const resetProgress = () => {
+    if (typeof window !== 'undefined') {
+      try { localStorage.removeItem(LS_KEY); } catch {}
+    }
+    setQuestIdx(0); setExp(0); setCompletedQuests([]);
+    setInstalledApps([]); setHomeApps(DEFAULT_HOME_APPS); setWallpaper(DEFAULT_WALLPAPER);
+    setDarkMode(false); setFontScale(1); setWidgets(['clock', 'weather', 'calendar']);
+    setThemeColor('#3b82f6'); setLocked(true);
+  };
+  const gotoQuest = (idx: number) => {
+    const clamped = Math.max(0, Math.min(QUESTS.length - 1, idx));
+    if (clamped > questIdx && !completedQuests.includes(questIdx)) return;
+    setQuestIdx(clamped);
+  };
+
 
   const handleDragStartExp = (e) => {
     setIsDraggingExp(true);
