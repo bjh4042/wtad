@@ -2062,7 +2062,22 @@ export default function AndroidExplorer() {
         <div ref={expMenuRef} className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x, borderColor: `${themeColor}55` }}>
           <div className="text-white p-3 md:p-4 flex justify-between items-center cursor-move" style={{ background: themeColor }} onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
-            <X size={20} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsCompact(c => !c)}
+                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title={isCompact ? '확대' : '축소'}
+              >
+                {isCompact ? <ChevronUp size={18}/> : <Minus size={18}/>}
+              </button>
+              <button
+                onClick={() => setShowExpMenu(false)}
+                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title="닫기"
+              >
+                <X size={20}/>
+              </button>
+            </div>
           </div>
           <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
             <div className="flex justify-between items-end mb-2">
