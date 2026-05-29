@@ -870,23 +870,94 @@ export default function AndroidExplorer() {
           </div>
         )}
 
-        {settingsMenu === 'wallpaper' && (
-          <div className="animate-[fadeIn_0.3s_ease-out]">
-            <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 배경화면 및 스타일</h2>
-            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-8">
-              <div className="text-xl font-medium mb-6">배경화면 선택</div>
-              <div className="grid grid-cols-3 gap-6">
-                <ActionTarget
-                  id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  onClick={() => setWallpaper('radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a')}
-                  className="aspect-[10/16] rounded-2xl cursor-pointer hover:ring-4 ring-blue-500 active:scale-95 transition-all" style={{ background: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a' }}
-                />
-                <div onClick={() => setWallpaper('linear-gradient(135deg, #065f46 0%, #166534 100%)')} className="aspect-[10/16] rounded-2xl cursor-pointer hover:ring-4 ring-blue-500 active:scale-95 transition-all" style={{ background: 'linear-gradient(135deg, #065f46 0%, #166534 100%)' }}></div>
-                <div onClick={() => setWallpaper('linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)')} className="aspect-[10/16] rounded-2xl cursor-pointer hover:ring-4 ring-blue-500 active:scale-95 transition-all" style={{ background: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)' }}></div>
+        {settingsMenu === 'wallpaper' && (() => {
+          const wallpaperPresets = [
+            { name: '기본 보라', value: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a', tutorial: true },
+            { name: '숲 그린', value: 'linear-gradient(135deg, #065f46 0%, #166534 100%)' },
+            { name: '와인 레드', value: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)' },
+            { name: '오션 블루', value: 'linear-gradient(180deg, #0ea5e9 0%, #0c4a6e 100%)' },
+            { name: '선셋', value: 'linear-gradient(135deg, #f97316 0%, #db2777 60%, #581c87 100%)' },
+            { name: '미드나잇', value: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' },
+            { name: '파스텔', value: 'linear-gradient(135deg, #fbcfe8 0%, #c7d2fe 50%, #bae6fd 100%)' },
+            { name: '미니멀 그레이', value: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)' },
+          ];
+          const themes = ['#3b82f6', '#a855f7', '#ec4899', '#f59e0b', '#10b981', '#ef4444'];
+          return (
+            <div className="animate-[fadeIn_0.3s_ease-out]">
+              <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 배경화면 및 스타일</h2>
+              <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8 mb-4">
+                <div className="text-xl font-medium mb-6">배경화면 선택</div>
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                  {wallpaperPresets.map((wp, i) => {
+                    const selected = wallpaper === wp.value;
+                    const node = (
+                      <div onClick={() => setWallpaper(wp.value)} className={`relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 transition-all ${selected ? 'ring-4 ring-blue-500' : 'hover:ring-2 ring-white/40'}`} style={{ background: wp.value }}>
+                        {selected && <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"><Check size={12} className="text-white"/></div>}
+                        <div className="absolute bottom-1 inset-x-1 text-[10px] text-white/90 bg-black/30 rounded px-1 py-0.5 text-center truncate">{wp.name}</div>
+                      </div>
+                    );
+                    if (wp.tutorial) {
+                      return (
+                        <ActionTarget key={i} id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setWallpaper(wp.value)}>
+                          {node}
+                        </ActionTarget>
+                      );
+                    }
+                    return <div key={i}>{node}</div>;
+                  })}
+                  {photos.slice(0, 4).map(p => (
+                    <div key={p.id} onClick={() => setWallpaper('#1f2937')} className="relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 ring-2 ring-white/40 overflow-hidden bg-[#1a1a1a] p-1">
+                      <CuteStudent seed={p.seed}/>
+                      <div className="absolute bottom-1 inset-x-1 text-[10px] text-white bg-black/40 rounded px-1 text-center">내 사진</div>
+                    </div>
+                  ))}
+                </div>
               </div>
+              <div className="bg-[#1c1c1e] rounded-3xl p-6 md:p-8">
+                <div className="text-xl font-medium mb-2">테마 색상</div>
+                <div className="text-sm text-gray-400 mb-6">앱 강조 색상을 선택하세요</div>
+                <div className="flex gap-4 flex-wrap">
+                  {themes.map(c => (
+                    <div key={c} onClick={() => setThemeColor(c)} className={`w-14 h-14 rounded-full cursor-pointer active:scale-90 transition-all shadow-lg ${themeColor === c ? 'ring-4 ring-white' : ''}`} style={{ background: c }}>
+                      {themeColor === c && <div className="w-full h-full flex items-center justify-center"><Check size={22} className="text-white"/></div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {settingsMenu === 'privacy' && (
+          <div className="animate-[fadeIn_0.3s_ease-out]">
+            <h2 className="text-3xl font-medium mb-8 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400"/> 권한 관리자</h2>
+            <div className="text-sm text-gray-400 mb-6">앱별로 카메라·위치·마이크 등 권한을 켜거나 끌 수 있어요.</div>
+            <div className="space-y-3">
+              {Object.entries(appPermissions).map(([appName, perms]) => (
+                <div key={appName} className="bg-[#1c1c1e] rounded-3xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-gray-700 flex items-center justify-center font-bold">{appName[0]}</div>
+                    <div className="font-bold text-lg">{appName}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(perms).map(([pname, enabled]) => (
+                      <div key={pname} className="flex items-center justify-between bg-[#2c2c2e] rounded-xl px-3 py-2">
+                        <span className="text-sm flex items-center gap-2"><span>{PERMISSION_ICONS[pname] || '•'}</span>{pname}</span>
+                        <div
+                          onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
+                          className={`w-10 h-6 rounded-full p-0.5 cursor-pointer transition-colors ${enabled ? 'bg-blue-500' : 'bg-gray-600'}`}
+                        >
+                          <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${enabled ? 'translate-x-4' : ''} shadow-md`}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
