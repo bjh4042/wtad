@@ -10,6 +10,25 @@ import {
   Grid, Sliders, Smartphone, PaintBucket, Moon, Type, ChevronUp,
   Cloud, MessageSquare, Power, Minus
 } from 'lucide-react';
+import iconStore from '@/assets/icons/store.png';
+import iconGallery from '@/assets/icons/gallery.png';
+import iconPlayStore from '@/assets/icons/playstore.png';
+import iconFolder from '@/assets/icons/folder.png';
+import iconMessages from '@/assets/icons/messages.png';
+import iconInternet from '@/assets/icons/internet.png';
+import iconCamera from '@/assets/icons/camera.png';
+import iconPhone from '@/assets/icons/phone.png';
+
+const APP_ICON_IMAGES: Record<string, string> = {
+  Store: iconStore,
+  Gallery: iconGallery,
+  PlayStore: iconPlayStore,
+  Folder: iconFolder,
+  Messages: iconMessages,
+  Internet: iconInternet,
+  Camera: iconCamera,
+  Phone: iconPhone,
+};
 
 const QUESTS = [
   { id: 0, text: "갤럭시탭이 잠겨있어요. 잠금화면을 위로 밀어 올려 잠금을 해제하세요.", targetId: 'lock-swipe', exp: 10 },
