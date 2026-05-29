@@ -322,6 +322,21 @@ export default function AndroidExplorer() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const saved = loadLS();
+    setInstalledApps(saved.installedApps ?? []);
+    setWallpaper(saved.wallpaper ?? DEFAULT_WALLPAPER);
+    setHomeApps(saved.homeApps ?? DEFAULT_HOME_APPS);
+    setDarkMode(saved.darkMode ?? false);
+    setFontScale(saved.fontScale ?? 1);
+    setWidgets(saved.widgets ?? ['clock', 'weather', 'calendar']);
+    setThemeColor(saved.themeColor ?? '#3b82f6');
+    setQuestIdx(saved.questIdx ?? 0);
+    setExp(saved.exp ?? 0);
+    setCompletedQuests(saved.completedQuests ?? []);
+    setIsStorageReady(true);
+  }, []);
+
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
   const dateStr = time ? time.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '';
 
@@ -348,6 +363,7 @@ export default function AndroidExplorer() {
 
   // 진행도 localStorage 저장
   useEffect(() => {
+    if (!isStorageReady) return;
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
@@ -355,7 +371,7 @@ export default function AndroidExplorer() {
         wallpaper, darkMode, fontScale, widgets, themeColor,
       }));
     } catch {}
-  }, [questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
+  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
 
 
 
