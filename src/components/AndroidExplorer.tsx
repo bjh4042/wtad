@@ -1659,6 +1659,7 @@ export default function AndroidExplorer() {
             {currentApp === 'Camera' && renderCamera()}
             {currentApp === 'Gallery' && renderGallery()}
             {currentApp === 'PlayStore' && renderPlayStore()}
+            {currentApp === 'Notes' && renderNotes()}
           </div>
 
           <div className="shrink-0 z-40">{renderNavigationBar()}</div>
