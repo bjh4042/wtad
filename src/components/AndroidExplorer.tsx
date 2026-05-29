@@ -720,12 +720,10 @@ export default function AndroidExplorer() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
         {settingsMenu === 'display' && (
           <div className="animate-[fadeIn_0.3s_ease-out]">
             <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 디스플레이</h2>
-            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-8">
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-8 mb-4">
               <div className="text-xl font-medium mb-6">밝기</div>
               <div className="flex items-center gap-6">
                 <Sun size={28} className="text-gray-400" />
@@ -736,6 +734,35 @@ export default function AndroidExplorer() {
                 </ActionTarget>
               </div>
             </div>
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8 mb-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <Moon size={24} className="text-blue-300 shrink-0"/>
+                <div className="min-w-0">
+                  <div className="text-lg md:text-xl font-medium">다크 모드</div>
+                  <div className="text-xs md:text-sm text-gray-400 mt-1">눈이 편안한 어두운 화면</div>
+                </div>
+              </div>
+              <div className={`w-14 h-8 rounded-full p-1 cursor-pointer transition-colors shrink-0 ${darkMode ? 'bg-blue-500' : 'bg-gray-600'}`} onClick={() => setDarkMode(!darkMode)}>
+                <div className={`w-6 h-6 bg-white rounded-full transform transition-transform ${darkMode ? 'translate-x-6' : ''} shadow-md`}></div>
+              </div>
+            </div>
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <Type size={22} className="text-gray-400"/>
+                <div className="text-lg md:text-xl font-medium">글자 크기</div>
+              </div>
+              <div className="text-white mb-4 truncate" style={{ fontSize: `${fontScale * 16}px` }}>안드로이드 탐험대</div>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-gray-400">가</span>
+                <input type="range" min="0.8" max="1.4" step="0.1" value={fontScale}
+                  onChange={(e) => setFontScale(parseFloat(e.target.value))}
+                  className="flex-1 accent-blue-500 h-3 bg-gray-700 rounded-full appearance-none cursor-pointer" />
+                <span className="text-2xl text-gray-300">가</span>
+              </div>
+            </div>
+          </div>
+        )}
+
           </div>
         )}
         {settingsMenu === 'wallpaper' && (
