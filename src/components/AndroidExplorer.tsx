@@ -665,7 +665,10 @@ export default function AndroidExplorer() {
     </div>
   );
 
+  const renderSettings = () => (
+    <div className="flex-1 bg-[#000000] text-white flex pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
       <div className="w-1/3 md:w-1/4 border-r border-gray-800 bg-[#000000] flex flex-col py-4 overflow-y-auto min-h-0 shrink-0">
+
         <div className="px-3 md:px-6 mb-3">
           <div className="text-2xl md:text-3xl font-light mb-3">설정</div>
           <div className="flex items-center gap-2 bg-[#1c1c1e] rounded-full px-3 py-2">
