@@ -1767,14 +1767,14 @@ export default function AndroidExplorer() {
                     ))}
                   </svg>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
         <ActionTarget id="notes-new" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
           onClick={() => setNotesEditing({ paths: [], current: '' })}
           tooltipPosition="top-left"
           tooltipText="+ 버튼을 누르세요!"
-          className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all cursor-pointer text-4xl font-light"
-        >
-          <span>+</span>
-        </ActionTarget>
           className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all cursor-pointer text-4xl font-light"
         >
           <span>+</span>
