@@ -412,107 +412,150 @@ export default function AndroidExplorer() {
   const renderAppIcon = (appName, index) => {
     let content = null;
     let name = '';
+    // One UI 7 / Android 15 풍 squircle (스쿼클) 공통 클래스
+    const sq = "w-full h-full rounded-[22%] flex items-center justify-center shadow-[0_6px_14px_rgba(0,0,0,0.25)] overflow-hidden";
     switch(appName) {
       case 'GameLauncher': name = 'Game Launcher';
-        content = (<div className="w-full h-full bg-[#8b5cf6] rounded-[1.25rem] flex items-center justify-center shadow-lg">
-          <svg viewBox="0 0 100 100" className="w-1/2 h-1/2">
-            <path d="M 10 30 L 40 70 M 40 30 L 10 70" stroke="#fff" strokeWidth="12" strokeLinecap="round"/>
-            <circle cx="75" cy="30" r="14" stroke="#fff" strokeWidth="10" fill="none"/>
-            <circle cx="65" cy="75" r="8" fill="#fff"/><circle cx="90" cy="75" r="8" fill="#fff"/>
+        content = (<div className={`${sq}`} style={{ background: 'linear-gradient(135deg,#7c3aed 0%,#4f46e5 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
+            <rect x="10" y="35" width="55" height="35" rx="17" fill="#fff" opacity="0.95"/>
+            <circle cx="25" cy="52" r="4" fill="#7c3aed"/><circle cx="38" cy="52" r="4" fill="#7c3aed"/>
+            <circle cx="78" cy="40" r="6" fill="#fff"/><circle cx="85" cy="58" r="6" fill="#fff"/>
           </svg></div>); break;
       case 'Store': name = 'Galaxy Store';
-        content = (<div className="w-full h-full rounded-[1.25rem] flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #ec4899 0%, #f97316 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-1/2 h-1/2">
-            <rect x="15" y="35" width="70" height="55" rx="8" fill="#fff"/>
-            <path d="M 30 35 Q 50 -5 70 35" stroke="#fff" strokeWidth="8" fill="none" strokeLinecap="round"/>
-            <path d="M 35 50 L 65 50" stroke="#ec4899" strokeWidth="6" strokeLinecap="round"/>
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#a855f7 0%,#ec4899 50%,#f97316 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
+            <path d="M 20 45 Q 50 -5 80 45 L 80 80 Q 50 95 20 80 Z" fill="#fff"/>
+            <path d="M 35 60 L 50 75 L 70 50" stroke="#a855f7" strokeWidth="7" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg></div>); break;
       case 'Camera': name = '카메라';
-        content = (<div className="w-full h-full bg-[#e5e7eb] rounded-[1.25rem] flex items-center justify-center shadow-lg relative">
-          <div className="w-[60%] h-[60%] border-[4px] border-[#9ca3af] rounded-full flex items-center justify-center bg-[#1f2937]">
-            <div className="w-[35%] h-[35%] bg-[#6b7280] rounded-full"></div></div>
-          <div className="absolute top-[20%] right-[20%] w-[12%] h-[12%] bg-[#ef4444] rounded-full shadow-sm"></div>
+        content = (<div className={sq} style={{ background: 'linear-gradient(160deg,#f8fafc 0%,#cbd5e1 100%)' }}>
+          <div className="relative w-[62%] h-[62%]">
+            <div className="absolute inset-0 rounded-full bg-[#1f2937] shadow-inner flex items-center justify-center">
+              <div className="w-[55%] h-[55%] rounded-full bg-gradient-to-br from-[#60a5fa] to-[#1e3a8a] border-2 border-[#0f172a]"></div>
+            </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#fbbf24] rounded-full shadow"></div>
+          </div>
         </div>); break;
       case 'Gallery': name = '갤러리';
-        content = (<div className="w-full h-full bg-[#ef4444] rounded-[1.25rem] flex items-center justify-center shadow-lg relative overflow-hidden border border-red-600">
-          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%] transform rotate-[15deg]">
-            <ellipse cx="50" cy="20" rx="14" ry="22" fill="#fff" opacity="0.95"/>
-            <ellipse cx="50" cy="80" rx="14" ry="22" fill="#fff" opacity="0.95"/>
-            <ellipse cx="20" cy="50" rx="22" ry="14" fill="#fff" opacity="0.85"/>
-            <ellipse cx="80" cy="50" rx="22" ry="14" fill="#fff" opacity="0.85"/>
-            <ellipse cx="28" cy="28" rx="16" ry="16" fill="#fff" opacity="0.75"/>
-            <ellipse cx="72" cy="72" rx="16" ry="16" fill="#fff" opacity="0.75"/>
-            <circle cx="50" cy="50" r="10" fill="#f59e0b" />
+        content = (<div className={sq} style={{ background: '#fff' }}>
+          <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
+            <g transform="translate(50,50)">
+              <ellipse cx="0" cy="-26" rx="14" ry="22" fill="#fbbf24"/>
+              <ellipse cx="0" cy="26" rx="14" ry="22" fill="#ec4899"/>
+              <ellipse cx="-26" cy="0" rx="22" ry="14" fill="#3b82f6"/>
+              <ellipse cx="26" cy="0" rx="22" ry="14" fill="#22c55e"/>
+              <circle cx="0" cy="0" r="9" fill="#fff"/>
+            </g>
           </svg></div>); break;
-      case 'Wearable': name = 'Wear';
-        content = (<div className="w-full h-full bg-[#3b82f6] rounded-[1.25rem] flex items-center justify-center shadow-lg"><span className="text-white font-bold text-[18px]">Wear</span></div>); break;
+      case 'Wearable': name = 'Galaxy Wear';
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#1e293b 0%,#475569 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
+            <rect x="28" y="22" width="44" height="56" rx="14" fill="none" stroke="#fff" strokeWidth="6"/>
+            <circle cx="50" cy="50" r="10" fill="#3b82f6"/>
+          </svg></div>); break;
       case 'Calendar': name = '캘린더';
-        content = (<div className="w-full h-full bg-white rounded-[1.25rem] flex flex-col items-center shadow-lg overflow-hidden border border-gray-100">
-          <div className="w-full bg-[#22c55e] h-[25%]"></div>
-          <div className="flex-1 flex items-center justify-center"><span className="text-[#111] font-black text-2xl">29</span></div></div>); break;
+        content = (<div className={`${sq} flex-col`} style={{ background: '#fff' }}>
+          <div className="w-full h-[28%] bg-[#ef4444] flex items-center justify-center">
+            <span className="text-white text-[10px] font-bold tracking-wider">{time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }).toUpperCase() : 'SUN'}</span>
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-[#111] font-black text-[28px] leading-none">{time ? time.getDate() : 1}</span>
+          </div></div>); break;
       case 'Clock': name = '시계';
-        content = (<div className="w-full h-full bg-white rounded-[1.25rem] flex items-center justify-center shadow-lg border border-gray-100">
-          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
-            <circle cx="50" cy="50" r="45" stroke="#e5e7eb" strokeWidth="6" fill="none"/>
-            <path d="M 50 50 L 50 20" stroke="#111" strokeWidth="6" strokeLinecap="round"/>
-            <path d="M 50 50 L 75 65" stroke="#111" strokeWidth="4" strokeLinecap="round"/>
-            <path d="M 50 50 L 30 70" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx="50" cy="50" r="4" fill="#ef4444"/></svg></div>); break;
+        content = (<div className={sq} style={{ background: '#fff' }}>
+          <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
+            <circle cx="50" cy="50" r="44" fill="#fff" stroke="#111" strokeWidth="5"/>
+            {[0,1,2,3,4,5,6,7,8,9,10,11].map(i => {
+              const a = (i*30)*Math.PI/180; const x1 = 50+Math.sin(a)*38; const y1 = 50-Math.cos(a)*38;
+              const x2 = 50+Math.sin(a)*42; const y2 = 50-Math.cos(a)*42;
+              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#111" strokeWidth="2"/>;
+            })}
+            <line x1="50" y1="50" x2="50" y2="22" stroke="#111" strokeWidth="5" strokeLinecap="round"/>
+            <line x1="50" y1="50" x2="72" y2="62" stroke="#111" strokeWidth="3.5" strokeLinecap="round"/>
+            <line x1="50" y1="50" x2="34" y2="68" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="50" cy="50" r="3.5" fill="#ef4444"/></svg></div>); break;
       case 'Health': name = 'Samsung Health';
-        content = (<div className="w-full h-full bg-[#14b8a6] rounded-[1.25rem] flex items-center justify-center shadow-lg">
-          <svg viewBox="0 0 100 100" className="w-1/2 h-1/2">
-            <circle cx="50" cy="20" r="12" fill="#fff"/>
-            <path d="M 35 45 Q 50 35 65 40 L 75 70 M 50 40 L 40 85 M 50 40 L 60 90" stroke="#fff" strokeWidth="8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#fff 0%,#f1f5f9 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
+            <path d="M 50 82 C 18 60, 18 30, 38 28 C 46 28, 50 34, 50 38 C 50 34, 54 28, 62 28 C 82 30, 82 60, 50 82 Z" fill="#f97316"/>
+            <path d="M 25 55 L 38 55 L 44 42 L 52 68 L 58 50 L 75 50" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg></div>); break;
       case 'Folder': name = 'Google';
-        content = (<div className="w-full h-full bg-white rounded-[1.25rem] grid grid-cols-2 grid-rows-2 gap-1 p-3 shadow-lg">
-          <div className="bg-blue-500 rounded-full"></div><div className="bg-red-500 rounded-full"></div><div className="bg-yellow-500 rounded-full"></div><div className="bg-green-500 rounded-full"></div></div>); break;
+        content = (<div className={`${sq} grid grid-cols-2 grid-rows-2 gap-1.5 p-3.5`} style={{ background: '#fff' }}>
+          <div className="rounded-full" style={{ background: '#4285F4' }}></div>
+          <div className="rounded-full" style={{ background: '#EA4335' }}></div>
+          <div className="rounded-full" style={{ background: '#FBBC05' }}></div>
+          <div className="rounded-full" style={{ background: '#34A853' }}></div></div>); break;
       case 'Notes': name = 'Samsung Notes';
-        content = (<div className="w-full h-full bg-[#ef4444] rounded-[1.25rem] flex items-center justify-center shadow-lg">
-          <svg viewBox="0 0 100 100" className="w-[60%] h-[60%]">
-            <path d="M 20 10 L 60 10 L 80 30 L 80 90 L 20 90 Z" fill="#fff"/>
-            <path d="M 60 10 L 60 30 L 80 30" fill="#fca5a5"/>
-            <path d="M 35 45 L 65 45 M 35 60 L 65 60 M 35 75 L 55 75" stroke="#ef4444" strokeWidth="5" strokeLinecap="round"/>
+        content = (<div className={sq} style={{ background: 'linear-gradient(160deg,#fde68a 0%,#fbbf24 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-[62%] h-[62%]">
+            <path d="M 22 12 L 62 12 L 82 32 L 82 88 L 22 88 Z" fill="#fff"/>
+            <path d="M 62 12 L 62 32 L 82 32 Z" fill="#fcd34d"/>
+            <path d="M 32 48 L 70 48 M 32 60 L 70 60 M 32 72 L 58 72" stroke="#92400e" strokeWidth="4.5" strokeLinecap="round"/>
           </svg></div>); break;
       case 'Messages': name = '메시지';
-        content = (<div className="w-full h-full bg-[#3b82f6] rounded-[1.25rem] flex items-center justify-center shadow-lg">
-          <svg viewBox="0 0 100 100" className="w-[65%] h-[65%]">
-            <path d="M 10 30 Q 10 10 50 10 Q 90 10 90 30 L 90 60 Q 90 80 50 80 L 25 85 L 30 70 Q 10 65 10 30 Z" fill="#ffffff"/>
-            <circle cx="30" cy="45" r="6" fill="#3b82f6"/><circle cx="50" cy="45" r="6" fill="#3b82f6"/><circle cx="70" cy="45" r="6" fill="#3b82f6"/>
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#22c55e 0%,#16a34a 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-[68%] h-[68%]">
+            <path d="M 14 36 Q 14 14 50 14 Q 86 14 86 36 L 86 58 Q 86 78 50 78 L 32 88 L 36 76 Q 14 70 14 36 Z" fill="#ffffff"/>
+            <circle cx="34" cy="46" r="5.5" fill="#22c55e"/><circle cx="50" cy="46" r="5.5" fill="#22c55e"/><circle cx="66" cy="46" r="5.5" fill="#22c55e"/>
           </svg></div>); break;
-      case 'Internet': name = '인터넷';
-        content = (<div className="w-full h-full rounded-[1.25rem] flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #60a5fa 0%, #8b5cf6 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
+      case 'Internet': name = '삼성 인터넷';
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#3b82f6 0%,#6366f1 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-[72%] h-[72%]">
             <circle cx="50" cy="50" r="30" fill="#fff"/>
-            <path d="M 10 65 Q 50 15 90 35" stroke="#d8b4fe" strokeWidth="8" fill="none" strokeLinecap="round"/>
-            <path d="M 10 65 Q 50 115 90 35" stroke="#d8b4fe" strokeWidth="8" fill="none" strokeLinecap="round"/>
+            <ellipse cx="50" cy="50" rx="30" ry="12" fill="none" stroke="#3b82f6" strokeWidth="3"/>
+            <ellipse cx="50" cy="50" rx="12" ry="30" fill="none" stroke="#3b82f6" strokeWidth="3"/>
+            <circle cx="50" cy="50" r="30" fill="none" stroke="#3b82f6" strokeWidth="3"/>
           </svg></div>); break;
       case 'PlayStore': name = 'Play 스토어';
-        content = (<div className="w-full h-full bg-white rounded-[1.25rem] flex items-center justify-center shadow-lg border border-gray-100">
-          <svg viewBox="0 0 100 100" className="w-[55%] h-[55%] ml-1">
-            <path d="M 20 15 L 85 50 L 20 85 Z" fill="#34d399"/><path d="M 20 15 L 50 50 L 20 85 Z" fill="#3b82f6"/>
-            <path d="M 20 15 L 85 50 L 50 50 Z" fill="#f87171"/><path d="M 20 85 L 85 50 L 50 50 Z" fill="#fbbf24"/>
+        content = (<div className={sq} style={{ background: '#fff' }}>
+          <svg viewBox="0 0 100 100" className="w-[60%] h-[60%]">
+            <defs>
+              <linearGradient id="ps-g" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#00C2A8"/><stop offset="1" stopColor="#00897B"/>
+              </linearGradient>
+              <linearGradient id="ps-b" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="#2196F3"/><stop offset="1" stopColor="#0D47A1"/>
+              </linearGradient>
+              <linearGradient id="ps-r" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#EA4335"/><stop offset="1" stopColor="#C62828"/>
+              </linearGradient>
+              <linearGradient id="ps-y" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stopColor="#FBBC05"/><stop offset="1" stopColor="#F57F17"/>
+              </linearGradient>
+            </defs>
+            <path d="M 20 10 L 55 50 L 20 90 Z" fill="url(#ps-b)"/>
+            <path d="M 20 10 L 85 50 L 70 58 Z" fill="url(#ps-r)"/>
+            <path d="M 20 90 L 85 50 L 70 42 Z" fill="url(#ps-y)"/>
+            <path d="M 55 50 L 70 42 L 85 50 L 70 58 Z" fill="url(#ps-g)"/>
           </svg></div>); break;
       case 'YouTube': name = 'YouTube';
-        content = (<div className="w-full h-full bg-white rounded-[1.25rem] flex items-center justify-center shadow-lg">
-          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
-            <rect x="5" y="25" width="90" height="50" rx="15" fill="#ef4444"/>
-            <path d="M 40 40 L 65 50 L 40 60 Z" fill="#fff"/></svg></div>); break;
+        content = (<div className={sq} style={{ background: '#fff' }}>
+          <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
+            <rect x="8" y="26" width="84" height="48" rx="14" fill="#FF0000"/>
+            <path d="M 42 38 L 66 50 L 42 62 Z" fill="#fff"/>
+          </svg></div>); break;
       case 'KakaoTalk': name = '카카오톡';
-        content = (<div className="w-full h-full bg-[#fde047] rounded-[1.25rem] flex items-center justify-center shadow-lg">
-          <svg viewBox="0 0 100 100" className="w-[65%] h-[65%]">
-            <path d="M 10 40 Q 10 15 50 15 Q 90 15 90 40 Q 90 65 50 65 L 30 80 L 35 60 Q 10 55 10 40 Z" fill="#451a03"/>
-            <text x="50" y="46" fill="#fde047" fontSize="24" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">TALK</text>
+        content = (<div className={sq} style={{ background: '#FAE100' }}>
+          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
+            <path d="M 50 18 C 26 18, 12 32, 12 48 C 12 60, 20 70, 32 75 L 28 88 L 44 80 C 46 80, 48 80, 50 80 C 74 80, 88 66, 88 50 C 88 32, 74 18, 50 18 Z" fill="#3A1D1D"/>
           </svg></div>); break;
       case 'Naver': name = 'NAVER';
-        content = (<div className="w-full h-full bg-[#22c55e] rounded-[1.25rem] flex items-center justify-center shadow-lg">
+        content = (<div className={sq} style={{ background: '#03C75A' }}>
           <svg viewBox="0 0 100 100" className="w-[60%] h-[60%]">
-            <path d="M 20 20 L 40 20 L 60 60 L 60 20 L 80 20 L 80 80 L 60 80 L 40 40 L 40 80 L 20 80 Z" fill="#fff"/>
+            <path d="M 22 22 L 42 22 L 60 56 L 60 22 L 78 22 L 78 78 L 58 78 L 40 44 L 40 78 L 22 78 Z" fill="#fff"/>
           </svg></div>); break;
       case 'Settings': name = '설정';
-        content = (<div className="w-full h-full bg-[#f3f4f6] rounded-[1.25rem] flex items-center justify-center shadow-lg">
-          <Settings size={40} className="text-[#374151]" strokeWidth={2.5}/></div>); break;
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#e0e7ff 0%,#c7d2fe 100%)' }}>
+          <Settings size={42} className="text-[#1e3a8a]" strokeWidth={2}/></div>); break;
     }
+    if (!content) return null;
+    const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
+    return (
+      <ActionTarget
+        key={index}
+
     if (!content) return null;
     const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
     return (
