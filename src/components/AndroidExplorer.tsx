@@ -1088,24 +1088,59 @@ export default function AndroidExplorer() {
     }
     return (
       <div className="flex-1 bg-black text-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
-        <div className="p-4 flex justify-between items-center px-8 shrink-0">
-          <div className="text-3xl font-bold">사진</div>
-          <div className="flex gap-6 text-gray-300"><Search size={24} className="cursor-pointer hover:text-white active:scale-90 transition-transform"/><MoreHorizontal size={24} className="cursor-pointer hover:text-white active:scale-90 transition-transform"/></div>
+        <div className="p-4 flex justify-between items-center px-4 md:px-8 shrink-0 gap-2">
+          <div className="text-2xl md:text-3xl font-bold truncate">{multiSelectMode ? `${selectedPhotoIds.length}개 선택` : '사진'}</div>
+          <div className="flex gap-3 md:gap-6 text-gray-300 items-center shrink-0">
+            {multiSelectMode ? (
+              <>
+                <button className="text-sm text-blue-400 font-medium active:scale-95" onClick={() => { setMultiSelectMode(false); setSelectedPhotoIds([]); }}>취소</button>
+                <button className="text-sm text-red-400 font-bold disabled:opacity-50 active:scale-95" disabled={selectedPhotoIds.length === 0} onClick={() => { setPhotos(prev => prev.filter(p => !selectedPhotoIds.includes(p.id))); setSelectedPhotoIds([]); setMultiSelectMode(false); }}>삭제</button>
+              </>
+            ) : (
+              <>
+                <Search size={22} className="cursor-pointer hover:text-white active:scale-90 transition-transform"/>
+                <button className="text-sm text-blue-400 font-medium active:scale-95" onClick={() => setMultiSelectMode(true)}>선택</button>
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex-1 p-4 px-8 grid grid-cols-4 md:grid-cols-5 gap-2 content-start overflow-y-auto min-h-0">
+        <div className="flex-1 p-4 px-4 md:px-8 grid grid-cols-3 md:grid-cols-5 gap-2 content-start overflow-y-auto min-h-0">
           {photos.length === 0 ? (
             <div className="col-span-full text-center text-gray-500 mt-32 text-lg font-medium">항목 없음</div>
           ) : (
-            photos.map((photo, i) => (
-              <ActionTarget key={photo.id} id={`gallery-photo-${i}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setViewPhoto(photo)}>
-                <div className="aspect-square bg-[#1a1a1a] rounded-xl overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-80 active:scale-95 transition-all p-2">
-                  <div className="w-full h-full"><CuteStudent seed={photo.seed} /></div>
-                </div>
-              </ActionTarget>
-            ))
+            photos.map((photo, i) => {
+              const selected = selectedPhotoIds.includes(photo.id);
+              const lp: any = (typeof window !== 'undefined' ? window : {}) as any;
+              return (
+                <ActionTarget key={photo.id} id={`gallery-photo-${i}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                  onClick={() => {
+                    if (multiSelectMode) {
+                      setSelectedPhotoIds(prev => prev.includes(photo.id) ? prev.filter(x => x !== photo.id) : [...prev, photo.id]);
+                    } else {
+                      setViewPhoto(photo);
+                    }
+                  }}
+                  onMouseDown={() => { if (!multiSelectMode) { lp.__galleryLP = setTimeout(() => { setMultiSelectMode(true); setSelectedPhotoIds([photo.id]); }, 500); } }}
+                  onMouseUp={() => { if (lp.__galleryLP) { clearTimeout(lp.__galleryLP); lp.__galleryLP = null; } }}
+                  onMouseLeave={() => { if (lp.__galleryLP) { clearTimeout(lp.__galleryLP); lp.__galleryLP = null; } }}
+                  onTouchStart={() => { if (!multiSelectMode) { lp.__galleryLP = setTimeout(() => { setMultiSelectMode(true); setSelectedPhotoIds([photo.id]); }, 500); } }}
+                  onTouchEnd={() => { if (lp.__galleryLP) { clearTimeout(lp.__galleryLP); lp.__galleryLP = null; } }}
+                >
+                  <div className={`relative aspect-square bg-[#1a1a1a] rounded-xl overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-80 active:scale-95 transition-all p-2 ${selected ? 'ring-4 ring-blue-500' : ''}`}>
+                    <div className="w-full h-full"><CuteStudent seed={photo.seed} /></div>
+                    {multiSelectMode && (
+                      <div className={`absolute top-2 right-2 w-6 h-6 rounded-full border-2 ${selected ? 'bg-blue-500 border-blue-500' : 'border-white/80 bg-black/30'} flex items-center justify-center`}>
+                        {selected && <Check size={14} className="text-white"/>}
+                      </div>
+                    )}
+                  </div>
+                </ActionTarget>
+              );
+            })
           )}
         </div>
       </div>
+
     );
   };
 
