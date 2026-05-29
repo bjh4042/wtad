@@ -7,10 +7,10 @@ import {
   Mic, MoreHorizontal, RefreshCcw, Plane, Flashlight, MapPin,
   MonitorPlay, ShieldCheck, User, Bell, ImageIcon, Home,
   Lock, ShieldAlert, AlertTriangle, HeartPulse, BatteryCharging,
-  Grid, Sliders, Smartphone, PaintBucket
+  Grid, Sliders, Smartphone, PaintBucket, Moon, Type, ChevronUp,
+  Cloud, MessageSquare, Power, Minus
 } from 'lucide-react';
 
-// --- 퀘스트 정의 ---
 const QUESTS = [
   { id: 0, text: "탐험을 시작합니다. '시작' 버튼을 누르세요.", targetId: 'start-btn', exp: 10 },
   { id: 1, text: "상단 표시줄을 드래그하여 퀵패널을 여세요.", targetId: 'swipe-trigger', exp: 20 },
@@ -37,10 +37,9 @@ const QUESTS = [
   { id: 22, text: "하단의 홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 23, text: "Play 스토어 앱을 실행하세요.", targetId: 'app-icon-PlayStore', exp: 20 },
   { id: 24, text: "상단 검색창을 클릭하세요.", targetId: 'playstore-search-bar', exp: 10 },
-  { id: 25, text: "하단의 가상 키보드에서 파란색으로 빛나는 자판을 순서대로 눌러 '똑똑수학탐험대'를 완성하세요.", targetId: 'playstore-search-input', exp: 20 },
+  { id: 25, text: "가상 키보드에서 파란색 자판을 순서대로 눌러 '똑똑수학탐험대'를 완성하세요.", targetId: 'playstore-search-input', exp: 20 },
   { id: 26, text: "키보드의 파란색 '검색' 버튼을 누르세요.", targetId: 'playstore-search-submit', exp: 10 },
   { id: 27, text: "'똑똑수학탐험대' 앱의 설치 버튼을 누르세요.", targetId: 'playstore-install-btn', exp: 30 },
-  // --- 추가 교육 미션 ---
   { id: 28, text: "홈 버튼을 눌러 바탕화면으로 돌아가세요.", targetId: 'nav-home', exp: 10 },
   { id: 29, text: "방금 설치한 '수학탐험대' 앱을 바탕화면에서 실행해보세요.", targetId: 'app-icon-math', exp: 20 },
   { id: 30, text: "홈 버튼을 눌러 다시 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
@@ -50,6 +49,9 @@ const QUESTS = [
   { id: 34, text: "비행기 탑승 모드를 켜보세요. (공공장소·비행 시 사용)", targetId: 'quick-airplane', exp: 20 },
   { id: 35, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 ];
+
+
+
 
 const SETTINGS_MENUS = [
   { id: 'account', icon: <User size={20} className="text-white"/>, title: '계정 및 백업', sub: '계정 관리 · Smart Switch', bg: 'bg-blue-500' },
@@ -201,6 +203,31 @@ export default function AndroidExplorer() {
 
   const [viewPhoto, setViewPhoto] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
+
+  // 신규 상태들
+  const [locked, setLocked] = useState(true);
+  const [lockSwipeY, setLockSwipeY] = useState<number | null>(null);
+  const [lockOffset, setLockOffset] = useState(0);
+  const [darkMode, setDarkMode] = useState(false);
+  const [fontScale, setFontScale] = useState(1);
+  const [widgets, setWidgets] = useState<string[]>([]);
+  const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
+  const [homeMenuOpen, setHomeMenuOpen] = useState(false);
+  const [homeLongPressTimer, setHomeLongPressTimer] = useState<any>(null);
+  const [appDrawerOpen, setAppDrawerOpen] = useState(false);
+  const [drawerSwipeStart, setDrawerSwipeStart] = useState<number | null>(null);
+  const [notifications, setNotifications] = useState([
+    { id: 1, app: 'KakaoTalk', appName: '카카오톡', title: '엄마', body: '학교 끝나면 바로 와~', color: 'bg-yellow-400' },
+    { id: 2, app: 'Messages', appName: '메시지', title: '010-1234-5678', body: '[Web발신] 택배가 도착했습니다.', color: 'bg-blue-500' },
+  ]);
+  const [cameraPermissionAsked, setCameraPermissionAsked] = useState(false);
+  const [cameraPermissionPrompt, setCameraPermissionPrompt] = useState(false);
+  const [settingsSearch, setSettingsSearch] = useState('');
+  const [uninstallTarget, setUninstallTarget] = useState<string | null>(null);
+  const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
+
 
   const [questIdx, setQuestIdx] = useState(0);
   const [exp, setExp] = useState(0);
@@ -219,6 +246,20 @@ export default function AndroidExplorer() {
   }, []);
 
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
+  const dateStr = time ? time.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '';
+
+  // 다중 선택 미션 도달 시 샘플 사진 자동 추가
+  useEffect(() => {
+    if (questIdx === 21 && photos.length < 3) {
+      setPhotos([
+        { id: Date.now() + 1, seed: 1001 },
+        { id: Date.now() + 2, seed: 1002 },
+        { id: Date.now() + 3, seed: 1003 },
+      ]);
+    }
+  }, [questIdx]);
+
+
 
 
   const advanceQuest = (targetId) => {
@@ -412,6 +453,7 @@ export default function AndroidExplorer() {
           <Settings size={40} className="text-[#374151]" strokeWidth={2.5}/></div>); break;
     }
     if (!content) return null;
+    const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
     return (
       <ActionTarget
         key={index}
@@ -422,12 +464,12 @@ export default function AndroidExplorer() {
           : appName === 'Camera' && currentTargetId === 'drag-camera' ? '다른 칸으로 끌어 옮기세요'
           : '여기를 누르세요!'
         }
-
         onClick={() => {
           if (isEditMode) return;
           if (appName === 'PlayStore') { setIsSearched(false); setSearchText(''); setKeyboardOpen(false); setTypingIndex(0); setKeyboardShift(false); }
           setCurrentApp(appName);
         }}
+
         onPointerDown={(e) => onPointerDown(e, index)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -436,13 +478,21 @@ export default function AndroidExplorer() {
         className={`flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
       >
         <div
-          className={`w-[72px] h-[72px] md:w-20 md:h-20 transition-transform ${!isEditMode ? 'group-hover:scale-105 active:scale-95' : 'ring-2 ring-white/50 rounded-[1.25rem] bg-white/10'}`}
+          className={`relative w-[72px] h-[72px] md:w-20 md:h-20 transition-transform ${!isEditMode ? 'group-hover:scale-105 active:scale-95' : 'ring-2 ring-white/50 rounded-[1.25rem] bg-white/10'}`}
           style={{ visibility: dragInfo.isDragging && dragInfo.index === index ? 'hidden' : 'visible' }}
-        >{content}</div>
+        >
+          {content}
+          {hasNotif && !isEditMode && (
+            <div className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1.5 bg-red-500 text-white rounded-full text-xs font-bold flex items-center justify-center shadow-lg border-2 border-white/80 z-10">
+              {notifications.filter(n => n.app === 'KakaoTalk').length}
+            </div>
+          )}
+        </div>
         <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{name}</span>
       </ActionTarget>
     );
   };
+
 
   const renderHome = () => (
     <div className="flex-1 pt-16 p-6 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0" style={{ background: wallpaper, backgroundSize: 'cover' }}>
