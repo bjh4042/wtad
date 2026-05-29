@@ -656,8 +656,9 @@ export default function AndroidExplorer() {
         onPointerDown={(e) => onPointerDown(e, index)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onTouchStart={() => handleAppPressStart(appName)} onTouchEnd={handleAppPressEnd}
-        onMouseDown={() => handleAppPressStart(appName)} onMouseUp={handleAppPressEnd} onMouseLeave={handleAppPressEnd}
+        onTouchStart={() => handleAppPressStart(appName, index)} onTouchEnd={handleAppPressEnd}
+        onMouseDown={() => handleAppPressStart(appName, index)} onMouseUp={handleAppPressEnd} onMouseLeave={handleAppPressEnd}
+
         className={`flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
       >
         <div
