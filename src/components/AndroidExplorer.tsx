@@ -502,9 +502,30 @@ export default function AndroidExplorer() {
         <Mic size={20} className="text-gray-500" />
       </div>
 
-      <div className="text-white mb-10 pl-6 absolute top-16 left-4 md:left-8">
-        <div className="text-6xl font-light tracking-wide drop-shadow-lg">{timeStr}</div>
-        <div className="text-base mt-2 font-medium opacity-90 drop-shadow-md flex items-center gap-2"><Sun size={18} className="text-yellow-400"/> 서울 시청 21°C</div>
+      {/* Home widgets row */}
+      <div className="absolute top-16 left-4 md:left-8 right-4 md:right-8 flex gap-4 pointer-events-none">
+        {/* Clock widget */}
+        <div className="bg-white/15 backdrop-blur-md rounded-3xl px-6 py-4 shadow-xl border border-white/20 flex flex-col text-white min-w-[260px]">
+          <div className="text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
+          <div className="text-sm mt-2 opacity-90 font-medium">{dateStr}</div>
+        </div>
+        {/* Weather widget */}
+        <div className="bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex items-center gap-4 text-white">
+          <Sun size={56} className="text-yellow-300 drop-shadow-md"/>
+          <div>
+            <div className="text-3xl font-bold leading-none">21°</div>
+            <div className="text-xs opacity-90 mt-1">서울 · 맑음</div>
+            <div className="text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+          </div>
+        </div>
+        {/* Calendar widget */}
+        <div className="bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex flex-col items-center text-white min-w-[100px]">
+          <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">
+            {time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}
+          </div>
+          <div className="text-5xl font-bold leading-none mt-1">{time ? time.getDate() : ''}</div>
+          <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col justify-end pb-8">
