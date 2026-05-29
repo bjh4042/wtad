@@ -47,7 +47,20 @@ const QUESTS = [
   { id: 32, text: "음량 슬라이더를 움직여 소리 크기를 조절해보세요.", targetId: 'quick-volume-slider', exp: 20 },
   { id: 33, text: "소리 모드 버튼에서 '진동'을 눌러보세요.", targetId: 'quick-sound-vibrate', exp: 20 },
   { id: 34, text: "비행기 탑승 모드를 켜보세요. (공공장소·비행 시 사용)", targetId: 'quick-airplane', exp: 20 },
-  { id: 35, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  { id: 35, text: "'스크린샷' 버튼을 눌러 화면을 캡처해보세요.", targetId: 'quick-screenshot', exp: 20 },
+  { id: 36, text: "'다크 모드' 버튼을 눌러 어두운 화면으로 바꿔보세요.", targetId: 'quick-darkmode', exp: 20 },
+  { id: 37, text: "'블루투스' 버튼을 눌러 켜고 기기 목록을 여세요.", targetId: 'quick-bluetooth', exp: 20 },
+  { id: 38, text: "'갤럭시 버즈3'를 선택해 페어링하세요.", targetId: 'bt-device-buds', exp: 30 },
+  { id: 39, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 40, text: "'Samsung Notes' (빨간 메모) 앱을 실행하세요.", targetId: 'app-icon-Notes', exp: 20 },
+  { id: 41, text: "오른쪽 아래 '+' 버튼을 눌러 새 메모를 만드세요.", targetId: 'notes-new', exp: 20 },
+  { id: 42, text: "흰 캔버스 위에 손가락이나 마우스로 자유롭게 그려보세요.", targetId: 'notes-draw', exp: 30 },
+  { id: 43, text: "오른쪽 위 '저장' 버튼을 눌러 메모를 보관하세요.", targetId: 'notes-save', exp: 20 },
+  { id: 44, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 45, text: "설정 앱을 다시 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
+  { id: 46, text: "'디스플레이' 메뉴를 선택하세요.", targetId: 'settings-menu-display', exp: 10 },
+  { id: 47, text: "글자 크기 슬라이더를 움직여 글자를 크게 만들어보세요.", targetId: 'settings-fontsize-slider', exp: 20 },
+  { id: 48, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 ];
 
 
@@ -260,6 +273,13 @@ export default function AndroidExplorer() {
     KakaoTalk: { 카메라: true, 마이크: true, 위치: false, 연락처: true },
   });
   const [playStoreQuery, setPlayStoreQuery] = useState('');
+
+  // 신규: 블루투스 기기 / 노트
+  const [bluetoothModalOpen, setBluetoothModalOpen] = useState(false);
+  const [connectedBtDevice, setConnectedBtDevice] = useState<string | null>(null);
+  const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
+  const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
 
 
   const [questIdx, setQuestIdx] = useState(0);
@@ -869,9 +889,11 @@ export default function AndroidExplorer() {
               <div className="text-white mb-4 truncate" style={{ fontSize: `${fontScale * 16}px` }}>안드로이드 탐험대</div>
               <div className="flex items-center gap-4">
                 <span className="text-xs text-gray-400">가</span>
-                <input type="range" min="0.8" max="1.4" step="0.1" value={fontScale}
-                  onChange={(e) => setFontScale(parseFloat(e.target.value))}
-                  className="flex-1 accent-blue-500 h-3 bg-gray-700 rounded-full appearance-none cursor-pointer" />
+                <ActionTarget id="settings-fontsize-slider" currentTargetId={currentTargetId} advanceQuest={advanceQuest} className="flex-1">
+                  <input type="range" min="0.8" max="1.4" step="0.1" value={fontScale}
+                    onChange={(e) => { setFontScale(parseFloat(e.target.value)); advanceQuest('settings-fontsize-slider'); }}
+                    className="w-full accent-blue-500 h-3 bg-gray-700 rounded-full appearance-none cursor-pointer" />
+                </ActionTarget>
                 <span className="text-2xl text-gray-300">가</span>
               </div>
             </div>
@@ -1032,26 +1054,41 @@ export default function AndroidExplorer() {
             <div className="flex flex-col"><span className="font-semibold text-lg">비행기 모드</span><span className="text-sm opacity-80 truncate">{airplane ? '켜짐' : '꺼짐'}</span></div>
           </ActionTarget>
 
-          <div onClick={() => setBluetooth(!bluetooth)} className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${bluetooth ? 'bg-blue-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}>
+          <ActionTarget
+            id="quick-bluetooth" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+            onClick={() => {
+              if (!bluetooth) { setBluetooth(true); setBluetoothModalOpen(true); }
+              else { setBluetoothModalOpen(true); }
+            }}
+            className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${bluetooth ? 'bg-blue-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}
+          >
             <div className="p-3 bg-white/10 rounded-full"><Bluetooth size={24} /></div>
-            <div className="flex flex-col"><span className="font-semibold text-lg">블루투스</span><span className="text-sm opacity-80">{bluetooth ? '켜짐' : '꺼짐'}</span></div>
-          </div>
+            <div className="flex flex-col"><span className="font-semibold text-lg">블루투스</span><span className="text-sm opacity-80 truncate">{connectedBtDevice || (bluetooth ? '켜짐' : '꺼짐')}</span></div>
+          </ActionTarget>
 
-          <div onClick={() => {
-            const flash = document.createElement('div');
-            flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-90';
-            document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 200);
-            setPhotos(prev => [...prev, { id: Date.now(), seed: Math.floor(Math.random()*1000) }]);
-          }} className="p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer bg-[#2c2c2c] text-gray-200">
+          <ActionTarget
+            id="quick-screenshot" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+            onClick={() => {
+              const flash = document.createElement('div');
+              flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-90';
+              document.body.appendChild(flash);
+              setTimeout(() => flash.remove(), 200);
+              setPhotos(prev => [...prev, { id: Date.now(), seed: Math.floor(Math.random()*1000) }]);
+            }}
+            className="p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer bg-[#2c2c2c] text-gray-200"
+          >
             <div className="p-3 bg-white/10 rounded-full"><Camera size={24} /></div>
             <div className="flex flex-col"><span className="font-semibold text-lg">스크린샷</span><span className="text-sm opacity-80">화면 캡처</span></div>
-          </div>
+          </ActionTarget>
 
-          <div onClick={() => setDarkMode(!darkMode)} className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${darkMode ? 'bg-indigo-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}>
+          <ActionTarget
+            id="quick-darkmode" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+            onClick={() => setDarkMode(!darkMode)}
+            className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${darkMode ? 'bg-indigo-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}
+          >
             <div className="p-3 bg-white/10 rounded-full"><Moon size={24} /></div>
             <div className="flex flex-col"><span className="font-semibold text-lg">다크 모드</span><span className="text-sm opacity-80">{darkMode ? '켜짐' : '꺼짐'}</span></div>
-          </div>
+          </ActionTarget>
 
           <div className="p-5 rounded-3xl flex items-center gap-4 bg-[#2c2c2c] text-gray-200">
             <div className="p-3 bg-white/10 rounded-full"><Flashlight size={24} /></div>
@@ -1436,6 +1473,120 @@ export default function AndroidExplorer() {
     </div>
   );
 
+  const renderNotes = () => {
+    const startDraw = (e: any) => {
+      if (!notesEditing) return;
+      const svg = e.currentTarget as SVGSVGElement;
+      const rect = svg.getBoundingClientRect();
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = ((cx - rect.left) / rect.width) * 100;
+      const y = ((cy - rect.top) / rect.height) * 100;
+      setIsDrawing(true);
+      setNotesEditing({ ...notesEditing, current: `M ${x.toFixed(2)} ${y.toFixed(2)}` });
+    };
+    const moveDraw = (e: any) => {
+      if (!isDrawing || !notesEditing) return;
+      const svg = e.currentTarget as SVGSVGElement;
+      const rect = svg.getBoundingClientRect();
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = ((cx - rect.left) / rect.width) * 100;
+      const y = ((cy - rect.top) / rect.height) * 100;
+      setNotesEditing({ ...notesEditing, current: `${notesEditing.current} L ${x.toFixed(2)} ${y.toFixed(2)}` });
+    };
+    const endDraw = () => {
+      if (!isDrawing || !notesEditing) return;
+      setIsDrawing(false);
+      if (notesEditing.current) {
+        const paths = [...notesEditing.paths, notesEditing.current];
+        setNotesEditing({ paths, current: '' });
+        advanceQuest('notes-draw');
+      }
+    };
+
+    if (notesEditing) {
+      return (
+        <div className="flex-1 bg-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
+            <button onClick={() => setNotesEditing(null)} className="flex items-center gap-1 text-gray-700 active:scale-95">
+              <ChevronLeft size={24}/> <span className="font-medium">취소</span>
+            </button>
+            <div className="font-bold text-lg text-gray-900">새 메모</div>
+            <ActionTarget id="notes-save" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => {
+                const all = [...notesEditing.paths, notesEditing.current].filter(Boolean);
+                if (all.length > 0) setNotes(prev => [...prev, { id: Date.now(), paths: all }]);
+                setNotesEditing(null);
+              }}>
+              <button className="px-4 py-2 rounded-full bg-red-500 text-white font-bold text-sm active:scale-95">저장</button>
+            </ActionTarget>
+          </div>
+          <div className="flex-1 p-4 bg-[#fafafa] overflow-hidden min-h-0">
+            <ActionTarget id="notes-draw" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true} className="w-full h-full block">
+              <svg
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                className="w-full h-full bg-white rounded-2xl shadow-inner border border-gray-200 touch-none cursor-crosshair"
+                onMouseDown={startDraw} onMouseMove={moveDraw} onMouseUp={endDraw} onMouseLeave={endDraw}
+                onTouchStart={startDraw} onTouchMove={moveDraw} onTouchEnd={endDraw}
+              >
+                {notesEditing.paths.map((d, i) => (
+                  <path key={i} d={d} stroke="#1f2937" strokeWidth="0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
+                ))}
+                {notesEditing.current && (
+                  <path d={notesEditing.current} stroke="#ef4444" strokeWidth="0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
+                )}
+              </svg>
+            </ActionTarget>
+          </div>
+          <div className="flex items-center justify-center gap-3 py-3 bg-white border-t border-gray-200 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-black"/>
+            <div className="w-8 h-8 rounded-full bg-red-500"/>
+            <div className="w-8 h-8 rounded-full bg-blue-500"/>
+            <div className="w-8 h-8 rounded-full bg-green-500"/>
+            <button onClick={() => setNotesEditing({ paths: [], current: '' })} className="ml-4 text-sm text-gray-500 active:scale-95">전체 지우기</button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-1 bg-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out] relative">
+        <div className="px-6 py-4 border-b border-gray-200 shrink-0">
+          <div className="text-3xl font-bold text-gray-900">Samsung Notes</div>
+          <div className="text-sm text-gray-500 mt-1">{notes.length}개의 메모</div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
+          {notes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-400">
+              <div className="text-6xl mb-3">📝</div>
+              <div className="text-sm">메모가 없어요. 오른쪽 아래 + 버튼으로 새 메모를 만들어보세요.</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {notes.map(n => (
+                <div key={n.id} className="aspect-square bg-yellow-50 border border-yellow-200 rounded-2xl p-2 shadow-sm">
+                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+                    {n.paths.map((d, i) => (
+                      <path key={i} d={d} stroke="#1f2937" fill="none" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
+                    ))}
+                  </svg>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <ActionTarget id="notes-new" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+          onClick={() => setNotesEditing({ paths: [], current: '' })}
+          className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all cursor-pointer text-4xl font-light"
+        >
+          <span>+</span>
+        </ActionTarget>
+      </div>
+    );
+  };
+
   const renderNavigationBar = () => (
     <div className="h-14 bg-black flex justify-around items-center px-8 sm:px-32 z-40 w-full border-t border-gray-900 shrink-0 pb-2">
       <div onClick={() => setRecentAppsOpen(true)} className="w-20 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all">
@@ -1508,6 +1659,7 @@ export default function AndroidExplorer() {
             {currentApp === 'Camera' && renderCamera()}
             {currentApp === 'Gallery' && renderGallery()}
             {currentApp === 'PlayStore' && renderPlayStore()}
+            {currentApp === 'Notes' && renderNotes()}
           </div>
 
           <div className="shrink-0 z-40">{renderNavigationBar()}</div>
@@ -1636,6 +1788,44 @@ export default function AndroidExplorer() {
                   })}
                 </div>
                 <button onClick={() => setWidgetPickerOpen(false)} className="w-full mt-6 py-3 rounded-2xl bg-blue-600 font-bold active:scale-95">완료</button>
+              </div>
+            </div>
+          )}
+
+
+          {/* Bluetooth devices modal */}
+          {bluetoothModalOpen && (
+            <div className="absolute inset-0 z-[94] bg-black/70 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setBluetoothModalOpen(false)}>
+              <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-3"><Bluetooth size={22} className="text-blue-400"/><div className="font-bold text-xl">블루투스</div></div>
+                  <X size={22} className="cursor-pointer text-gray-400" onClick={() => setBluetoothModalOpen(false)}/>
+                </div>
+                <div className="text-sm text-gray-400 mb-4">사용 가능한 기기를 검색했어요. 연결할 기기를 선택하세요.</div>
+                <div className="space-y-2">
+                  {[
+                    { id: 'bt-device-buds', name: '갤럭시 버즈3', sub: '오디오 · 미연결', icon: '🎧' },
+                    { id: 'bt-device-keyboard', name: '무선 키보드', sub: '키보드 · 미연결', icon: '⌨️' },
+                    { id: 'bt-device-watch', name: '갤럭시 워치6', sub: '웨어러블 · 미연결', icon: '⌚' },
+                    { id: 'bt-device-speaker', name: 'JBL 스피커', sub: '오디오 · 미연결', icon: '🔈' },
+                  ].map(dev => {
+                    const connected = connectedBtDevice === dev.name;
+                    return (
+                      <ActionTarget key={dev.id} id={dev.id} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        onClick={() => { setConnectedBtDevice(dev.name); setTimeout(() => setBluetoothModalOpen(false), 700); }}
+                        className={`p-4 rounded-2xl flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${connected ? 'bg-blue-600' : 'bg-[#2c2c2e] hover:bg-[#3a3a3c]'}`}
+                      >
+                        <div className="text-3xl">{dev.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold truncate">{dev.name}</div>
+                          <div className="text-xs text-gray-400 truncate">{connected ? '연결됨' : dev.sub}</div>
+                        </div>
+                        {connected && <Check size={20} className="text-white"/>}
+                      </ActionTarget>
+                    );
+                  })}
+                </div>
+                <button onClick={() => { setBluetooth(false); setConnectedBtDevice(null); setBluetoothModalOpen(false); }} className="w-full mt-4 py-3 rounded-2xl bg-white/10 text-sm font-medium active:scale-95">블루투스 끄기</button>
               </div>
             </div>
           )}
