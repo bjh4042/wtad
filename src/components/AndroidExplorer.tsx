@@ -853,8 +853,6 @@ export default function AndroidExplorer() {
               return (
             <div className="grid grid-cols-6 md:grid-cols-8 gap-y-8 gap-x-4 justify-items-center">
               {filtered.map((appName, i) => (
-
-              {homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []).map((appName, i) => (
                 <div
                   key={`drawer-${appName}-${i}`}
                   className="flex flex-col items-center gap-2 cursor-pointer group w-[72px] active:scale-95 transition-transform"
@@ -884,8 +882,11 @@ export default function AndroidExplorer() {
                 </div>
               ))}
             </div>
-            <div className="text-center text-white/50 text-xs mt-8">아이콘을 꾹 누르면 앱을 삭제할 수 있어요</div>
+              );
+            })()}
+            <div className="text-center text-white/50 text-xs mt-8">아이콘을 꾹 누르면 앱을 삭제할 수 있어요 · 총 {homeApps.filter(Boolean).length + (installedApps.includes('math') ? 1 : 0)}개</div>
           </div>
+
 
           {/* Uninstall confirm */}
           {uninstallTarget && (
