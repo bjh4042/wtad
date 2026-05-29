@@ -7,8 +7,10 @@ import {
   Mic, MoreHorizontal, RefreshCcw, Plane, Flashlight, MapPin,
   MonitorPlay, ShieldCheck, User, Bell, ImageIcon, Home,
   Lock, ShieldAlert, AlertTriangle, HeartPulse, BatteryCharging,
-  Grid, Sliders, Smartphone, PaintBucket
+  Grid, Sliders, Smartphone, PaintBucket, Moon, Type, ChevronUp,
+  Cloud, MessageSquare, Power, Minus
 } from 'lucide-react';
+
 
 // --- 퀘스트 정의 ---
 const QUESTS = [
