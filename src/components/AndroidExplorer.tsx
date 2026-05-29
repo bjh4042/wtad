@@ -163,11 +163,15 @@ const ActionTarget = ({
   extraTargetIds = [], tooltipPosition = 'top', tooltipText = '여기를 누르세요!'
 }) => {
   const isTarget = currentTargetId === id || extraTargetIds.includes(currentTargetId);
-  const tooltipClasses = tooltipPosition === 'bottom'
-    ? 'absolute -bottom-12 left-1/2 transform -translate-x-1/2'
+  const tooltipClasses =
+    tooltipPosition === 'bottom' ? 'absolute -bottom-12 left-1/2 transform -translate-x-1/2'
+    : tooltipPosition === 'left' ? 'absolute top-1/2 right-full mr-3 -translate-y-1/2'
+    : tooltipPosition === 'top-left' ? 'absolute -top-12 right-0'
     : 'absolute -top-12 left-1/2 transform -translate-x-1/2';
-  const arrowClasses = tooltipPosition === 'bottom'
-    ? 'absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600'
+  const arrowClasses =
+    tooltipPosition === 'bottom' ? 'absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600'
+    : tooltipPosition === 'left' ? 'absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600'
+    : tooltipPosition === 'top-left' ? 'absolute bottom-0 right-6 translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600'
     : 'absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600';
   return (
     <div
