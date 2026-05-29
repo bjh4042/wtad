@@ -340,13 +340,15 @@ export default function AndroidExplorer() {
   };
 
   const handleGlobalMove = (e) => {
-    if (isDraggingExp) {
+    if (isDraggingExp && expMenuRef.current && dragRefExp.current) {
       const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
       const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-      setExpPos({
-        x: dragRefExp.current.initX + (clientX - dragRefExp.current.startX),
-        y: dragRefExp.current.initY + (clientY - dragRefExp.current.startY)
-      });
+      const dx = clientX - dragRefExp.current.startX;
+      const dy = clientY - dragRefExp.current.startY;
+      expMenuRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      expMenuRef.current.style.willChange = 'transform';
+      dragRefExp.current.lastDx = dx;
+      dragRefExp.current.lastDy = dy;
     }
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
