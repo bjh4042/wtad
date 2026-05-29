@@ -1238,119 +1238,178 @@ export default function AndroidExplorer() {
 
 
   const renderQuickPanel = () => (
-    <div className={`absolute inset-0 bg-black/50 backdrop-blur-md z-50 transition-opacity duration-300 flex justify-center pt-4 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-      <div className={`relative bg-[#1a1a1a]/95 text-white w-full max-w-2xl h-[90%] pb-8 rounded-[2rem] shadow-2xl z-10 p-4 flex flex-col gap-3 transition-transform duration-300 ${quickPanelOpen ? 'translate-y-0' : '-translate-y-10'} overflow-y-auto`}>
-        <div className="flex justify-between items-center px-4 mb-2 text-gray-300">
-          <span className="text-sm font-medium">{airplane ? '비행기 탑승 모드' : 'SIM 카드 없음 · 제한구역서비스'}</span>
-          <Settings size={20} className="cursor-pointer hover:text-white active:scale-90 transition-transform" onClick={() => { setCurrentApp('Settings'); setSettingsMenu('connections'); setQuickPanelOpen(false); }} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 px-2">
-          <ActionTarget
-            id="quick-wifi-toggle" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-            onClick={() => {
-              if(!wifi) { setWifi(true); setTimeout(() => setWifiModalOpen(true), 300); }
-              else { setWifi(false); setWifiConnected(null); }
-            }}
-            className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${wifi ? 'bg-blue-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}
-          >
-            <div className="p-3 bg-white/10 rounded-full"><Wifi size={24} /></div>
-            <div className="flex flex-col"><span className="font-semibold text-lg">Wi-Fi</span><span className="text-sm opacity-80 truncate">{wifiConnected || '사용 안 함'}</span></div>
-          </ActionTarget>
-
-          <ActionTarget
-            id="quick-airplane" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-            onClick={() => setAirplane(!airplane)}
-            className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${airplane ? 'bg-orange-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}
-          >
-            <div className="p-3 bg-white/10 rounded-full"><Plane size={24} /></div>
-            <div className="flex flex-col"><span className="font-semibold text-lg">비행기 모드</span><span className="text-sm opacity-80 truncate">{airplane ? '켜짐' : '꺼짐'}</span></div>
-          </ActionTarget>
-
-          <ActionTarget
-            id="quick-bluetooth" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-            onClick={() => {
-              if (!bluetooth) { setBluetooth(true); setBluetoothModalOpen(true); }
-              else { setBluetoothModalOpen(true); }
-            }}
-            className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${bluetooth ? 'bg-blue-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}
-          >
-            <div className="p-3 bg-white/10 rounded-full"><Bluetooth size={24} /></div>
-            <div className="flex flex-col"><span className="font-semibold text-lg">블루투스</span><span className="text-sm opacity-80 truncate">{connectedBtDevice || (bluetooth ? '켜짐' : '꺼짐')}</span></div>
-          </ActionTarget>
-
-          <ActionTarget
-            id="quick-screenshot" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-            onClick={() => {
-              const flash = document.createElement('div');
-              flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-90';
-              document.body.appendChild(flash);
-              setTimeout(() => flash.remove(), 200);
-              setPhotos(prev => [...prev, { id: Date.now(), seed: Math.floor(Math.random()*1000) }]);
-            }}
-            className="p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer bg-[#2c2c2c] text-gray-200"
-          >
-            <div className="p-3 bg-white/10 rounded-full"><Camera size={24} /></div>
-            <div className="flex flex-col"><span className="font-semibold text-lg">스크린샷</span><span className="text-sm opacity-80">화면 캡처</span></div>
-          </ActionTarget>
-
-          <ActionTarget
-            id="quick-darkmode" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${darkMode ? 'bg-indigo-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}
-          >
-            <div className="p-3 bg-white/10 rounded-full"><Moon size={24} /></div>
-            <div className="flex flex-col"><span className="font-semibold text-lg">다크 모드</span><span className="text-sm opacity-80">{darkMode ? '켜짐' : '꺼짐'}</span></div>
-          </ActionTarget>
-
-          <div className="p-5 rounded-3xl flex items-center gap-4 bg-[#2c2c2c] text-gray-200">
-            <div className="p-3 bg-white/10 rounded-full"><Flashlight size={24} /></div>
-            <div className="flex flex-col"><span className="font-semibold text-lg">손전등</span><span className="text-sm opacity-80">꺼짐</span></div>
-          </div>
-
-        </div>
-
-        {/* 소리 모드 */}
-        <div className="bg-[#2c2c2c] rounded-3xl p-5 mx-2 mt-2">
-          <div className="text-sm text-gray-400 font-medium mb-3">소리 모드</div>
-          <div className="flex gap-3">
-            <div onClick={() => setSoundMode('sound')} className={`flex-1 p-3 rounded-2xl flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all ${soundMode === 'sound' ? 'bg-blue-500 text-white' : 'bg-[#3a3a3c] text-gray-300'}`}>
-              <Volume2 size={22} /><span className="text-xs font-medium">소리</span>
-            </div>
-            <ActionTarget
-              id="quick-sound-vibrate" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-              onClick={() => setSoundMode('vibrate')}
-              className={`flex-1 p-3 rounded-2xl flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all ${soundMode === 'vibrate' ? 'bg-blue-500 text-white' : 'bg-[#3a3a3c] text-gray-300'}`}
-            >
-              <Vibrate size={22} /><span className="text-xs font-medium">진동</span>
-            </ActionTarget>
-            <div onClick={() => setSoundMode('mute')} className={`flex-1 p-3 rounded-2xl flex flex-col items-center gap-1 cursor-pointer active:scale-95 transition-all ${soundMode === 'mute' ? 'bg-blue-500 text-white' : 'bg-[#3a3a3c] text-gray-300'}`}>
-              <VolumeX size={22} /><span className="text-xs font-medium">무음</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 음량 */}
-        <div className="bg-[#333] rounded-3xl p-5 mx-2 flex flex-col gap-4">
-          <div className="flex items-center gap-4 px-2">
-            <Volume2 size={24} className="text-gray-400" />
-            <ActionTarget id="quick-volume-slider" currentTargetId={currentTargetId} advanceQuest={advanceQuest} className="flex-1">
-              <input type="range" min="0" max="100" value={volume}
-                onChange={(e) => { setVolume(e.target.value); advanceQuest('quick-volume-slider'); }}
-                className="w-full accent-blue-500 h-4 bg-gray-600 rounded-full appearance-none cursor-pointer" />
-            </ActionTarget>
-            <span className="text-sm text-gray-300 w-10 text-right">{volume}%</span>
-          </div>
-          <div className="flex items-center gap-4 px-2">
-            <Sun size={24} className="text-gray-400" />
-            <input type="range" min="10" max="100" value={brightness}
-              onChange={(e) => setBrightness(e.target.value)}
-              className="w-full accent-blue-500 h-4 bg-gray-600 rounded-full appearance-none cursor-pointer" />
-            <span className="text-sm text-gray-300 w-10 text-right">{brightness}%</span>
-          </div>
+    <div className={`absolute inset-0 z-50 transition-opacity duration-300 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      style={{ background: 'radial-gradient(ellipse at top, rgba(60,60,60,0.55) 0%, rgba(0,0,0,0.65) 70%)', backdropFilter: 'blur(28px)' }}>
+      {/* 상단 상태 줄 + 액션 아이콘 */}
+      <div className="absolute top-0 left-0 right-0 flex justify-between items-center px-8 py-5 text-white/95 z-10">
+        <span className="text-sm font-medium tracking-tight drop-shadow">{airplane ? '비행기 탑승 모드' : 'SIM 카드 없음 · 제한구역서비스'}</span>
+        <div className="flex items-center gap-5">
+          <div className="w-8 h-8 rounded-full bg-yellow-300 flex items-center justify-center text-base shadow-md">🙂</div>
+          <button className="p-1.5 rounded-full hover:bg-white/10 active:scale-90 transition" title="편집"><Sliders size={20}/></button>
+          <button className="p-1.5 rounded-full hover:bg-white/10 active:scale-90 transition" title="전원"><Power size={20}/></button>
+          <button
+            className="p-1.5 rounded-full hover:bg-white/10 active:scale-90 transition"
+            title="설정"
+            onClick={() => { setCurrentApp('Settings'); setSettingsMenu('connections'); setQuickPanelOpen(false); }}
+          ><Settings size={20}/></button>
         </div>
       </div>
-      <ActionTarget id="quick-panel-bg" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setQuickPanelOpen(false)} className="flex-1 w-full" />
+
+      {/* 메인 패널 (스크롤 가능) */}
+      <div className="w-full h-full pt-16 pb-8 px-4 md:px-12 overflow-y-auto flex flex-col items-center gap-3">
+        <div className="w-full max-w-3xl flex flex-col gap-3">
+
+          {/* Wi-Fi / 블루투스 대형 알약 */}
+          <div className="grid grid-cols-2 gap-3">
+            <ActionTarget
+              id="quick-wifi-toggle" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => {
+                if(!wifi) { setWifi(true); setTimeout(() => setWifiModalOpen(true), 300); }
+                else { setWifi(false); setWifiConnected(null); }
+              }}
+              className={`h-20 px-6 rounded-full flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${wifi ? 'bg-blue-500 text-white shadow-lg' : 'bg-white/15 text-white backdrop-blur-md'}`}
+            >
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${wifi ? 'bg-white/20' : 'bg-white/15'}`}><Wifi size={24}/></div>
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="font-semibold text-base">Wi-Fi</span>
+                <span className="text-xs opacity-80 truncate">{wifiConnected || (wifi ? '연결 대기' : '사용 안 함')}</span>
+              </div>
+            </ActionTarget>
+
+            <ActionTarget
+              id="quick-bluetooth" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => {
+                if (!bluetooth) { setBluetooth(true); setBluetoothModalOpen(true); }
+                else { setBluetoothModalOpen(true); }
+              }}
+              className={`h-20 px-6 rounded-full flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${bluetooth ? 'bg-blue-500 text-white shadow-lg' : 'bg-white/15 text-white backdrop-blur-md'}`}
+            >
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${bluetooth ? 'bg-white/20' : 'bg-white/15'}`}><Bluetooth size={24}/></div>
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="font-semibold text-base">블루투스</span>
+                <span className="text-xs opacity-80 truncate">{connectedBtDevice || (bluetooth ? '켜짐' : '꺼짐')}</span>
+              </div>
+            </ActionTarget>
+          </div>
+
+          {/* 둥근 아이콘 캡슐 그리드 (2행 x 5열) */}
+          <div className="bg-white/12 backdrop-blur-md rounded-[2rem] p-5">
+            <div className="grid grid-cols-5 gap-y-5 justify-items-center">
+              {[
+                { key: 'rotate', icon: <RefreshCcw size={22}/>, on: true, label: '자동회전' },
+                { key: 'airplane', icon: <Plane size={22}/>, on: airplane, label: '비행기', target: 'quick-airplane', onClick: () => setAirplane(!airplane) },
+                { key: 'flash', icon: <Flashlight size={22}/>, on: false, label: '손전등' },
+                { key: 'data', icon: <Signal size={22}/>, on: !airplane, label: '모바일' },
+                { key: 'hotspot', icon: <Cloud size={22}/>, on: false, label: '핫스팟' },
+                { key: 'battery', icon: <BatteryCharging size={22}/>, on: false, label: '절전' },
+                { key: 'eye', icon: <ImageIcon size={22}/>, on: false, label: '눈편함' },
+                { key: 'sync', icon: <RefreshCcw size={22}/>, on: true, label: '동기화' },
+                { key: 'darkmode', icon: <Moon size={22}/>, on: darkMode, label: '다크모드', target: 'quick-darkmode', onClick: () => setDarkMode(!darkMode) },
+                { key: 'location', icon: <MapPin size={22}/>, on: true, label: '위치' },
+              ].map((it: any) => {
+                const inner = (
+                  <div className="flex flex-col items-center gap-1.5 cursor-pointer active:scale-90 transition-transform">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${it.on ? 'bg-white text-black' : 'bg-white/15 text-white'}`}>
+                      {it.icon}
+                    </div>
+                    <span className="text-[10px] text-white/85">{it.label}</span>
+                  </div>
+                );
+                return it.target ? (
+                  <ActionTarget key={it.key} id={it.target} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={it.onClick}>
+                    {inner}
+                  </ActionTarget>
+                ) : (
+                  <div key={it.key} onClick={it.onClick}>{inner}</div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 밝기 / 음량 슬라이더 (캡슐) */}
+          <div className="flex flex-col gap-2.5">
+            <div className="bg-white/12 backdrop-blur-md rounded-full h-14 flex items-center px-5 gap-4">
+              <Sun size={20} className="text-white/90 shrink-0"/>
+              <input type="range" min="10" max="100" value={brightness}
+                onChange={(e) => setBrightness(e.target.value)}
+                className="flex-1 accent-white h-2 bg-white/25 rounded-full appearance-none cursor-pointer"/>
+              <Moon size={20} className="text-white/90 shrink-0"/>
+            </div>
+            <ActionTarget id="quick-volume-slider" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              className="bg-white/12 backdrop-blur-md rounded-full h-14 flex items-center px-5 gap-4">
+              <VolumeX size={20} className="text-white/90 shrink-0"/>
+              <input type="range" min="0" max="100" value={volume}
+                onChange={(e) => { setVolume(e.target.value); advanceQuest('quick-volume-slider'); }}
+                className="flex-1 accent-white h-2 bg-white/25 rounded-full appearance-none cursor-pointer"/>
+              <Volume2 size={20} className="text-white/90 shrink-0"/>
+            </ActionTarget>
+          </div>
+
+          {/* 음악 재생 + 미디어 출력 */}
+          <div className="bg-white/12 backdrop-blur-md rounded-full h-14 flex items-center justify-between pl-6 pr-2">
+            <div className="flex items-center gap-3 text-white">
+              <Play size={18}/>
+              <span className="text-sm font-medium">음악 재생</span>
+            </div>
+            <button className="bg-white/15 hover:bg-white/25 rounded-full h-10 px-5 text-xs text-white font-medium active:scale-95 transition">미디어 출력</button>
+          </div>
+
+          {/* 소리 모드 (간소) */}
+          <div className="grid grid-cols-3 gap-3">
+            <div onClick={() => setSoundMode('sound')} className={`h-14 rounded-full flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition ${soundMode === 'sound' ? 'bg-blue-500 text-white' : 'bg-white/12 text-white/90'}`}>
+              <Volume2 size={18}/><span className="text-xs font-medium">소리</span>
+            </div>
+            <ActionTarget id="quick-sound-vibrate" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => setSoundMode('vibrate')}
+              className={`h-14 rounded-full flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition ${soundMode === 'vibrate' ? 'bg-blue-500 text-white' : 'bg-white/12 text-white/90'}`}
+            >
+              <Vibrate size={18}/><span className="text-xs font-medium">진동</span>
+            </ActionTarget>
+            <div onClick={() => setSoundMode('mute')} className={`h-14 rounded-full flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition ${soundMode === 'mute' ? 'bg-blue-500 text-white' : 'bg-white/12 text-white/90'}`}>
+              <VolumeX size={18}/><span className="text-xs font-medium">무음</span>
+            </div>
+          </div>
+
+          {/* 하단 카드 2x2 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/12 backdrop-blur-md rounded-3xl h-20 flex items-center gap-4 px-5 cursor-pointer active:scale-[0.98] transition">
+              <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-white"><Smartphone size={22}/></div>
+              <span className="text-sm font-semibold text-white">주변 기기 연결</span>
+            </div>
+            <div className="bg-white/12 backdrop-blur-md rounded-3xl h-20 flex flex-col justify-center gap-0.5 px-5 cursor-pointer active:scale-[0.98] transition">
+              <div className="flex items-center gap-2 text-white"><span className="text-base">✻</span><span className="text-sm font-semibold">SmartThings</span></div>
+              <span className="text-[11px] text-white/70 pl-7">기기 제어</span>
+            </div>
+            <ActionTarget id="quick-screenshot" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => {
+                const flash = document.createElement('div');
+                flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-90';
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 200);
+                setPhotos(prev => [...prev, { id: Date.now(), seed: Math.floor(Math.random()*1000) }]);
+              }}
+              className="bg-white/12 backdrop-blur-md rounded-3xl h-20 flex items-center gap-4 px-5 cursor-pointer active:scale-[0.98] transition"
+            >
+              <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-white"><Camera size={22}/></div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-white">스크린샷</span>
+                <span className="text-[11px] text-white/70">화면 캡처</span>
+              </div>
+            </ActionTarget>
+            <div className="bg-white/12 backdrop-blur-md rounded-3xl h-20 flex items-center gap-4 px-5 cursor-pointer active:scale-[0.98] transition">
+              <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-white"><MonitorPlay size={22}/></div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-white">Smart View</span>
+                <span className="text-[11px] text-white/70">화면 미러링</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <ActionTarget id="quick-panel-bg" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setQuickPanelOpen(false)} className="absolute inset-0 -z-10" />
+
 
       {wifiModalOpen && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-[#1c1c1e] rounded-3xl p-6 text-[#f5f5f5] shadow-2xl z-50 border border-gray-700/50 animate-[fadeIn_0.2s_ease-out]">
