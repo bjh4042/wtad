@@ -365,7 +365,28 @@ export default function AndroidExplorer() {
   };
 
 
-  const handleGlobalEnd = () => { setIsDraggingExp(false); setTouchStartY(null); };
+  const handleGlobalEnd = () => {
+    if (isDraggingExp && expMenuRef.current && dragRefExp.current) {
+      const dx = dragRefExp.current.lastDx || 0;
+      const dy = dragRefExp.current.lastDy || 0;
+      expMenuRef.current.style.transition = 'none';
+      expMenuRef.current.style.transform = 'none';
+      expMenuRef.current.style.willChange = '';
+      setExpPos({
+        x: dragRefExp.current.initX + dx,
+        y: dragRefExp.current.initY + dy
+      });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (expMenuRef.current) {
+            expMenuRef.current.style.transition = '';
+          }
+        });
+      });
+    }
+    setIsDraggingExp(false);
+    setTouchStartY(null);
+  };
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
 
   const handleAppPressStart = (appName) => {
