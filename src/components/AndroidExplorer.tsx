@@ -1080,11 +1080,7 @@ export default function AndroidExplorer() {
                     }
                     return <div key={i}>{node}</div>;
                   })}
-                  {photos.slice(0, 4).map(p => (
-                    <div key={p.id} onClick={() => setWallpaper('#1f2937')} className="relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 ring-2 ring-white/40 overflow-hidden bg-[#1a1a1a] p-1">
-                      <CuteStudent seed={p.seed}/>
-                      <div className="absolute bottom-1 inset-x-1 text-[10px] text-white bg-black/40 rounded px-1 text-center">내 사진</div>
-                    </div>
+
 
                   {photos.slice(0, 4).map(p => (
                     <div key={p.id} onClick={() => setWallpaper('#1f2937')} className="relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 ring-2 ring-white/40 overflow-hidden bg-[#1a1a1a] p-1">
