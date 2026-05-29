@@ -555,12 +555,6 @@ export default function AndroidExplorer() {
     return (
       <ActionTarget
         key={index}
-
-    if (!content) return null;
-    const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
-    return (
-      <ActionTarget
-        key={index}
         id={`app-icon-${appName}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
         extraTargetIds={appName === 'Camera' ? ['app-icon-Camera-long-press', 'drag-camera'] : []}
         tooltipText={
