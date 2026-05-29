@@ -81,6 +81,25 @@ const WIFI_NETWORKS = [
   { id: 'wifi-net-4', name: 'AndroidHotspot', secure: true, signal: 3 },
 ];
 
+const PLAYSTORE_APPS = [
+  { id: 'duolingo', name: '듀오링고', dev: 'Duolingo', color: '#22c55e', label: '🦉' },
+  { id: 'minecraft', name: '마인크래프트', dev: 'Mojang', color: '#15803d', label: '⛏️' },
+  { id: 'classting', name: '클래스팅', dev: 'Classting Inc', color: '#f97316', label: 'C' },
+  { id: 'toss', name: '토스', dev: 'Viva Republica', color: '#2563eb', label: 'T' },
+  { id: 'melon', name: '멜론', dev: 'Kakao', color: '#10b981', label: '♪' },
+];
+
+const WIDGET_CATALOG = [
+  { id: 'clock', name: '시계', desc: '큰 시간 표시', icon: '🕐' },
+  { id: 'weather', name: '날씨', desc: '현재 날씨', icon: '☀️' },
+  { id: 'calendar', name: '캘린더', desc: '오늘 날짜', icon: '📅' },
+  { id: 'music', name: '음악', desc: '재생 컨트롤', icon: '🎵' },
+  { id: 'fitness', name: '걸음 수', desc: '오늘의 활동', icon: '👟' },
+];
+
+const PERMISSION_ICONS: Record<string, string> = { 카메라: '📷', 마이크: '🎙️', 위치: '📍', 저장공간: '💾', 연락처: '👥' };
+
+
 const TARGET_SEQUENCE = [
   { key: 'Shift', display: '' }, { key: 'ㄸ', display: 'ㄸ' }, { key: 'ㅗ', display: '또' }, { key: 'ㄱ', display: '똑' },
   { key: 'Shift', display: '똑' }, { key: 'ㄸ', display: '똑ㄸ' }, { key: 'ㅗ', display: '똑또' }, { key: 'ㄱ', display: '똑똑' },
