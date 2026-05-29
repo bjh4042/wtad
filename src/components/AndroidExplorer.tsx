@@ -1502,7 +1502,6 @@ export default function AndroidExplorer() {
                   <button className="bg-[#01875f] hover:bg-[#01704e] text-white py-3.5 px-12 rounded-full font-bold self-start w-full max-w-[240px] transition-all active:scale-95 text-lg shadow-md pointer-events-none">설치</button>
                 </ActionTarget>
               )}
-              )}
             </div>
           </div>
         ) : (
