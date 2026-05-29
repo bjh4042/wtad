@@ -737,6 +737,8 @@ export default function AndroidExplorer() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
         {settingsMenu === 'display' && (
           <div className="animate-[fadeIn_0.3s_ease-out]">
             <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 디스플레이</h2>
@@ -780,8 +782,6 @@ export default function AndroidExplorer() {
           </div>
         )}
 
-          </div>
-        )}
         {settingsMenu === 'wallpaper' && (
           <div className="animate-[fadeIn_0.3s_ease-out]">
             <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 배경화면 및 스타일</h2>
