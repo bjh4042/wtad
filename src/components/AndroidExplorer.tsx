@@ -289,6 +289,7 @@ export default function AndroidExplorer() {
   const [expPos, setExpPos] = useState({ x: 20, y: 60 });
   const [isDraggingExp, setIsDraggingExp] = useState(false);
   const dragRefExp = useRef(null);
+  const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
 
   const currentTargetId = QUESTS[questIdx]?.targetId;
