@@ -278,8 +278,6 @@ export default function AndroidExplorer() {
   const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
 
   const [themeColor, setThemeColor] = useState<string>(() => loadLS().themeColor ?? '#3b82f6');
-
-  const [themeColor, setThemeColor] = useState('#3b82f6');
   const [recentAppsOpen, setRecentAppsOpen] = useState(false);
   const [recentApps, setRecentApps] = useState<string[]>([]);
   const [splitScreen, setSplitScreen] = useState<{ top: string; bottom: string } | null>(null);
@@ -310,8 +308,6 @@ export default function AndroidExplorer() {
   const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
 
-  const expMenuRef = useRef(null);
-  const [touchStartY, setTouchStartY] = useState(null);
 
   const currentTargetId = QUESTS[questIdx]?.targetId;
 
