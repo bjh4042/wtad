@@ -205,6 +205,7 @@ export default function AndroidExplorer() {
   const [currentCameraSeed, setCurrentCameraSeed] = useState(Date.now());
   const [wallpaper, setWallpaper] = useState('radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a');
   const [mathAppOpen, setMathAppOpen] = useState(false);
+  const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
   const initialApps = Array(24).fill(null);
   initialApps[8] = 'GameLauncher'; initialApps[9] = 'Store'; initialApps[10] = 'Camera'; initialApps[11] = 'Gallery';
