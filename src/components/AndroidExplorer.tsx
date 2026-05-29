@@ -870,10 +870,27 @@ export default function AndroidExplorer() {
             <div className="flex flex-col"><span className="font-semibold text-lg">블루투스</span><span className="text-sm opacity-80">{bluetooth ? '켜짐' : '꺼짐'}</span></div>
           </div>
 
+          <div onClick={() => {
+            const flash = document.createElement('div');
+            flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-90';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 200);
+            setPhotos(prev => [...prev, { id: Date.now(), seed: Math.floor(Math.random()*1000) }]);
+          }} className="p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer bg-[#2c2c2c] text-gray-200">
+            <div className="p-3 bg-white/10 rounded-full"><Camera size={24} /></div>
+            <div className="flex flex-col"><span className="font-semibold text-lg">스크린샷</span><span className="text-sm opacity-80">화면 캡처</span></div>
+          </div>
+
+          <div onClick={() => setDarkMode(!darkMode)} className={`p-5 rounded-3xl flex items-center gap-4 transition-all active:scale-[0.98] cursor-pointer ${darkMode ? 'bg-indigo-500 text-white shadow-md' : 'bg-[#2c2c2c] text-gray-200'}`}>
+            <div className="p-3 bg-white/10 rounded-full"><Moon size={24} /></div>
+            <div className="flex flex-col"><span className="font-semibold text-lg">다크 모드</span><span className="text-sm opacity-80">{darkMode ? '켜짐' : '꺼짐'}</span></div>
+          </div>
+
           <div className="p-5 rounded-3xl flex items-center gap-4 bg-[#2c2c2c] text-gray-200">
             <div className="p-3 bg-white/10 rounded-full"><Flashlight size={24} /></div>
             <div className="flex flex-col"><span className="font-semibold text-lg">손전등</span><span className="text-sm opacity-80">꺼짐</span></div>
           </div>
+
         </div>
 
         {/* 소리 모드 */}
