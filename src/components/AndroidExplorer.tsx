@@ -444,13 +444,18 @@ export default function AndroidExplorer() {
   };
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
 
-  const handleAppPressStart = (appName) => {
+  const handleAppPressStart = (appName, index?: number) => {
     if (isEditMode) return;
     pressTimer.current = setTimeout(() => {
-      setIsEditMode(true);
-      if (appName === 'Camera') advanceQuest('app-icon-Camera-long-press');
+      if (appName === 'Camera' && currentTargetId === 'app-icon-Camera-long-press') {
+        setIsEditMode(true);
+        advanceQuest('app-icon-Camera-long-press');
+      } else {
+        setAppContextMenu({ appName, index: index ?? -1 });
+      }
     }, 600);
   };
+
   const handleAppPressEnd = () => { if (pressTimer.current) clearTimeout(pressTimer.current); };
 
   const onPointerDown = (e, index) => {
