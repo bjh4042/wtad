@@ -56,8 +56,7 @@ const QUESTS = [
   { id: 41, text: "🎉 모든 임무 완료! 훌륭한 안드로이드 탐험가입니다!", targetId: null, exp: 100 },
 ];
 
-  { id: 35, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
-];
+
 
 const SETTINGS_MENUS = [
   { id: 'account', icon: <User size={20} className="text-white"/>, title: '계정 및 백업', sub: '계정 관리 · Smart Switch', bg: 'bg-blue-500' },
