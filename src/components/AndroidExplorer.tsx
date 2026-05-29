@@ -190,7 +190,26 @@ const ActionTarget = ({
 };
 
 
+const LS_KEY = 'android-explorer-v2';
+const loadLS = (): any => {
+  if (typeof window === 'undefined') return {};
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+};
+
+const DEFAULT_WALLPAPER = 'radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a';
+
+const DEFAULT_HOME_APPS = (() => {
+  const a = Array(24).fill(null);
+  a[8] = 'GameLauncher'; a[9] = 'Store'; a[10] = 'Camera'; a[11] = 'Gallery';
+  a[12] = 'Wearable'; a[13] = 'Calendar'; a[14] = 'Clock'; a[15] = 'Health';
+  a[16] = 'Folder'; a[17] = 'Notes'; a[18] = 'Messages'; a[19] = 'Internet';
+  a[20] = 'PlayStore'; a[21] = 'YouTube'; a[22] = 'KakaoTalk'; a[23] = 'Naver';
+  a[7] = 'Settings';
+  return a;
+})();
+
 export default function AndroidExplorer() {
+  const _saved = loadLS();
   const [time, setTime] = useState<Date | null>(null);
 
   const [wifi, setWifi] = useState(false);
@@ -201,22 +220,18 @@ export default function AndroidExplorer() {
   const [brightness, setBrightness] = useState(80);
   const [volume, setVolume] = useState(70);
   const [photos, setPhotos] = useState([]);
-  const [installedApps, setInstalledApps] = useState([]);
+  const [installedApps, setInstalledApps] = useState<string[]>(() => loadLS().installedApps ?? []);
   const [currentCameraSeed, setCurrentCameraSeed] = useState(Date.now());
-  const [wallpaper, setWallpaper] = useState('radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a');
+  const [wallpaper, setWallpaper] = useState<string>(() => loadLS().wallpaper ?? DEFAULT_WALLPAPER);
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
-  const initialApps = Array(24).fill(null);
-  initialApps[8] = 'GameLauncher'; initialApps[9] = 'Store'; initialApps[10] = 'Camera'; initialApps[11] = 'Gallery';
-  initialApps[12] = 'Wearable'; initialApps[13] = 'Calendar'; initialApps[14] = 'Clock'; initialApps[15] = 'Health';
-  initialApps[16] = 'Folder'; initialApps[17] = 'Notes'; initialApps[18] = 'Messages'; initialApps[19] = 'Internet';
-  initialApps[20] = 'PlayStore'; initialApps[21] = 'YouTube'; initialApps[22] = 'KakaoTalk'; initialApps[23] = 'Naver';
-  initialApps[7] = 'Settings';
-
-  const [homeApps, setHomeApps] = useState(initialApps);
+  const [homeApps, setHomeApps] = useState<any[]>(() => loadLS().homeApps ?? DEFAULT_HOME_APPS);
   const [isEditMode, setIsEditMode] = useState(false);
-  const pressTimer = useRef(null);
+  const [appContextMenu, setAppContextMenu] = useState<{ appName: string; index: number } | null>(null);
+  const pressTimer = useRef<any>(null);
+
+
 
   const [dragInfo, setDragInfo] = useState({ isDragging: false, index: null, x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const [hoverIndex, setHoverIndex] = useState(null);
@@ -243,9 +258,10 @@ export default function AndroidExplorer() {
   const [locked, setLocked] = useState(true);
   const [lockSwipeY, setLockSwipeY] = useState<number | null>(null);
   const [lockOffset, setLockOffset] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
-  const [fontScale, setFontScale] = useState(1);
-  const [widgets, setWidgets] = useState<string[]>(['clock', 'weather', 'calendar']);
+  const [darkMode, setDarkMode] = useState<boolean>(() => loadLS().darkMode ?? false);
+  const [fontScale, setFontScale] = useState<number>(() => loadLS().fontScale ?? 1);
+  const [widgets, setWidgets] = useState<string[]>(() => loadLS().widgets ?? ['clock', 'weather', 'calendar']);
+
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [homeMenuOpen, setHomeMenuOpen] = useState(false);
   const [homeLongPressTimer, setHomeLongPressTimer] = useState<any>(null);
@@ -261,7 +277,8 @@ export default function AndroidExplorer() {
   const [uninstallTarget, setUninstallTarget] = useState<string | null>(null);
   const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
 
-  // 신규: 테마/권한/최근 앱/분할 화면
+  const [themeColor, setThemeColor] = useState<string>(() => loadLS().themeColor ?? '#3b82f6');
+
   const [themeColor, setThemeColor] = useState('#3b82f6');
   const [recentAppsOpen, setRecentAppsOpen] = useState(false);
   const [recentApps, setRecentApps] = useState<string[]>([]);
@@ -281,14 +298,18 @@ export default function AndroidExplorer() {
   const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-
-
-  const [questIdx, setQuestIdx] = useState(0);
-  const [exp, setExp] = useState(0);
+  const [questIdx, setQuestIdx] = useState<number>(() => loadLS().questIdx ?? 0);
+  const [exp, setExp] = useState<number>(() => loadLS().exp ?? 0);
+  const [completedQuests, setCompletedQuests] = useState<number[]>(() => loadLS().completedQuests ?? []);
+  const [drawerSearch, setDrawerSearch] = useState('');
+  const [appLaunchKey, setAppLaunchKey] = useState(0);
   const [showExpMenu, setShowExpMenu] = useState(true);
   const [expPos, setExpPos] = useState({ x: 20, y: 60 });
   const [isDraggingExp, setIsDraggingExp] = useState(false);
   const dragRefExp = useRef(null);
+  const expMenuRef = useRef(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+
   const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
 
@@ -321,16 +342,50 @@ export default function AndroidExplorer() {
     }
   }, [currentApp]);
 
+  // 앱 전환 애니메이션 트리거
+  useEffect(() => { setAppLaunchKey(k => k + 1); }, [currentApp]);
+
+  // 진행도 localStorage 저장
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        questIdx, exp, completedQuests, installedApps, homeApps,
+        wallpaper, darkMode, fontScale, widgets, themeColor,
+      }));
+    } catch {}
+  }, [questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
+
+
 
 
 
 
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
-      setExp(e => e + QUESTS[questIdx].exp);
-      setQuestIdx(q => q + 1);
+      if (!completedQuests.includes(questIdx)) {
+        setExp(e => e + QUESTS[questIdx].exp);
+        setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
+      }
+      setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
     }
   };
+
+  const resetProgress = () => {
+    if (typeof window !== 'undefined') {
+      try { localStorage.removeItem(LS_KEY); } catch {}
+    }
+    setQuestIdx(0); setExp(0); setCompletedQuests([]);
+    setInstalledApps([]); setHomeApps(DEFAULT_HOME_APPS); setWallpaper(DEFAULT_WALLPAPER);
+    setDarkMode(false); setFontScale(1); setWidgets(['clock', 'weather', 'calendar']);
+    setThemeColor('#3b82f6'); setLocked(true);
+  };
+  const gotoQuest = (idx: number) => {
+    const clamped = Math.max(0, Math.min(QUESTS.length - 1, idx));
+    if (clamped > questIdx && !completedQuests.includes(questIdx)) return;
+    setQuestIdx(clamped);
+  };
+
 
   const handleDragStartExp = (e) => {
     setIsDraggingExp(true);
@@ -389,13 +444,18 @@ export default function AndroidExplorer() {
   };
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
 
-  const handleAppPressStart = (appName) => {
+  const handleAppPressStart = (appName, index?: number) => {
     if (isEditMode) return;
     pressTimer.current = setTimeout(() => {
-      setIsEditMode(true);
-      if (appName === 'Camera') advanceQuest('app-icon-Camera-long-press');
+      if (appName === 'Camera' && currentTargetId === 'app-icon-Camera-long-press') {
+        setIsEditMode(true);
+        advanceQuest('app-icon-Camera-long-press');
+      } else {
+        setAppContextMenu({ appName, index: index ?? -1 });
+      }
     }, 600);
   };
+
   const handleAppPressEnd = () => { if (pressTimer.current) clearTimeout(pressTimer.current); };
 
   const onPointerDown = (e, index) => {
@@ -596,8 +656,9 @@ export default function AndroidExplorer() {
         onPointerDown={(e) => onPointerDown(e, index)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onTouchStart={() => handleAppPressStart(appName)} onTouchEnd={handleAppPressEnd}
-        onMouseDown={() => handleAppPressStart(appName)} onMouseUp={handleAppPressEnd} onMouseLeave={handleAppPressEnd}
+        onTouchStart={() => handleAppPressStart(appName, index)} onTouchEnd={handleAppPressEnd}
+        onMouseDown={() => handleAppPressStart(appName, index)} onMouseUp={handleAppPressEnd} onMouseLeave={handleAppPressEnd}
+
         className={`flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
       >
         <div
@@ -763,18 +824,35 @@ export default function AndroidExplorer() {
       {/* App Drawer overlay */}
       {appDrawerOpen && (
         <div className="absolute inset-0 z-[90] bg-black/85 backdrop-blur-xl animate-[slideUp_0.3s_ease-out] flex flex-col pt-6">
-          <div className="flex items-center justify-between px-8 mb-4">
+          <div className="flex items-center justify-between px-8 mb-3">
             <div className="text-white text-2xl font-bold">앱 서랍</div>
             <button
               className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
-              onClick={() => setAppDrawerOpen(false)}
+              onClick={() => { setAppDrawerOpen(false); setDrawerSearch(''); }}
             >
               <X size={20}/>
             </button>
           </div>
+          <div className="px-8 mb-4">
+            <div className="relative">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50"/>
+              <input
+                value={drawerSearch}
+                onChange={(e) => setDrawerSearch(e.target.value)}
+                placeholder="앱 검색…"
+                className="w-full bg-white/10 border border-white/15 text-white placeholder-white/40 rounded-full pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:bg-white/15"
+              />
+            </div>
+          </div>
           <div className="flex-1 overflow-y-auto px-6 pb-8">
+            {(() => {
+              const all = homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []);
+              const filtered = drawerSearch
+                ? all.filter(a => a.toLowerCase().includes(drawerSearch.toLowerCase()))
+                : all;
+              return (
             <div className="grid grid-cols-6 md:grid-cols-8 gap-y-8 gap-x-4 justify-items-center">
-              {homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []).map((appName, i) => (
+              {filtered.map((appName, i) => (
                 <div
                   key={`drawer-${appName}-${i}`}
                   className="flex flex-col items-center gap-2 cursor-pointer group w-[72px] active:scale-95 transition-transform"
@@ -804,8 +882,11 @@ export default function AndroidExplorer() {
                 </div>
               ))}
             </div>
-            <div className="text-center text-white/50 text-xs mt-8">아이콘을 꾹 누르면 앱을 삭제할 수 있어요</div>
+              );
+            })()}
+            <div className="text-center text-white/50 text-xs mt-8">아이콘을 꾹 누르면 앱을 삭제할 수 있어요 · 총 {homeApps.filter(Boolean).length + (installedApps.includes('math') ? 1 : 0)}개</div>
           </div>
+
 
           {/* Uninstall confirm */}
           {uninstallTarget && (
@@ -964,39 +1045,43 @@ export default function AndroidExplorer() {
 
         {settingsMenu === 'wallpaper' && (() => {
           const wallpaperPresets = [
-            { name: '기본 보라', value: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a', tutorial: true },
-            { name: '숲 그린', value: 'linear-gradient(135deg, #065f46 0%, #166534 100%)' },
-            { name: '와인 레드', value: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)' },
-            { name: '오션 블루', value: 'linear-gradient(180deg, #0ea5e9 0%, #0c4a6e 100%)' },
-            { name: '선셋', value: 'linear-gradient(135deg, #f97316 0%, #db2777 60%, #581c87 100%)' },
-            { name: '미드나잇', value: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' },
-            { name: '파스텔', value: 'linear-gradient(135deg, #fbcfe8 0%, #c7d2fe 50%, #bae6fd 100%)' },
-            { name: '미니멀 그레이', value: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)' },
+            { name: '기본 보라', value: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a', theme: '#818cf8', tutorial: true },
+            { name: '숲 그린', value: 'linear-gradient(135deg, #065f46 0%, #166534 100%)', theme: '#10b981' },
+            { name: '와인 레드', value: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)', theme: '#ef4444' },
+            { name: '오션 블루', value: 'linear-gradient(180deg, #0ea5e9 0%, #0c4a6e 100%)', theme: '#0ea5e9' },
+            { name: '선셋', value: 'linear-gradient(135deg, #f97316 0%, #db2777 60%, #581c87 100%)', theme: '#f97316' },
+            { name: '미드나잇', value: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)', theme: '#6366f1' },
+            { name: '파스텔', value: 'linear-gradient(135deg, #fbcfe8 0%, #c7d2fe 50%, #bae6fd 100%)', theme: '#ec4899' },
+            { name: '미니멀 그레이', value: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)', theme: '#64748b' },
           ];
           const themes = ['#3b82f6', '#a855f7', '#ec4899', '#f59e0b', '#10b981', '#ef4444'];
+          const applyWallpaper = (wp: any) => { setWallpaper(wp.value); if (wp.theme) setThemeColor(wp.theme); };
           return (
             <div className="animate-[fadeIn_0.3s_ease-out]">
               <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 배경화면 및 스타일</h2>
               <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8 mb-4">
-                <div className="text-xl font-medium mb-6">배경화면 선택</div>
+                <div className="text-xl font-medium mb-2">배경화면 선택</div>
+                <div className="text-sm text-gray-400 mb-6">배경을 바꾸면 시스템 테마 색도 자동으로 어울리게 바뀝니다 (Material You)</div>
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
                   {wallpaperPresets.map((wp, i) => {
                     const selected = wallpaper === wp.value;
                     const node = (
-                      <div onClick={() => setWallpaper(wp.value)} className={`relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 transition-all ${selected ? 'ring-4 ring-blue-500' : 'hover:ring-2 ring-white/40'}`} style={{ background: wp.value }}>
-                        {selected && <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"><Check size={12} className="text-white"/></div>}
+                      <div onClick={() => applyWallpaper(wp)} className={`relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 transition-all ${selected ? 'ring-4' : 'hover:ring-2 ring-white/40'}`} style={{ background: wp.value, ...(selected ? { boxShadow: `0 0 0 4px ${wp.theme || themeColor}` } : {}) }}>
+                        {selected && <div className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: wp.theme || themeColor }}><Check size={12} className="text-white"/></div>}
                         <div className="absolute bottom-1 inset-x-1 text-[10px] text-white/90 bg-black/30 rounded px-1 py-0.5 text-center truncate">{wp.name}</div>
                       </div>
                     );
                     if (wp.tutorial) {
                       return (
-                        <ActionTarget key={i} id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setWallpaper(wp.value)}>
+                        <ActionTarget key={i} id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => applyWallpaper(wp)}>
                           {node}
                         </ActionTarget>
                       );
                     }
                     return <div key={i}>{node}</div>;
                   })}
+
+
                   {photos.slice(0, 4).map(p => (
                     <div key={p.id} onClick={() => setWallpaper('#1f2937')} className="relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 ring-2 ring-white/40 overflow-hidden bg-[#1a1a1a] p-1">
                       <CuteStudent seed={p.seed}/>
@@ -1064,18 +1149,34 @@ export default function AndroidExplorer() {
         tooltipText="↓ 아래로 드래그(또는 탭)하세요"
         className="absolute top-0 w-full h-8 px-6 flex justify-between items-center text-white text-sm cursor-ns-resize z-[80] select-none bg-gradient-to-b from-black/40 to-transparent"
       >
-        <span className="font-medium drop-shadow-md">{timeStr}</span>
-        <div className="flex space-x-2 items-center drop-shadow-md">
-          {airplane && <Plane size={16} strokeWidth={2.5} />}
-          {wifiConnected && !airplane && <Wifi size={16} strokeWidth={2.5} />}
-          {bluetooth && <Bluetooth size={16} strokeWidth={2.5} />}
-          {soundMode === 'vibrate' && <Vibrate size={16} strokeWidth={2.5} />}
-          {soundMode === 'mute' && <VolumeX size={16} strokeWidth={2.5} />}
-          <Signal size={16} strokeWidth={2.5} />
-          <span className="text-xs font-bold ml-1">98%</span>
-          <BatteryMedium size={18} strokeWidth={2.5} />
+        <div className="flex items-center gap-2">
+          <span className="font-semibold drop-shadow-md tracking-tight">{timeStr}</span>
+          {notifications.length > 0 && (
+            <div className="flex items-center gap-1 bg-red-500/90 px-1.5 rounded-full text-[10px] font-bold leading-none py-0.5">
+              <Bell size={9} strokeWidth={3}/> {notifications.length}
+            </div>
+          )}
+        </div>
+        <div className="flex space-x-1.5 items-center drop-shadow-md">
+          {airplane && <Plane size={14} strokeWidth={2.5} />}
+          {wifiConnected && !airplane && <Wifi size={14} strokeWidth={2.5} />}
+          {bluetooth && <Bluetooth size={14} strokeWidth={2.5} />}
+          {soundMode === 'vibrate' && <Vibrate size={14} strokeWidth={2.5} />}
+          {soundMode === 'mute' && <VolumeX size={14} strokeWidth={2.5} />}
+          {!airplane && (
+            <>
+              <Signal size={14} strokeWidth={2.5} />
+              <span className="text-[10px] font-bold tracking-wider">LTE</span>
+            </>
+          )}
+          <span className="text-[11px] font-bold ml-1 tabular-nums">98%</span>
+          <div className="relative w-7 h-3.5 border-2 border-white rounded-[3px] flex items-center px-0.5">
+            <div className="h-full w-[88%] bg-white rounded-sm"></div>
+            <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-0.5 h-1.5 bg-white rounded-r"></div>
+          </div>
         </div>
       </ActionTarget>
+
       {currentTargetId === 'swipe-trigger' && (
         <div className="absolute top-10 left-1/2 -translate-x-1/2 z-[110] pointer-events-none flex flex-col items-center animate-bounce">
           <div className="w-1 h-10 bg-yellow-400 rounded-full"></div>
@@ -1730,9 +1831,12 @@ export default function AndroidExplorer() {
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes wiggle { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
         @keyframes pulseUp { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-10px); opacity: 1; } }
+        @keyframes appEnter { from { transform: scale(0.86); opacity: 0; filter: blur(6px); } to { transform: scale(1); opacity: 1; filter: blur(0); } }
         .animate-wiggle { animation: wiggle 0.25s ease-in-out infinite; }
         .animate-pulse-up { animation: pulseUp 1.6s ease-in-out infinite; }
+        .animate-app-enter { animation: appEnter 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); transform-origin: center; }
       `}</style>
+
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
       <div className="relative w-full h-full md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] bg-black rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
@@ -1746,13 +1850,16 @@ export default function AndroidExplorer() {
           {renderStatusBar()}
 
           <div className="flex-1 relative flex flex-col bg-black overflow-hidden min-h-0 z-0">
-            {currentApp === null && renderHome()}
-            {currentApp === 'Settings' && renderSettings()}
-            {currentApp === 'Camera' && renderCamera()}
-            {currentApp === 'Gallery' && renderGallery()}
-            {currentApp === 'PlayStore' && renderPlayStore()}
-            {currentApp === 'Notes' && renderNotes()}
+            <div key={`app-${appLaunchKey}`} className="absolute inset-0 flex flex-col animate-app-enter">
+              {currentApp === null && renderHome()}
+              {currentApp === 'Settings' && renderSettings()}
+              {currentApp === 'Camera' && renderCamera()}
+              {currentApp === 'Gallery' && renderGallery()}
+              {currentApp === 'PlayStore' && renderPlayStore()}
+              {currentApp === 'Notes' && renderNotes()}
+            </div>
           </div>
+
 
           <div className="shrink-0 z-40">{renderNavigationBar()}</div>
 
@@ -1956,28 +2063,110 @@ export default function AndroidExplorer() {
       </div>
 
       {showExpMenu && (
-        <div ref={expMenuRef} className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
-          <div className="bg-blue-600 text-white p-3 md:p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
+        <div ref={expMenuRef} className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x, borderColor: `${themeColor}55` }}>
+          <div className="text-white p-3 md:p-4 flex justify-between items-center cursor-move" style={{ background: themeColor }} onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
             <X size={20} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
           </div>
-          <div className="p-3 md:p-6 bg-blue-50/50">
+          <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
             <div className="flex justify-between items-end mb-2">
               <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
-              <span className="text-sm md:text-lg text-blue-600 font-bold">{exp} EXP</span>
+              <span className="text-sm md:text-lg font-bold" style={{ color: themeColor }}>{exp} EXP</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 md:mb-6 shadow-inner">
-              <div className="bg-blue-600 h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%` }}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 shadow-inner">
+              <div className="h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%`, background: themeColor }}></div>
             </div>
-            <div className="bg-white p-3 md:p-6 rounded-2xl border border-blue-100 shadow-sm relative min-h-[90px] md:min-h-[140px] flex flex-col justify-center">
-              <div className="text-xs md:text-base font-bold text-blue-500 mb-1 md:mb-2">현재 임무 ({questIdx}/{QUESTS.length - 1})</div>
-              <div className="text-gray-800 font-bold text-sm md:text-[19px] leading-relaxed break-keep">
+            <div className="bg-white p-3 md:p-4 rounded-2xl border shadow-sm relative min-h-[90px] flex flex-col justify-center" style={{ borderColor: `${themeColor}33` }}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs md:text-sm font-bold" style={{ color: themeColor }}>현재 임무 {questIdx + 1}/{QUESTS.length}</div>
+                {completedQuests.includes(questIdx) && (
+                  <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1"><Check size={10}/> 완료</div>
+                )}
+              </div>
+              <div className="text-gray-800 font-bold text-sm md:text-[17px] leading-relaxed break-keep">
                 {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
               </div>
+            </div>
+            {/* Mission navigation controls */}
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={() => gotoQuest(questIdx - 1)}
+                disabled={questIdx === 0}
+                className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              >
+                <ChevronLeft size={16}/> 이전
+              </button>
+              <button
+                onClick={() => gotoQuest(questIdx + 1)}
+                disabled={!completedQuests.includes(questIdx) || questIdx >= QUESTS.length - 1}
+                className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              >
+                다음 <ChevronLeft size={16} className="rotate-180"/>
+              </button>
+              <button
+                onClick={() => { if (confirm('모든 진행도를 초기화하고 미션을 처음부터 다시 시작합니다. 계속할까요?')) resetProgress(); }}
+                className="px-3 py-2 rounded-xl text-sm font-bold text-white active:scale-95 transition-all flex items-center gap-1"
+                style={{ background: '#ef4444' }}
+                title="처음부터 다시"
+              >
+                <RefreshCcw size={14}/> 재시작
+              </button>
+            </div>
+            <div className="text-[10px] text-gray-500 mt-2 text-center">
+              ◀▶ 로 완료한 미션을 다시 연습할 수 있어요 ({completedQuests.length}/{QUESTS.length} 완료)
             </div>
           </div>
         </div>
       )}
+
+      {/* App icon long-press context menu */}
+      {appContextMenu && (
+        <div
+          className="fixed inset-0 z-[310] bg-black/40 flex items-center justify-center animate-[fadeIn_0.15s_ease-out]"
+          onClick={() => setAppContextMenu(null)}
+        >
+          <div className="bg-[#1c1c1e] text-white rounded-3xl w-[280px] overflow-hidden shadow-2xl animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-white/10 flex items-center gap-3">
+              <div className="w-12 h-12">{renderAppIcon(appContextMenu.appName, -99)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold truncate">{appContextMenu.appName}</div>
+                <div className="text-[11px] text-white/50">길게 눌러서 옵션 표시</div>
+              </div>
+            </div>
+            <div className="py-2">
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
+                onClick={() => { setIsEditMode(true); setAppContextMenu(null); }}
+              >
+                <GripHorizontal size={18} className="text-blue-400"/> 이동
+              </button>
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
+                onClick={() => { setAppContextMenu(null); setWidgetPickerOpen(true); }}
+              >
+                <span className="text-blue-400">🧩</span> 위젯 추가
+              </button>
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
+                onClick={() => { setAppContextMenu(null); setCurrentApp('Settings'); setSettingsMenu('apps'); }}
+              >
+                <Settings size={18} className="text-gray-300"/> 앱 정보
+              </button>
+              <button
+                className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors text-red-400"
+                onClick={() => { setUninstallTarget(appContextMenu.appName); setAppContextMenu(null); }}
+              >
+                <Trash2 size={18}/> 삭제
+              </button>
+            </div>
+            <button
+              className="w-full py-3 border-t border-white/10 text-sm font-medium text-white/70 hover:bg-white/5 active:bg-white/10 transition-colors"
+              onClick={() => setAppContextMenu(null)}
+            >취소</button>
+          </div>
+        </div>
+      )}
+
 
       {!showExpMenu && (
         <div className="fixed md:absolute bottom-4 right-4 md:bottom-8 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
