@@ -342,6 +342,21 @@ export default function AndroidExplorer() {
     }
   }, [currentApp]);
 
+  // 앱 전환 애니메이션 트리거
+  useEffect(() => { setAppLaunchKey(k => k + 1); }, [currentApp]);
+
+  // 진행도 localStorage 저장
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        questIdx, exp, completedQuests, installedApps, homeApps,
+        wallpaper, darkMode, fontScale, widgets, themeColor,
+      }));
+    } catch {}
+  }, [questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
+
+
 
 
 
