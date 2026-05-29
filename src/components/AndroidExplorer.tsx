@@ -557,9 +557,107 @@ export default function AndroidExplorer() {
         <div className="w-2 h-2 bg-white/40 rounded-full"></div>
       </div>
 
+      {/* App drawer pull-up handle */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-12 flex flex-col items-center justify-end pb-1 cursor-pointer group"
+        onClick={() => setAppDrawerOpen(true)}
+        onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
+        onTouchMove={(e) => {
+          if (drawerSwipeStart !== null && drawerSwipeStart - e.touches[0].clientY > 60) {
+            setAppDrawerOpen(true);
+            setDrawerSwipeStart(null);
+          }
+        }}
+        onTouchEnd={() => setDrawerSwipeStart(null)}
+      >
+        <ChevronUp size={28} className="text-white/70 group-hover:text-white animate-pulse-up" />
+        <div className="text-white/60 text-[11px] -mt-1">앱 서랍</div>
+      </div>
+
       {dragInfo.isDragging && (
         <div id="drag-ghost" className="fixed pointer-events-none z-[200] opacity-80" style={{ left: dragInfo.x - dragInfo.offsetX, top: dragInfo.y - dragInfo.offsetY }}>
           {renderAppIcon(homeApps[dragInfo.index], dragInfo.index)}
+        </div>
+      )}
+
+      {/* App Drawer overlay */}
+      {appDrawerOpen && (
+        <div className="absolute inset-0 z-[90] bg-black/85 backdrop-blur-xl animate-[slideUp_0.3s_ease-out] flex flex-col pt-6">
+          <div className="flex items-center justify-between px-8 mb-4">
+            <div className="text-white text-2xl font-bold">앱 서랍</div>
+            <button
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
+              onClick={() => setAppDrawerOpen(false)}
+            >
+              <X size={20}/>
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 pb-8">
+            <div className="grid grid-cols-6 md:grid-cols-8 gap-y-8 gap-x-4 justify-items-center">
+              {homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []).map((appName, i) => (
+                <div
+                  key={`drawer-${appName}-${i}`}
+                  className="flex flex-col items-center gap-2 cursor-pointer group w-[72px] active:scale-95 transition-transform"
+                  onClick={() => {
+                    if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
+                    if (appName === 'math') { setMathAppOpen(true); setAppDrawerOpen(false); return; }
+                    setCurrentApp(appName);
+                    setAppDrawerOpen(false);
+                  }}
+                  onMouseDown={() => {
+                    const t = setTimeout(() => setUninstallTarget(appName), 600);
+                    setDrawerLongPressTimer(t);
+                  }}
+                  onMouseUp={() => { if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); } }}
+                  onMouseLeave={() => { if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); } }}
+                  onTouchStart={() => {
+                    const t = setTimeout(() => setUninstallTarget(appName), 600);
+                    setDrawerLongPressTimer(t);
+                  }}
+                  onTouchEnd={() => { if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); } }}
+                >
+                  <div className="w-[72px] h-[72px] pointer-events-none">
+                    {appName === 'math' ? (
+                      <div className="w-full h-full bg-yellow-400 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl">1+2</div>
+                    ) : renderAppIcon(appName, -1)}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-center text-white/50 text-xs mt-8">아이콘을 꾹 누르면 앱을 삭제할 수 있어요</div>
+          </div>
+
+          {/* Uninstall confirm */}
+          {uninstallTarget && (
+            <div className="absolute inset-0 z-[95] bg-black/60 flex items-center justify-center animate-[fadeIn_0.2s_ease-out]" onClick={() => setUninstallTarget(null)}>
+              <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-[340px] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-3">
+                  <Trash2 size={24} className="text-red-400"/>
+                  <div className="text-lg font-bold">앱 삭제</div>
+                </div>
+                <div className="text-sm text-gray-300 mb-6 leading-relaxed">
+                  <span className="font-bold text-white">{uninstallTarget}</span> 앱을 정말 삭제하시겠어요? 시스템 앱은 사용 중지됩니다.
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all font-medium"
+                    onClick={() => setUninstallTarget(null)}
+                  >취소</button>
+                  <button
+                    className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 active:scale-95 transition-all font-bold"
+                    onClick={() => {
+                      if (uninstallTarget === 'math') {
+                        setInstalledApps(prev => prev.filter(a => a !== 'math'));
+                      } else {
+                        setHomeApps(prev => prev.map(a => a === uninstallTarget ? null : a));
+                      }
+                      setUninstallTarget(null);
+                    }}
+                  >삭제</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
