@@ -1367,22 +1367,22 @@ export default function AndroidExplorer() {
       </div>
 
       {showExpMenu && (
-        <div className="absolute z-[300] bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
-          <div className="bg-blue-600 text-white p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
-            <div className="flex items-center gap-2 font-bold text-lg"><GripHorizontal size={22}/> 미션 센터</div>
-            <X size={24} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
+        <div className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-blue-200 w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x }}>
+          <div className="bg-blue-600 text-white p-3 md:p-4 flex justify-between items-center cursor-move" onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
+            <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
+            <X size={20} className="cursor-pointer hover:text-gray-200 transition-colors" onClick={() => setShowExpMenu(false)}/>
           </div>
-          <div className="p-6 bg-blue-50/50">
-            <div className="flex justify-between items-end mb-3">
-              <span className="text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
-              <span className="text-lg text-blue-600 font-bold">{exp} EXP</span>
+          <div className="p-3 md:p-6 bg-blue-50/50">
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
+              <span className="text-sm md:text-lg text-blue-600 font-bold">{exp} EXP</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-6 shadow-inner">
-              <div className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%` }}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 md:mb-6 shadow-inner">
+              <div className="bg-blue-600 h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%` }}></div>
             </div>
-            <div className="bg-white p-6 rounded-2xl border border-blue-100 shadow-sm relative min-h-[140px] flex flex-col justify-center">
-              <div className="text-base font-bold text-blue-500 mb-2">현재 임무 ({questIdx}/{QUESTS.length - 1})</div>
-              <div className="text-gray-800 font-bold text-[19px] leading-relaxed break-keep">
+            <div className="bg-white p-3 md:p-6 rounded-2xl border border-blue-100 shadow-sm relative min-h-[90px] md:min-h-[140px] flex flex-col justify-center">
+              <div className="text-xs md:text-base font-bold text-blue-500 mb-1 md:mb-2">현재 임무 ({questIdx}/{QUESTS.length - 1})</div>
+              <div className="text-gray-800 font-bold text-sm md:text-[19px] leading-relaxed break-keep">
                 {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
               </div>
             </div>
@@ -1391,10 +1391,11 @@ export default function AndroidExplorer() {
       )}
 
       {!showExpMenu && (
-        <div className="absolute bottom-8 right-8 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
-          <Check size={32} className="text-white" />
+        <div className="fixed md:absolute bottom-4 right-4 md:bottom-8 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
+          <Check size={28} className="text-white" />
         </div>
       )}
+
     </div>
   );
 }
