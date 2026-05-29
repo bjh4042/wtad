@@ -467,12 +467,9 @@ export default function AndroidExplorer() {
         onClick={() => {
           if (isEditMode) return;
           if (appName === 'PlayStore') { setIsSearched(false); setSearchText(''); setKeyboardOpen(false); setTypingIndex(0); setKeyboardShift(false); }
-          if (appName === 'Camera' && !cameraPermissionAsked) {
-            setCameraPermissionPrompt(true);
-            return;
-          }
           setCurrentApp(appName);
         }}
+
         onPointerDown={(e) => onPointerDown(e, index)}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
