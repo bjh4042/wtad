@@ -671,6 +671,20 @@ export default function AndroidExplorer() {
         content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#e0e7ff 0%,#c7d2fe 100%)' }}>
           <Settings size={42} className="text-[#1e3a8a]" strokeWidth={2}/></div>); break;
     }
+    // 이미지 아이콘이 있는 앱은 SVG 대신 생성된 이미지로 대체
+    if (APP_ICON_IMAGES[appName]) {
+      content = (
+        <img
+          src={APP_ICON_IMAGES[appName]}
+          alt={name || appName}
+          loading="lazy"
+          width={512}
+          height={512}
+          draggable={false}
+          className="w-full h-full object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)] select-none pointer-events-none"
+        />
+      );
+    }
     if (!content) return null;
     const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
     return (
