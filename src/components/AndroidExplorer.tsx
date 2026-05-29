@@ -213,7 +213,6 @@ const DEFAULT_HOME_APPS = (() => {
 })();
 
 export default function AndroidExplorer() {
-  const _saved = loadLS();
   const [time, setTime] = useState<Date | null>(null);
 
   const [wifi, setWifi] = useState(false);
@@ -224,13 +223,13 @@ export default function AndroidExplorer() {
   const [brightness, setBrightness] = useState(80);
   const [volume, setVolume] = useState(70);
   const [photos, setPhotos] = useState([]);
-  const [installedApps, setInstalledApps] = useState<string[]>(() => loadLS().installedApps ?? []);
+  const [installedApps, setInstalledApps] = useState<string[]>([]);
   const [currentCameraSeed, setCurrentCameraSeed] = useState(Date.now());
-  const [wallpaper, setWallpaper] = useState<string>(() => loadLS().wallpaper ?? DEFAULT_WALLPAPER);
+  const [wallpaper, setWallpaper] = useState<string>(DEFAULT_WALLPAPER);
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
-  const [homeApps, setHomeApps] = useState<any[]>(() => loadLS().homeApps ?? DEFAULT_HOME_APPS);
+  const [homeApps, setHomeApps] = useState<any[]>(DEFAULT_HOME_APPS);
   const [isEditMode, setIsEditMode] = useState(false);
   const [appContextMenu, setAppContextMenu] = useState<{ appName: string; index: number } | null>(null);
   const pressTimer = useRef<any>(null);
@@ -262,9 +261,9 @@ export default function AndroidExplorer() {
   const [locked, setLocked] = useState(true);
   const [lockSwipeY, setLockSwipeY] = useState<number | null>(null);
   const [lockOffset, setLockOffset] = useState(0);
-  const [darkMode, setDarkMode] = useState<boolean>(() => loadLS().darkMode ?? false);
-  const [fontScale, setFontScale] = useState<number>(() => loadLS().fontScale ?? 1);
-  const [widgets, setWidgets] = useState<string[]>(() => loadLS().widgets ?? ['clock', 'weather', 'calendar']);
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [fontScale, setFontScale] = useState<number>(1);
+  const [widgets, setWidgets] = useState<string[]>(['clock', 'weather', 'calendar']);
 
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [homeMenuOpen, setHomeMenuOpen] = useState(false);
@@ -281,7 +280,7 @@ export default function AndroidExplorer() {
   const [uninstallTarget, setUninstallTarget] = useState<string | null>(null);
   const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
 
-  const [themeColor, setThemeColor] = useState<string>(() => loadLS().themeColor ?? '#3b82f6');
+  const [themeColor, setThemeColor] = useState<string>('#3b82f6');
   const [recentAppsOpen, setRecentAppsOpen] = useState(false);
   const [recentApps, setRecentApps] = useState<string[]>([]);
   const [splitScreen, setSplitScreen] = useState<{ top: string; bottom: string } | null>(null);
@@ -300,9 +299,10 @@ export default function AndroidExplorer() {
   const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [questIdx, setQuestIdx] = useState<number>(() => loadLS().questIdx ?? 0);
-  const [exp, setExp] = useState<number>(() => loadLS().exp ?? 0);
-  const [completedQuests, setCompletedQuests] = useState<number[]>(() => loadLS().completedQuests ?? []);
+  const [questIdx, setQuestIdx] = useState<number>(0);
+  const [exp, setExp] = useState<number>(0);
+  const [completedQuests, setCompletedQuests] = useState<number[]>([]);
+  const [isStorageReady, setIsStorageReady] = useState(false);
   const [drawerSearch, setDrawerSearch] = useState('');
   const [appLaunchKey, setAppLaunchKey] = useState(0);
   const [showExpMenu, setShowExpMenu] = useState(true);
@@ -320,6 +320,21 @@ export default function AndroidExplorer() {
     setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const saved = loadLS();
+    setInstalledApps(saved.installedApps ?? []);
+    setWallpaper(saved.wallpaper ?? DEFAULT_WALLPAPER);
+    setHomeApps(saved.homeApps ?? DEFAULT_HOME_APPS);
+    setDarkMode(saved.darkMode ?? false);
+    setFontScale(saved.fontScale ?? 1);
+    setWidgets(saved.widgets ?? ['clock', 'weather', 'calendar']);
+    setThemeColor(saved.themeColor ?? '#3b82f6');
+    setQuestIdx(saved.questIdx ?? 0);
+    setExp(saved.exp ?? 0);
+    setCompletedQuests(saved.completedQuests ?? []);
+    setIsStorageReady(true);
   }, []);
 
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
@@ -348,6 +363,7 @@ export default function AndroidExplorer() {
 
   // 진행도 localStorage 저장
   useEffect(() => {
+    if (!isStorageReady) return;
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
@@ -355,7 +371,7 @@ export default function AndroidExplorer() {
         wallpaper, darkMode, fontScale, widgets, themeColor,
       }));
     } catch {}
-  }, [questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
+  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
 
 
 
