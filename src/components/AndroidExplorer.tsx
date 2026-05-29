@@ -190,7 +190,26 @@ const ActionTarget = ({
 };
 
 
+const LS_KEY = 'android-explorer-v2';
+const loadLS = (): any => {
+  if (typeof window === 'undefined') return {};
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+};
+
+const DEFAULT_WALLPAPER = 'radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a';
+
+const DEFAULT_HOME_APPS = (() => {
+  const a = Array(24).fill(null);
+  a[8] = 'GameLauncher'; a[9] = 'Store'; a[10] = 'Camera'; a[11] = 'Gallery';
+  a[12] = 'Wearable'; a[13] = 'Calendar'; a[14] = 'Clock'; a[15] = 'Health';
+  a[16] = 'Folder'; a[17] = 'Notes'; a[18] = 'Messages'; a[19] = 'Internet';
+  a[20] = 'PlayStore'; a[21] = 'YouTube'; a[22] = 'KakaoTalk'; a[23] = 'Naver';
+  a[7] = 'Settings';
+  return a;
+})();
+
 export default function AndroidExplorer() {
+  const _saved = loadLS();
   const [time, setTime] = useState<Date | null>(null);
 
   const [wifi, setWifi] = useState(false);
@@ -201,22 +220,18 @@ export default function AndroidExplorer() {
   const [brightness, setBrightness] = useState(80);
   const [volume, setVolume] = useState(70);
   const [photos, setPhotos] = useState([]);
-  const [installedApps, setInstalledApps] = useState([]);
+  const [installedApps, setInstalledApps] = useState<string[]>(() => loadLS().installedApps ?? []);
   const [currentCameraSeed, setCurrentCameraSeed] = useState(Date.now());
-  const [wallpaper, setWallpaper] = useState('radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a');
+  const [wallpaper, setWallpaper] = useState<string>(() => loadLS().wallpaper ?? DEFAULT_WALLPAPER);
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
-  const initialApps = Array(24).fill(null);
-  initialApps[8] = 'GameLauncher'; initialApps[9] = 'Store'; initialApps[10] = 'Camera'; initialApps[11] = 'Gallery';
-  initialApps[12] = 'Wearable'; initialApps[13] = 'Calendar'; initialApps[14] = 'Clock'; initialApps[15] = 'Health';
-  initialApps[16] = 'Folder'; initialApps[17] = 'Notes'; initialApps[18] = 'Messages'; initialApps[19] = 'Internet';
-  initialApps[20] = 'PlayStore'; initialApps[21] = 'YouTube'; initialApps[22] = 'KakaoTalk'; initialApps[23] = 'Naver';
-  initialApps[7] = 'Settings';
-
-  const [homeApps, setHomeApps] = useState(initialApps);
+  const [homeApps, setHomeApps] = useState<any[]>(() => loadLS().homeApps ?? DEFAULT_HOME_APPS);
   const [isEditMode, setIsEditMode] = useState(false);
-  const pressTimer = useRef(null);
+  const [appContextMenu, setAppContextMenu] = useState<{ appName: string; index: number } | null>(null);
+  const pressTimer = useRef<any>(null);
+
+
 
   const [dragInfo, setDragInfo] = useState({ isDragging: false, index: null, x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const [hoverIndex, setHoverIndex] = useState(null);
