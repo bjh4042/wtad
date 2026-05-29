@@ -81,6 +81,25 @@ const WIFI_NETWORKS = [
   { id: 'wifi-net-4', name: 'AndroidHotspot', secure: true, signal: 3 },
 ];
 
+const PLAYSTORE_APPS = [
+  { id: 'duolingo', name: '듀오링고', dev: 'Duolingo', color: '#22c55e', label: '🦉' },
+  { id: 'minecraft', name: '마인크래프트', dev: 'Mojang', color: '#15803d', label: '⛏️' },
+  { id: 'classting', name: '클래스팅', dev: 'Classting Inc', color: '#f97316', label: 'C' },
+  { id: 'toss', name: '토스', dev: 'Viva Republica', color: '#2563eb', label: 'T' },
+  { id: 'melon', name: '멜론', dev: 'Kakao', color: '#10b981', label: '♪' },
+];
+
+const WIDGET_CATALOG = [
+  { id: 'clock', name: '시계', desc: '큰 시간 표시', icon: '🕐' },
+  { id: 'weather', name: '날씨', desc: '현재 날씨', icon: '☀️' },
+  { id: 'calendar', name: '캘린더', desc: '오늘 날짜', icon: '📅' },
+  { id: 'music', name: '음악', desc: '재생 컨트롤', icon: '🎵' },
+  { id: 'fitness', name: '걸음 수', desc: '오늘의 활동', icon: '👟' },
+];
+
+const PERMISSION_ICONS: Record<string, string> = { 카메라: '📷', 마이크: '🎙️', 위치: '📍', 저장공간: '💾', 연락처: '👥' };
+
+
 const TARGET_SEQUENCE = [
   { key: 'Shift', display: '' }, { key: 'ㄸ', display: 'ㄸ' }, { key: 'ㅗ', display: '또' }, { key: 'ㄱ', display: '똑' },
   { key: 'Shift', display: '똑' }, { key: 'ㄸ', display: '똑ㄸ' }, { key: 'ㅗ', display: '똑또' }, { key: 'ㄱ', display: '똑똑' },
@@ -212,7 +231,7 @@ export default function AndroidExplorer() {
   const [lockOffset, setLockOffset] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
   const [fontScale, setFontScale] = useState(1);
-  const [widgets, setWidgets] = useState<string[]>([]);
+  const [widgets, setWidgets] = useState<string[]>(['clock', 'weather', 'calendar']);
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [homeMenuOpen, setHomeMenuOpen] = useState(false);
   const [homeLongPressTimer, setHomeLongPressTimer] = useState<any>(null);
@@ -227,6 +246,20 @@ export default function AndroidExplorer() {
   const [settingsSearch, setSettingsSearch] = useState('');
   const [uninstallTarget, setUninstallTarget] = useState<string | null>(null);
   const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
+
+  // 신규: 테마/권한/최근 앱/분할 화면
+  const [themeColor, setThemeColor] = useState('#3b82f6');
+  const [recentAppsOpen, setRecentAppsOpen] = useState(false);
+  const [recentApps, setRecentApps] = useState<string[]>([]);
+  const [splitScreen, setSplitScreen] = useState<{ top: string; bottom: string } | null>(null);
+  const [appPermissions, setAppPermissions] = useState<Record<string, Record<string, boolean>>>({
+    Camera: { 카메라: true, 마이크: true, 위치: false, 저장공간: true },
+    Gallery: { 카메라: false, 마이크: false, 위치: false, 저장공간: true },
+    Messages: { 카메라: false, 마이크: false, 위치: false, 연락처: true },
+    PlayStore: { 카메라: false, 마이크: false, 위치: true, 저장공간: true },
+    KakaoTalk: { 카메라: true, 마이크: true, 위치: false, 연락처: true },
+  });
+  const [playStoreQuery, setPlayStoreQuery] = useState('');
 
 
   const [questIdx, setQuestIdx] = useState(0);
@@ -258,6 +291,14 @@ export default function AndroidExplorer() {
       ]);
     }
   }, [questIdx]);
+
+  // 최근 사용 앱 추적
+  useEffect(() => {
+    if (currentApp) {
+      setRecentApps(prev => [currentApp, ...prev.filter(a => a !== currentApp)].slice(0, 5));
+    }
+  }, [currentApp]);
+
 
 
 
@@ -495,7 +536,30 @@ export default function AndroidExplorer() {
 
 
   const renderHome = () => (
-    <div className="flex-1 pt-16 p-6 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0" style={{ background: wallpaper, backgroundSize: 'cover' }}>
+    <div
+      className="flex-1 pt-16 p-6 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0"
+      style={{ background: wallpaper, backgroundSize: 'cover' }}
+      onContextMenu={(e) => { e.preventDefault(); setHomeMenuOpen(true); }}
+      onMouseDown={(e) => {
+        if (isEditMode) return;
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-slot-idx]') || target.closest('button')) return;
+        if (homeLongPressTimer) clearTimeout(homeLongPressTimer);
+        const t = setTimeout(() => setHomeMenuOpen(true), 700);
+        setHomeLongPressTimer(t);
+      }}
+      onMouseUp={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+      onMouseLeave={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+      onTouchStart={(e) => {
+        if (isEditMode) return;
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-slot-idx]') || target.closest('button')) return;
+        if (homeLongPressTimer) clearTimeout(homeLongPressTimer);
+        const t = setTimeout(() => setHomeMenuOpen(true), 700);
+        setHomeLongPressTimer(t);
+      }}
+      onTouchEnd={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+    >
       <div className="w-full max-w-xl mx-auto mb-16 bg-white rounded-full h-12 flex items-center px-4 shadow-lg opacity-95 shrink-0 transition-transform active:scale-[0.98]">
         <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 flex items-center justify-center"><div className="w-4 h-4 bg-white rounded-full font-bold text-blue-600 text-[10px] flex items-center justify-center">G</div></div>
         <div className="flex-1"></div>
@@ -503,30 +567,55 @@ export default function AndroidExplorer() {
       </div>
 
       {/* Home widgets row */}
-      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 pointer-events-none flex-wrap">
-        {/* Clock widget */}
-        <div className="bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 shadow-xl border border-white/20 flex flex-col text-white flex-1 min-w-[150px]">
-          <div className="text-4xl md:text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
-          <div className="text-xs md:text-sm mt-1 md:mt-2 opacity-90 font-medium truncate">{dateStr}</div>
-        </div>
-        {/* Weather widget */}
-        <div className="bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-3 md:py-4 shadow-xl border border-white/20 flex items-center gap-2 md:gap-4 text-white">
-          <Sun size={36} className="md:hidden text-yellow-300 drop-shadow-md"/>
-          <Sun size={56} className="hidden md:block text-yellow-300 drop-shadow-md"/>
-          <div>
-            <div className="text-xl md:text-3xl font-bold leading-none">21°</div>
-            <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1">서울 · 맑음</div>
-            <div className="hidden md:block text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5]">
+        {widgets.includes('clock') && (
+          <div className="group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 shadow-xl border border-white/20 flex flex-col text-white flex-1 min-w-[150px]">
+            <div className="text-4xl md:text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
+            <div className="text-xs md:text-sm mt-1 md:mt-2 opacity-90 font-medium truncate">{dateStr}</div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'clock')); }}>×</button>
           </div>
-        </div>
-        {/* Calendar widget — hidden on mobile */}
-        <div className="hidden md:flex bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex-col items-center text-white min-w-[100px]">
-          <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">
-            {time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}
+        )}
+        {widgets.includes('weather') && (
+          <div className="group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-3 md:py-4 shadow-xl border border-white/20 flex items-center gap-2 md:gap-4 text-white">
+            <Sun size={36} className="md:hidden text-yellow-300 drop-shadow-md"/>
+            <Sun size={56} className="hidden md:block text-yellow-300 drop-shadow-md"/>
+            <div>
+              <div className="text-xl md:text-3xl font-bold leading-none">21°</div>
+              <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1">서울 · 맑음</div>
+              <div className="hidden md:block text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+            </div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'weather')); }}>×</button>
           </div>
-          <div className="text-5xl font-bold leading-none mt-1">{time ? time.getDate() : ''}</div>
-          <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
-        </div>
+        )}
+        {widgets.includes('calendar') && (
+          <div className="group relative hidden md:flex bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex-col items-center text-white min-w-[100px]">
+            <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">{time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}</div>
+            <div className="text-5xl font-bold leading-none mt-1">{time ? time.getDate() : ''}</div>
+            <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'calendar')); }}>×</button>
+          </div>
+        )}
+        {widgets.includes('music') && (
+          <div className="group relative bg-purple-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 py-3 shadow-xl border border-white/20 flex items-center gap-3 text-white min-w-[180px]">
+            <div className="w-10 h-10 rounded-lg bg-white/30 flex items-center justify-center text-2xl">🎵</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold truncate">동요 메들리</div>
+              <div className="text-[11px] opacity-80 truncate">아이유 · 좋은 날</div>
+            </div>
+            <Play size={20} className="text-white"/>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'music')); }}>×</button>
+          </div>
+        )}
+        {widgets.includes('fitness') && (
+          <div className="group relative bg-emerald-500/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 py-3 shadow-xl border border-white/20 flex items-center gap-3 text-white min-w-[160px]">
+            <div className="text-3xl">👟</div>
+            <div>
+              <div className="text-2xl font-bold leading-none">3,248</div>
+              <div className="text-[10px] opacity-90 mt-1">걸음 / 오늘</div>
+            </div>
+            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'fitness')); }}>×</button>
+          </div>
+        )}
       </div>
 
 
@@ -551,8 +640,15 @@ export default function AndroidExplorer() {
               <span className="text-white text-sm font-medium drop-shadow-md truncate w-full text-center">수학탐험대</span>
             </ActionTarget>
           )}
+          {PLAYSTORE_APPS.filter(a => installedApps.includes(a.id)).map(app => (
+            <div key={app.id} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 active:scale-95 transition-transform">
+              <div className="w-[72px] h-[72px] md:w-20 md:h-20 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl group-hover:scale-105 transition-transform" style={{ background: app.color }}>{app.label}</div>
+              <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{app.name}</span>
+            </div>
+          ))}
         </div>
       </div>
+
 
       <div className="absolute bottom-6 w-full flex justify-center gap-2 left-0">
         <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -782,23 +878,94 @@ export default function AndroidExplorer() {
           </div>
         )}
 
-        {settingsMenu === 'wallpaper' && (
-          <div className="animate-[fadeIn_0.3s_ease-out]">
-            <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 배경화면 및 스타일</h2>
-            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-8">
-              <div className="text-xl font-medium mb-6">배경화면 선택</div>
-              <div className="grid grid-cols-3 gap-6">
-                <ActionTarget
-                  id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  onClick={() => setWallpaper('radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a')}
-                  className="aspect-[10/16] rounded-2xl cursor-pointer hover:ring-4 ring-blue-500 active:scale-95 transition-all" style={{ background: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a' }}
-                />
-                <div onClick={() => setWallpaper('linear-gradient(135deg, #065f46 0%, #166534 100%)')} className="aspect-[10/16] rounded-2xl cursor-pointer hover:ring-4 ring-blue-500 active:scale-95 transition-all" style={{ background: 'linear-gradient(135deg, #065f46 0%, #166534 100%)' }}></div>
-                <div onClick={() => setWallpaper('linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)')} className="aspect-[10/16] rounded-2xl cursor-pointer hover:ring-4 ring-blue-500 active:scale-95 transition-all" style={{ background: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)' }}></div>
+        {settingsMenu === 'wallpaper' && (() => {
+          const wallpaperPresets = [
+            { name: '기본 보라', value: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a', tutorial: true },
+            { name: '숲 그린', value: 'linear-gradient(135deg, #065f46 0%, #166534 100%)' },
+            { name: '와인 레드', value: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)' },
+            { name: '오션 블루', value: 'linear-gradient(180deg, #0ea5e9 0%, #0c4a6e 100%)' },
+            { name: '선셋', value: 'linear-gradient(135deg, #f97316 0%, #db2777 60%, #581c87 100%)' },
+            { name: '미드나잇', value: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' },
+            { name: '파스텔', value: 'linear-gradient(135deg, #fbcfe8 0%, #c7d2fe 50%, #bae6fd 100%)' },
+            { name: '미니멀 그레이', value: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)' },
+          ];
+          const themes = ['#3b82f6', '#a855f7', '#ec4899', '#f59e0b', '#10b981', '#ef4444'];
+          return (
+            <div className="animate-[fadeIn_0.3s_ease-out]">
+              <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 배경화면 및 스타일</h2>
+              <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8 mb-4">
+                <div className="text-xl font-medium mb-6">배경화면 선택</div>
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                  {wallpaperPresets.map((wp, i) => {
+                    const selected = wallpaper === wp.value;
+                    const node = (
+                      <div onClick={() => setWallpaper(wp.value)} className={`relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 transition-all ${selected ? 'ring-4 ring-blue-500' : 'hover:ring-2 ring-white/40'}`} style={{ background: wp.value }}>
+                        {selected && <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"><Check size={12} className="text-white"/></div>}
+                        <div className="absolute bottom-1 inset-x-1 text-[10px] text-white/90 bg-black/30 rounded px-1 py-0.5 text-center truncate">{wp.name}</div>
+                      </div>
+                    );
+                    if (wp.tutorial) {
+                      return (
+                        <ActionTarget key={i} id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setWallpaper(wp.value)}>
+                          {node}
+                        </ActionTarget>
+                      );
+                    }
+                    return <div key={i}>{node}</div>;
+                  })}
+                  {photos.slice(0, 4).map(p => (
+                    <div key={p.id} onClick={() => setWallpaper('#1f2937')} className="relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 ring-2 ring-white/40 overflow-hidden bg-[#1a1a1a] p-1">
+                      <CuteStudent seed={p.seed}/>
+                      <div className="absolute bottom-1 inset-x-1 text-[10px] text-white bg-black/40 rounded px-1 text-center">내 사진</div>
+                    </div>
+                  ))}
+                </div>
               </div>
+              <div className="bg-[#1c1c1e] rounded-3xl p-6 md:p-8">
+                <div className="text-xl font-medium mb-2">테마 색상</div>
+                <div className="text-sm text-gray-400 mb-6">앱 강조 색상을 선택하세요</div>
+                <div className="flex gap-4 flex-wrap">
+                  {themes.map(c => (
+                    <div key={c} onClick={() => setThemeColor(c)} className={`w-14 h-14 rounded-full cursor-pointer active:scale-90 transition-all shadow-lg ${themeColor === c ? 'ring-4 ring-white' : ''}`} style={{ background: c }}>
+                      {themeColor === c && <div className="w-full h-full flex items-center justify-center"><Check size={22} className="text-white"/></div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {settingsMenu === 'privacy' && (
+          <div className="animate-[fadeIn_0.3s_ease-out]">
+            <h2 className="text-3xl font-medium mb-8 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400"/> 권한 관리자</h2>
+            <div className="text-sm text-gray-400 mb-6">앱별로 카메라·위치·마이크 등 권한을 켜거나 끌 수 있어요.</div>
+            <div className="space-y-3">
+              {Object.entries(appPermissions).map(([appName, perms]) => (
+                <div key={appName} className="bg-[#1c1c1e] rounded-3xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-gray-700 flex items-center justify-center font-bold">{appName[0]}</div>
+                    <div className="font-bold text-lg">{appName}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(perms).map(([pname, enabled]) => (
+                      <div key={pname} className="flex items-center justify-between bg-[#2c2c2e] rounded-xl px-3 py-2">
+                        <span className="text-sm flex items-center gap-2"><span>{PERMISSION_ICONS[pname] || '•'}</span>{pname}</span>
+                        <div
+                          onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
+                          className={`w-10 h-6 rounded-full p-0.5 cursor-pointer transition-colors ${enabled ? 'bg-blue-500' : 'bg-gray-600'}`}
+                        >
+                          <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${enabled ? 'translate-x-4' : ''} shadow-md`}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
@@ -1233,11 +1400,37 @@ export default function AndroidExplorer() {
             </div>
           </div>
         ) : (
-          <div className="text-center text-gray-500 mt-40">
-            <div className="mb-4 text-2xl font-medium">추천 게임 및 앱</div>
-            <div className="text-lg">화면 상단의 검색창을 터치하여 검색을 시작하세요.</div>
+          <div className="max-w-3xl mx-auto">
+            <div className="text-2xl font-bold mb-4">추천 게임 및 앱</div>
+            <div className="text-sm text-gray-500 mb-6">아래 앱을 설치해보세요. 설치 후 홈 화면과 앱 서랍에 추가돼요.</div>
+            <div className="space-y-3">
+              {PLAYSTORE_APPS.map(app => {
+                const installed = installedApps.includes(app.id);
+                return (
+                  <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-3xl shadow-md shrink-0" style={{ background: app.color }}>{app.label}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-lg font-bold truncate">{app.name}</div>
+                      <div className="text-xs text-gray-500 truncate">{app.dev} · 4.{Math.floor(Math.random()*9)+1} ★</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (installed) {
+                          setInstalledApps(prev => prev.filter(x => x !== app.id));
+                        } else {
+                          setInstalledApps(prev => [...prev, app.id]);
+                        }
+                      }}
+                      className={`px-6 py-2 rounded-full font-bold text-sm transition-all active:scale-95 shrink-0 ${installed ? 'bg-gray-200 text-gray-700' : 'bg-[#01875f] text-white hover:bg-[#01704e]'}`}
+                    >{installed ? '제거' : '설치'}</button>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-8 text-center text-xs text-gray-400">상단 검색창에서 '똑똑수학탐험대'를 검색할 수도 있어요.</div>
           </div>
         )}
+
       </div>
       {renderVirtualKeyboard()}
     </div>
@@ -1245,9 +1438,10 @@ export default function AndroidExplorer() {
 
   const renderNavigationBar = () => (
     <div className="h-14 bg-black flex justify-around items-center px-8 sm:px-32 z-40 w-full border-t border-gray-900 shrink-0 pb-2">
-      <div className="w-20 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all">
+      <div onClick={() => setRecentAppsOpen(true)} className="w-20 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all">
         <div className="flex gap-1"><div className="w-1 h-5 bg-white rounded-full"></div><div className="w-1 h-5 bg-white rounded-full"></div><div className="w-1 h-5 bg-white rounded-full"></div></div>
       </div>
+
       <ActionTarget
         id="nav-home" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
         onClick={() => {
@@ -1330,6 +1524,119 @@ export default function AndroidExplorer() {
                 ))}
               </div>
               <div className="mt-10 text-white text-sm opacity-80">홈 버튼을 눌러 종료하세요</div>
+            </div>
+          )}
+
+          {/* Split-screen overlay */}
+          {splitScreen && (
+            <div className="absolute inset-0 z-[85] flex flex-col bg-black pt-8 animate-[fadeIn_0.2s_ease-out]">
+              <div className="flex-1 border-b-2 border-white/20 relative overflow-hidden flex items-center justify-center" style={{ background: PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.color || '#1f2937' }}>
+                <div className="text-white text-center">
+                  <div className="text-5xl font-black mb-3">{PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.label || splitScreen.top[0]}</div>
+                  <div className="text-xl font-bold">{PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.name || splitScreen.top}</div>
+                  <div className="text-xs opacity-70 mt-1">상단 화면</div>
+                </div>
+                <button onClick={() => setSplitScreen(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 text-white text-xs">×</button>
+              </div>
+              <div className="h-1.5 bg-white/30 flex items-center justify-center"><div className="w-12 h-1 bg-white/60 rounded-full"/></div>
+              <div className="flex-1 relative overflow-hidden flex items-center justify-center" style={{ background: PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.color || '#374151' }}>
+                <div className="text-white text-center">
+                  <div className="text-5xl font-black mb-3">{PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.label || splitScreen.bottom[0]}</div>
+                  <div className="text-xl font-bold">{PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.name || splitScreen.bottom}</div>
+                  <div className="text-xs opacity-70 mt-1">하단 화면</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recent apps overlay */}
+          {recentAppsOpen && (
+            <div className="absolute inset-0 z-[88] bg-black/90 backdrop-blur-md flex flex-col pt-12 px-6 animate-[fadeIn_0.2s_ease-out]" onClick={() => setRecentAppsOpen(false)}>
+              <div className="text-white text-xl font-bold mb-4 px-2">최근 사용한 앱</div>
+              {recentApps.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-white/60">최근 사용한 앱이 없습니다</div>
+              ) : (
+                <div className="flex-1 overflow-x-auto flex gap-4 pb-8 items-start" onClick={(e) => e.stopPropagation()}>
+                  {recentApps.map((app, i) => {
+                    const psApp = PLAYSTORE_APPS.find(a => a.id === app);
+                    const bg = psApp?.color || ['#1e3a8a','#7c2d12','#065f46','#581c87','#7f1d1d'][i%5];
+                    const label = psApp?.label || app[0];
+                    const name = psApp?.name || app;
+                    return (
+                      <div key={`${app}-${i}`} className="w-[200px] shrink-0 flex flex-col items-center gap-3">
+                        <div className="w-full h-[300px] rounded-2xl shadow-2xl flex flex-col items-center justify-center text-white" style={{ background: bg }}>
+                          <div className="text-7xl font-black mb-3">{label}</div>
+                          <div className="text-lg font-bold">{name}</div>
+                        </div>
+                        <div className="flex gap-2 w-full">
+                          <button onClick={() => { setCurrentApp(app); setRecentAppsOpen(false); }} className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold active:scale-95">열기</button>
+                          <button
+                            onClick={() => {
+                              const other = recentApps.find(a => a !== app) || PLAYSTORE_APPS[0].id;
+                              setSplitScreen({ top: app, bottom: other });
+                              setRecentAppsOpen(false);
+                            }}
+                            className="flex-1 py-2 rounded-xl bg-purple-600 text-white text-sm font-bold active:scale-95"
+                          >분할</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="flex gap-3 justify-center pb-6">
+                <button onClick={(e) => { e.stopPropagation(); setRecentApps([]); setRecentAppsOpen(false); }} className="px-6 py-2 rounded-full bg-white/10 text-white text-sm font-medium active:scale-95">모두 닫기</button>
+                <button onClick={() => setRecentAppsOpen(false)} className="px-6 py-2 rounded-full bg-white/10 text-white text-sm font-medium active:scale-95">취소</button>
+              </div>
+            </div>
+          )}
+
+          {/* Home long-press menu */}
+          {homeMenuOpen && (
+            <div className="absolute inset-0 z-[92] bg-black/60 flex items-end animate-[fadeIn_0.2s_ease-out]" onClick={() => setHomeMenuOpen(false)}>
+              <div className="w-full bg-[#1c1c1e] text-white rounded-t-3xl p-6 animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+                <div className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-6"/>
+                <div className="grid grid-cols-3 gap-4">
+                  <button onClick={() => { setHomeMenuOpen(false); setWidgetPickerOpen(true); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
+                    <div className="text-3xl">🧩</div><div className="text-sm font-medium">위젯</div>
+                  </button>
+                  <button onClick={() => { setHomeMenuOpen(false); setCurrentApp('Settings'); setSettingsMenu('wallpaper'); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
+                    <div className="text-3xl">🖼️</div><div className="text-sm font-medium">배경화면</div>
+                  </button>
+                  <button onClick={() => { setHomeMenuOpen(false); setCurrentApp('Settings'); setSettingsMenu('wallpaper'); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
+                    <div className="text-3xl">🎨</div><div className="text-sm font-medium">테마</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Widget picker */}
+          {widgetPickerOpen && (
+            <div className="absolute inset-0 z-[93] bg-black/70 flex items-end animate-[fadeIn_0.2s_ease-out]" onClick={() => setWidgetPickerOpen(false)}>
+              <div className="w-full bg-[#1c1c1e] text-white rounded-t-3xl p-6 max-h-[70%] overflow-y-auto animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+                <div className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-4"/>
+                <div className="text-xl font-bold mb-4">위젯 추가</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {WIDGET_CATALOG.map(w => {
+                    const added = widgets.includes(w.id);
+                    return (
+                      <div key={w.id} className="bg-[#2c2c2e] rounded-2xl p-4 flex items-center gap-3">
+                        <div className="text-3xl">{w.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-sm truncate">{w.name}</div>
+                          <div className="text-[11px] text-gray-400 truncate">{w.desc}</div>
+                        </div>
+                        <button
+                          onClick={() => setWidgets(prev => added ? prev.filter(x => x !== w.id) : [...prev, w.id])}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg active:scale-90 transition-all ${added ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}
+                        >{added ? '−' : '+'}</button>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button onClick={() => setWidgetPickerOpen(false)} className="w-full mt-6 py-3 rounded-2xl bg-blue-600 font-bold active:scale-95">완료</button>
+              </div>
             </div>
           )}
 
