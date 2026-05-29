@@ -458,6 +458,7 @@ export default function AndroidExplorer() {
           <Settings size={40} className="text-[#374151]" strokeWidth={2.5}/></div>); break;
     }
     if (!content) return null;
+    const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
     return (
       <ActionTarget
         key={index}
@@ -468,10 +469,13 @@ export default function AndroidExplorer() {
           : appName === 'Camera' && currentTargetId === 'drag-camera' ? '다른 칸으로 끌어 옮기세요'
           : '여기를 누르세요!'
         }
-
         onClick={() => {
           if (isEditMode) return;
           if (appName === 'PlayStore') { setIsSearched(false); setSearchText(''); setKeyboardOpen(false); setTypingIndex(0); setKeyboardShift(false); }
+          if (appName === 'Camera' && !cameraPermissionAsked) {
+            setCameraPermissionPrompt(true);
+            return;
+          }
           setCurrentApp(appName);
         }}
         onPointerDown={(e) => onPointerDown(e, index)}
@@ -482,13 +486,21 @@ export default function AndroidExplorer() {
         className={`flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
       >
         <div
-          className={`w-[72px] h-[72px] md:w-20 md:h-20 transition-transform ${!isEditMode ? 'group-hover:scale-105 active:scale-95' : 'ring-2 ring-white/50 rounded-[1.25rem] bg-white/10'}`}
+          className={`relative w-[72px] h-[72px] md:w-20 md:h-20 transition-transform ${!isEditMode ? 'group-hover:scale-105 active:scale-95' : 'ring-2 ring-white/50 rounded-[1.25rem] bg-white/10'}`}
           style={{ visibility: dragInfo.isDragging && dragInfo.index === index ? 'hidden' : 'visible' }}
-        >{content}</div>
+        >
+          {content}
+          {hasNotif && !isEditMode && (
+            <div className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1.5 bg-red-500 text-white rounded-full text-xs font-bold flex items-center justify-center shadow-lg border-2 border-white/80 z-10">
+              {notifications.filter(n => n.app === 'KakaoTalk').length}
+            </div>
+          )}
+        </div>
         <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{name}</span>
       </ActionTarget>
     );
   };
+
 
   const renderHome = () => (
     <div className="flex-1 pt-16 p-6 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0" style={{ background: wallpaper, backgroundSize: 'cover' }}>
