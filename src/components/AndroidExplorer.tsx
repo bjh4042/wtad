@@ -503,23 +503,24 @@ export default function AndroidExplorer() {
       </div>
 
       {/* Home widgets row */}
-      <div className="absolute top-16 left-4 md:left-8 right-4 md:right-8 flex gap-4 pointer-events-none">
+      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 pointer-events-none flex-wrap">
         {/* Clock widget */}
-        <div className="bg-white/15 backdrop-blur-md rounded-3xl px-6 py-4 shadow-xl border border-white/20 flex flex-col text-white min-w-[260px]">
-          <div className="text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
-          <div className="text-sm mt-2 opacity-90 font-medium">{dateStr}</div>
+        <div className="bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 shadow-xl border border-white/20 flex flex-col text-white flex-1 min-w-[150px]">
+          <div className="text-4xl md:text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
+          <div className="text-xs md:text-sm mt-1 md:mt-2 opacity-90 font-medium truncate">{dateStr}</div>
         </div>
         {/* Weather widget */}
-        <div className="bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex items-center gap-4 text-white">
-          <Sun size={56} className="text-yellow-300 drop-shadow-md"/>
+        <div className="bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-3 md:py-4 shadow-xl border border-white/20 flex items-center gap-2 md:gap-4 text-white">
+          <Sun size={36} className="md:hidden text-yellow-300 drop-shadow-md"/>
+          <Sun size={56} className="hidden md:block text-yellow-300 drop-shadow-md"/>
           <div>
-            <div className="text-3xl font-bold leading-none">21°</div>
-            <div className="text-xs opacity-90 mt-1">서울 · 맑음</div>
-            <div className="text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+            <div className="text-xl md:text-3xl font-bold leading-none">21°</div>
+            <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1">서울 · 맑음</div>
+            <div className="hidden md:block text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
           </div>
         </div>
-        {/* Calendar widget */}
-        <div className="bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex flex-col items-center text-white min-w-[100px]">
+        {/* Calendar widget — hidden on mobile */}
+        <div className="hidden md:flex bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex-col items-center text-white min-w-[100px]">
           <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">
             {time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}
           </div>
@@ -527,6 +528,7 @@ export default function AndroidExplorer() {
           <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
         </div>
       </div>
+
 
       <div className="flex-1 flex flex-col justify-end pb-8">
         <div className="grid grid-cols-4 md:grid-cols-8 gap-y-10 gap-x-4 md:gap-x-6 px-4 md:px-8 w-full max-w-[1200px] justify-items-center self-center">
