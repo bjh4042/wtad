@@ -301,6 +301,7 @@ export default function AndroidExplorer() {
   const [completedQuests, setCompletedQuests] = useState<number[]>(() => loadLS().completedQuests ?? []);
   const [drawerSearch, setDrawerSearch] = useState('');
   const [appLaunchKey, setAppLaunchKey] = useState(0);
+  const [showExpMenu, setShowExpMenu] = useState(true);
   const [isCompact, setIsCompact] = useState(false);
   const [expPos, setExpPos] = useState({ x: 20, y: 60 });
   const [isDraggingExp, setIsDraggingExp] = useState(false);
