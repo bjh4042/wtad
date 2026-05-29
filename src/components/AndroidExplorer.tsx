@@ -47,7 +47,20 @@ const QUESTS = [
   { id: 32, text: "음량 슬라이더를 움직여 소리 크기를 조절해보세요.", targetId: 'quick-volume-slider', exp: 20 },
   { id: 33, text: "소리 모드 버튼에서 '진동'을 눌러보세요.", targetId: 'quick-sound-vibrate', exp: 20 },
   { id: 34, text: "비행기 탑승 모드를 켜보세요. (공공장소·비행 시 사용)", targetId: 'quick-airplane', exp: 20 },
-  { id: 35, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  { id: 35, text: "'스크린샷' 버튼을 눌러 화면을 캡처해보세요.", targetId: 'quick-screenshot', exp: 20 },
+  { id: 36, text: "'다크 모드' 버튼을 눌러 어두운 화면으로 바꿔보세요.", targetId: 'quick-darkmode', exp: 20 },
+  { id: 37, text: "'블루투스' 버튼을 눌러 켜고 기기 목록을 여세요.", targetId: 'quick-bluetooth', exp: 20 },
+  { id: 38, text: "'갤럭시 버즈3'를 선택해 페어링하세요.", targetId: 'bt-device-buds', exp: 30 },
+  { id: 39, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 40, text: "'Samsung Notes' (빨간 메모) 앱을 실행하세요.", targetId: 'app-icon-Notes', exp: 20 },
+  { id: 41, text: "오른쪽 아래 '+' 버튼을 눌러 새 메모를 만드세요.", targetId: 'notes-new', exp: 20 },
+  { id: 42, text: "흰 캔버스 위에 손가락이나 마우스로 자유롭게 그려보세요.", targetId: 'notes-draw', exp: 30 },
+  { id: 43, text: "오른쪽 위 '저장' 버튼을 눌러 메모를 보관하세요.", targetId: 'notes-save', exp: 20 },
+  { id: 44, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 45, text: "설정 앱을 다시 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
+  { id: 46, text: "'디스플레이' 메뉴를 선택하세요.", targetId: 'settings-menu-display', exp: 10 },
+  { id: 47, text: "글자 크기 슬라이더를 움직여 글자를 크게 만들어보세요.", targetId: 'settings-fontsize-slider', exp: 20 },
+  { id: 48, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 ];
 
 
