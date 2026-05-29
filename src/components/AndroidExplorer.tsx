@@ -274,6 +274,13 @@ export default function AndroidExplorer() {
   });
   const [playStoreQuery, setPlayStoreQuery] = useState('');
 
+  // 신규: 블루투스 기기 / 노트
+  const [bluetoothModalOpen, setBluetoothModalOpen] = useState(false);
+  const [connectedBtDevice, setConnectedBtDevice] = useState<string | null>(null);
+  const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
+  const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
 
   const [questIdx, setQuestIdx] = useState(0);
   const [exp, setExp] = useState(0);
