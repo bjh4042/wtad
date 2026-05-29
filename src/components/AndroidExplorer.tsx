@@ -1473,6 +1473,120 @@ export default function AndroidExplorer() {
     </div>
   );
 
+  const renderNotes = () => {
+    const startDraw = (e: any) => {
+      if (!notesEditing) return;
+      const svg = e.currentTarget as SVGSVGElement;
+      const rect = svg.getBoundingClientRect();
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = ((cx - rect.left) / rect.width) * 100;
+      const y = ((cy - rect.top) / rect.height) * 100;
+      setIsDrawing(true);
+      setNotesEditing({ ...notesEditing, current: `M ${x.toFixed(2)} ${y.toFixed(2)}` });
+    };
+    const moveDraw = (e: any) => {
+      if (!isDrawing || !notesEditing) return;
+      const svg = e.currentTarget as SVGSVGElement;
+      const rect = svg.getBoundingClientRect();
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = ((cx - rect.left) / rect.width) * 100;
+      const y = ((cy - rect.top) / rect.height) * 100;
+      setNotesEditing({ ...notesEditing, current: `${notesEditing.current} L ${x.toFixed(2)} ${y.toFixed(2)}` });
+    };
+    const endDraw = () => {
+      if (!isDrawing || !notesEditing) return;
+      setIsDrawing(false);
+      if (notesEditing.current) {
+        const paths = [...notesEditing.paths, notesEditing.current];
+        setNotesEditing({ paths, current: '' });
+        advanceQuest('notes-draw');
+      }
+    };
+
+    if (notesEditing) {
+      return (
+        <div className="flex-1 bg-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
+            <button onClick={() => setNotesEditing(null)} className="flex items-center gap-1 text-gray-700 active:scale-95">
+              <ChevronLeft size={24}/> <span className="font-medium">취소</span>
+            </button>
+            <div className="font-bold text-lg text-gray-900">새 메모</div>
+            <ActionTarget id="notes-save" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => {
+                const all = [...notesEditing.paths, notesEditing.current].filter(Boolean);
+                if (all.length > 0) setNotes(prev => [...prev, { id: Date.now(), paths: all }]);
+                setNotesEditing(null);
+              }}>
+              <button className="px-4 py-2 rounded-full bg-red-500 text-white font-bold text-sm active:scale-95">저장</button>
+            </ActionTarget>
+          </div>
+          <div className="flex-1 p-4 bg-[#fafafa] overflow-hidden min-h-0">
+            <ActionTarget id="notes-draw" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true} className="w-full h-full block">
+              <svg
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                className="w-full h-full bg-white rounded-2xl shadow-inner border border-gray-200 touch-none cursor-crosshair"
+                onMouseDown={startDraw} onMouseMove={moveDraw} onMouseUp={endDraw} onMouseLeave={endDraw}
+                onTouchStart={startDraw} onTouchMove={moveDraw} onTouchEnd={endDraw}
+              >
+                {notesEditing.paths.map((d, i) => (
+                  <path key={i} d={d} stroke="#1f2937" strokeWidth="0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
+                ))}
+                {notesEditing.current && (
+                  <path d={notesEditing.current} stroke="#ef4444" strokeWidth="0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
+                )}
+              </svg>
+            </ActionTarget>
+          </div>
+          <div className="flex items-center justify-center gap-3 py-3 bg-white border-t border-gray-200 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-black"/>
+            <div className="w-8 h-8 rounded-full bg-red-500"/>
+            <div className="w-8 h-8 rounded-full bg-blue-500"/>
+            <div className="w-8 h-8 rounded-full bg-green-500"/>
+            <button onClick={() => setNotesEditing({ paths: [], current: '' })} className="ml-4 text-sm text-gray-500 active:scale-95">전체 지우기</button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-1 bg-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out] relative">
+        <div className="px-6 py-4 border-b border-gray-200 shrink-0">
+          <div className="text-3xl font-bold text-gray-900">Samsung Notes</div>
+          <div className="text-sm text-gray-500 mt-1">{notes.length}개의 메모</div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
+          {notes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-400">
+              <div className="text-6xl mb-3">📝</div>
+              <div className="text-sm">메모가 없어요. 오른쪽 아래 + 버튼으로 새 메모를 만들어보세요.</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {notes.map(n => (
+                <div key={n.id} className="aspect-square bg-yellow-50 border border-yellow-200 rounded-2xl p-2 shadow-sm">
+                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+                    {n.paths.map((d, i) => (
+                      <path key={i} d={d} stroke="#1f2937" fill="none" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
+                    ))}
+                  </svg>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <ActionTarget id="notes-new" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+          onClick={() => setNotesEditing({ paths: [], current: '' })}
+          className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all cursor-pointer text-4xl font-light"
+        >
+          <span>+</span>
+        </ActionTarget>
+      </div>
+    );
+  };
+
   const renderNavigationBar = () => (
     <div className="h-14 bg-black flex justify-around items-center px-8 sm:px-32 z-40 w-full border-t border-gray-900 shrink-0 pb-2">
       <div onClick={() => setRecentAppsOpen(true)} className="w-20 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all">
