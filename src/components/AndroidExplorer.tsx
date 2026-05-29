@@ -212,7 +212,7 @@ export default function AndroidExplorer() {
   const [lockOffset, setLockOffset] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
   const [fontScale, setFontScale] = useState(1);
-  const [widgets, setWidgets] = useState<string[]>([]);
+  const [widgets, setWidgets] = useState<string[]>(['clock', 'weather', 'calendar']);
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [homeMenuOpen, setHomeMenuOpen] = useState(false);
   const [homeLongPressTimer, setHomeLongPressTimer] = useState<any>(null);
@@ -227,6 +227,20 @@ export default function AndroidExplorer() {
   const [settingsSearch, setSettingsSearch] = useState('');
   const [uninstallTarget, setUninstallTarget] = useState<string | null>(null);
   const [drawerLongPressTimer, setDrawerLongPressTimer] = useState<any>(null);
+
+  // 신규: 테마/권한/최근 앱/분할 화면
+  const [themeColor, setThemeColor] = useState('#3b82f6');
+  const [recentAppsOpen, setRecentAppsOpen] = useState(false);
+  const [recentApps, setRecentApps] = useState<string[]>([]);
+  const [splitScreen, setSplitScreen] = useState<{ top: string; bottom: string } | null>(null);
+  const [appPermissions, setAppPermissions] = useState<Record<string, Record<string, boolean>>>({
+    Camera: { 카메라: true, 마이크: true, 위치: false, 저장공간: true },
+    Gallery: { 카메라: false, 마이크: false, 위치: false, 저장공간: true },
+    Messages: { 카메라: false, 마이크: false, 위치: false, 연락처: true },
+    PlayStore: { 카메라: false, 마이크: false, 위치: true, 저장공간: true },
+    KakaoTalk: { 카메라: true, 마이크: true, 위치: false, 연락처: true },
+  });
+  const [playStoreQuery, setPlayStoreQuery] = useState('');
 
 
   const [questIdx, setQuestIdx] = useState(0);
