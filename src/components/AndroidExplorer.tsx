@@ -993,6 +993,28 @@ export default function AndroidExplorer() {
 
   const renderCamera = () => (
     <div className="flex-1 bg-black relative flex flex-col overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
+      {!cameraPermissionAsked && (
+        <div className="absolute inset-0 z-[120] bg-black/85 flex items-center justify-center backdrop-blur">
+          <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 mx-4 w-full max-w-[360px] shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0"><Camera size={24} className="text-blue-400"/></div>
+              <div>
+                <div className="font-bold text-lg">카메라 권한</div>
+                <div className="text-xs text-gray-400">카메라 앱이 다음을 요청합니다</div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-300 leading-relaxed mb-6">
+              사진을 찍고 동영상을 녹화할 수 있도록 <span className="font-bold text-white">카메라</span>에 액세스 권한을 허용하시겠어요?
+            </div>
+            <div className="flex flex-col gap-2">
+              <button className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all font-bold" onClick={() => setCameraPermissionAsked(true)}>앱 사용 중에만 허용</button>
+              <button className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all font-medium" onClick={() => setCameraPermissionAsked(true)}>이번만 허용</button>
+              <button className="w-full py-2 text-red-400 active:scale-95 text-sm" onClick={() => { setCameraPermissionAsked(true); setCurrentApp(null); }}>허용 안 함</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 relative flex items-center justify-center overflow-hidden pt-8 bg-[#111]">
         <div className="w-80 h-80 opacity-95"><CuteStudent seed={currentCameraSeed} /></div>
         <div className="absolute top-6 right-6 flex flex-col gap-6 text-white"><Settings size={28} className="drop-shadow-md cursor-pointer active:scale-90 transition-transform"/></div>
