@@ -1792,6 +1792,44 @@ export default function AndroidExplorer() {
             </div>
           )}
 
+
+          {/* Bluetooth devices modal */}
+          {bluetoothModalOpen && (
+            <div className="absolute inset-0 z-[94] bg-black/70 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setBluetoothModalOpen(false)}>
+              <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-3"><Bluetooth size={22} className="text-blue-400"/><div className="font-bold text-xl">블루투스</div></div>
+                  <X size={22} className="cursor-pointer text-gray-400" onClick={() => setBluetoothModalOpen(false)}/>
+                </div>
+                <div className="text-sm text-gray-400 mb-4">사용 가능한 기기를 검색했어요. 연결할 기기를 선택하세요.</div>
+                <div className="space-y-2">
+                  {[
+                    { id: 'bt-device-buds', name: '갤럭시 버즈3', sub: '오디오 · 미연결', icon: '🎧' },
+                    { id: 'bt-device-keyboard', name: '무선 키보드', sub: '키보드 · 미연결', icon: '⌨️' },
+                    { id: 'bt-device-watch', name: '갤럭시 워치6', sub: '웨어러블 · 미연결', icon: '⌚' },
+                    { id: 'bt-device-speaker', name: 'JBL 스피커', sub: '오디오 · 미연결', icon: '🔈' },
+                  ].map(dev => {
+                    const connected = connectedBtDevice === dev.name;
+                    return (
+                      <ActionTarget key={dev.id} id={dev.id} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        onClick={() => { setConnectedBtDevice(dev.name); setTimeout(() => setBluetoothModalOpen(false), 700); }}
+                        className={`p-4 rounded-2xl flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${connected ? 'bg-blue-600' : 'bg-[#2c2c2e] hover:bg-[#3a3a3c]'}`}
+                      >
+                        <div className="text-3xl">{dev.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold truncate">{dev.name}</div>
+                          <div className="text-xs text-gray-400 truncate">{connected ? '연결됨' : dev.sub}</div>
+                        </div>
+                        {connected && <Check size={20} className="text-white"/>}
+                      </ActionTarget>
+                    );
+                  })}
+                </div>
+                <button onClick={() => { setBluetooth(false); setConnectedBtDevice(null); setBluetoothModalOpen(false); }} className="w-full mt-4 py-3 rounded-2xl bg-white/10 text-sm font-medium active:scale-95">블루투스 끄기</button>
+              </div>
+            </div>
+          )}
+
           {/* Lock screen overlay */}
           {locked && (
             <div
