@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 const QUESTS = [
-  { id: 0, text: "탐험을 시작합니다. '시작' 버튼을 누르세요.", targetId: 'start-btn', exp: 10 },
+  { id: 0, text: "갤럭시탭이 잠겨있어요. 잠금화면을 위로 밀어 올려 잠금을 해제하세요.", targetId: 'lock-swipe', exp: 10 },
   { id: 1, text: "상단 표시줄을 드래그하여 퀵패널을 여세요.", targetId: 'swipe-trigger', exp: 20 },
   { id: 2, text: "와이파이 아이콘의 이름을 눌러 와이파이 설정을 켜세요.", targetId: 'quick-wifi-toggle', exp: 20 },
   { id: 3, text: "'탐험대_WiFi' 네트워크를 선택하세요.", targetId: 'wifi-net-0', exp: 20 },
