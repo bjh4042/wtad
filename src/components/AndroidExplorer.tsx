@@ -2064,55 +2064,76 @@ export default function AndroidExplorer() {
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setIsCompact(c => !c)}
-                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
-                title={isCompact ? '확대' : '축소'}
-              >
-                {isCompact ? <ChevronUp size={18}/> : <Minus size={18}/>}
-              </button>
-              <button
-                onClick={() => setShowExpMenu(false)}
-                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
-                title="닫기"
-              >
-                <X size={20}/>
-              </button>
+          {!isCompact ? (
+            <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
+                <span className="text-sm md:text-lg font-bold" style={{ color: themeColor }}>{exp} EXP</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 shadow-inner">
+                <div className="h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%`, background: themeColor }}></div>
+              </div>
+              <div className="bg-white p-3 md:p-4 rounded-2xl border shadow-sm relative min-h-[90px] flex flex-col justify-center" style={{ borderColor: `${themeColor}33` }}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-xs md:text-sm font-bold" style={{ color: themeColor }}>현재 임무 {questIdx + 1}/{QUESTS.length}</div>
+                  {completedQuests.includes(questIdx) && (
+                    <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1"><Check size={10}/> 완료</div>
+                  )}
+                </div>
+                <div className="text-gray-800 font-bold text-sm md:text-[17px] leading-relaxed break-keep">
+                  {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
+                </div>
+              </div>
+              {/* Mission navigation controls */}
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={() => gotoQuest(questIdx - 1)}
+                  disabled={questIdx === 0}
+                  className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                >
+                  <ChevronLeft size={16}/> 이전
+                </button>
+                <button
+                  onClick={() => gotoQuest(questIdx + 1)}
+                  disabled={!completedQuests.includes(questIdx) || questIdx >= QUESTS.length - 1}
+                  className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                >
+                  다음 <ChevronLeft size={16} className="rotate-180"/>
+                </button>
+                <button
+                  onClick={() => { if (confirm('모든 진행도를 초기화하고 미션을 처음부터 다시 시작합니다. 계속할까요?')) resetProgress(); }}
+                  className="px-3 py-2 rounded-xl text-sm font-bold text-white active:scale-95 transition-all flex items-center gap-1"
+                  style={{ background: '#ef4444' }}
+                  title="처음부터 다시"
+                >
+                  <RefreshCcw size={14}/> 재시작
+                </button>
+              </div>
+              <div className="text-[10px] text-gray-500 mt-2 text-center">
+                ◀▶ 로 완료한 미션을 다시 연습할 수 있어요 ({completedQuests.length}/{QUESTS.length} 완료)
+              </div>
             </div>
-          </div>
-          <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
-            <div className="flex justify-between items-end mb-2">
-              <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
-              <span className="text-sm md:text-lg font-bold" style={{ color: themeColor }}>{exp} EXP</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 shadow-inner">
-              <div className="h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%`, background: themeColor }}></div>
-            </div>
-            <div className="bg-white p-3 md:p-4 rounded-2xl border shadow-sm relative min-h-[90px] flex flex-col justify-center" style={{ borderColor: `${themeColor}33` }}>
-              <div className="flex items-center justify-between mb-1">
-                <div className="text-xs md:text-sm font-bold" style={{ color: themeColor }}>현재 임무 {questIdx + 1}/{QUESTS.length}</div>
+          ) : (
+            <div className="p-3 md:p-4" style={{ background: `${themeColor}0d` }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md" style={{ background: themeColor }}>
+                    L{Math.floor(exp / 100) + 1}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-gray-800">{exp} EXP</div>
+                    <div className="text-xs text-gray-500">{questIdx + 1}/{QUESTS.length} 미션</div>
+                  </div>
+                </div>
                 {completedQuests.includes(questIdx) && (
                   <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1"><Check size={10}/> 완료</div>
                 )}
               </div>
-              <div className="text-gray-800 font-bold text-sm md:text-[17px] leading-relaxed break-keep">
+              <div className="mt-2 text-sm font-bold text-gray-800 line-clamp-2 leading-snug">
                 {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
               </div>
             </div>
-            {/* Mission navigation controls */}
-            <div className="flex items-center gap-2 mt-3">
-              <button
-                onClick={() => gotoQuest(questIdx - 1)}
-                disabled={questIdx === 0}
-                className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
-              >
-                <ChevronLeft size={16}/> 이전
-              </button>
-              <button
-                onClick={() => gotoQuest(questIdx + 1)}
-                disabled={!completedQuests.includes(questIdx) || questIdx >= QUESTS.length - 1}
-                className="flex-1 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
-              >
-                다음 <ChevronLeft size={16} className="rotate-180"/>
+          )}
               </button>
               <button
                 onClick={() => { if (confirm('모든 진행도를 초기화하고 미션을 처음부터 다시 시작합니다. 계속할까요?')) resetProgress(); }}
