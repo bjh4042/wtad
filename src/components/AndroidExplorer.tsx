@@ -1045,39 +1045,47 @@ export default function AndroidExplorer() {
 
         {settingsMenu === 'wallpaper' && (() => {
           const wallpaperPresets = [
-            { name: '기본 보라', value: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a', tutorial: true },
-            { name: '숲 그린', value: 'linear-gradient(135deg, #065f46 0%, #166534 100%)' },
-            { name: '와인 레드', value: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)' },
-            { name: '오션 블루', value: 'linear-gradient(180deg, #0ea5e9 0%, #0c4a6e 100%)' },
-            { name: '선셋', value: 'linear-gradient(135deg, #f97316 0%, #db2777 60%, #581c87 100%)' },
-            { name: '미드나잇', value: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)' },
-            { name: '파스텔', value: 'linear-gradient(135deg, #fbcfe8 0%, #c7d2fe 50%, #bae6fd 100%)' },
-            { name: '미니멀 그레이', value: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)' },
+            { name: '기본 보라', value: 'radial-gradient(circle at 100% 30%, #c7d2fe 0%, #818cf8 30%, transparent 60%), radial-gradient(circle at 0% 100%, #e879f9 0%, #818cf8 40%, transparent 70%), #1e3a8a', theme: '#818cf8', tutorial: true },
+            { name: '숲 그린', value: 'linear-gradient(135deg, #065f46 0%, #166534 100%)', theme: '#10b981' },
+            { name: '와인 레드', value: 'linear-gradient(135deg, #7f1d1d 0%, #9f1239 100%)', theme: '#ef4444' },
+            { name: '오션 블루', value: 'linear-gradient(180deg, #0ea5e9 0%, #0c4a6e 100%)', theme: '#0ea5e9' },
+            { name: '선셋', value: 'linear-gradient(135deg, #f97316 0%, #db2777 60%, #581c87 100%)', theme: '#f97316' },
+            { name: '미드나잇', value: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #312e81 100%)', theme: '#6366f1' },
+            { name: '파스텔', value: 'linear-gradient(135deg, #fbcfe8 0%, #c7d2fe 50%, #bae6fd 100%)', theme: '#ec4899' },
+            { name: '미니멀 그레이', value: 'linear-gradient(135deg, #4b5563 0%, #1f2937 100%)', theme: '#64748b' },
           ];
           const themes = ['#3b82f6', '#a855f7', '#ec4899', '#f59e0b', '#10b981', '#ef4444'];
+          const applyWallpaper = (wp: any) => { setWallpaper(wp.value); if (wp.theme) setThemeColor(wp.theme); };
           return (
             <div className="animate-[fadeIn_0.3s_ease-out]">
               <h2 className="text-3xl font-medium mb-10 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400 cursor-pointer active:scale-90 transition-transform" /> 배경화면 및 스타일</h2>
               <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden p-6 md:p-8 mb-4">
-                <div className="text-xl font-medium mb-6">배경화면 선택</div>
+                <div className="text-xl font-medium mb-2">배경화면 선택</div>
+                <div className="text-sm text-gray-400 mb-6">배경을 바꾸면 시스템 테마 색도 자동으로 어울리게 바뀝니다 (Material You)</div>
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
                   {wallpaperPresets.map((wp, i) => {
                     const selected = wallpaper === wp.value;
                     const node = (
-                      <div onClick={() => setWallpaper(wp.value)} className={`relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 transition-all ${selected ? 'ring-4 ring-blue-500' : 'hover:ring-2 ring-white/40'}`} style={{ background: wp.value }}>
-                        {selected && <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center"><Check size={12} className="text-white"/></div>}
+                      <div onClick={() => applyWallpaper(wp)} className={`relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 transition-all ${selected ? 'ring-4' : 'hover:ring-2 ring-white/40'}`} style={{ background: wp.value, ...(selected ? { boxShadow: `0 0 0 4px ${wp.theme || themeColor}` } : {}) }}>
+                        {selected && <div className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: wp.theme || themeColor }}><Check size={12} className="text-white"/></div>}
                         <div className="absolute bottom-1 inset-x-1 text-[10px] text-white/90 bg-black/30 rounded px-1 py-0.5 text-center truncate">{wp.name}</div>
                       </div>
                     );
                     if (wp.tutorial) {
                       return (
-                        <ActionTarget key={i} id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setWallpaper(wp.value)}>
+                        <ActionTarget key={i} id="settings-wallpaper-change" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => applyWallpaper(wp)}>
                           {node}
                         </ActionTarget>
                       );
                     }
                     return <div key={i}>{node}</div>;
                   })}
+                  {photos.slice(0, 4).map(p => (
+                    <div key={p.id} onClick={() => setWallpaper('#1f2937')} className="relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 ring-2 ring-white/40 overflow-hidden bg-[#1a1a1a] p-1">
+                      <CuteStudent seed={p.seed}/>
+                      <div className="absolute bottom-1 inset-x-1 text-[10px] text-white bg-black/40 rounded px-1 text-center">내 사진</div>
+                    </div>
+
                   {photos.slice(0, 4).map(p => (
                     <div key={p.id} onClick={() => setWallpaper('#1f2937')} className="relative aspect-[10/16] rounded-2xl cursor-pointer active:scale-95 ring-2 ring-white/40 overflow-hidden bg-[#1a1a1a] p-1">
                       <CuteStudent seed={p.seed}/>
