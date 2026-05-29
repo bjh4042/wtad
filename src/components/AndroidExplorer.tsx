@@ -1827,9 +1827,12 @@ export default function AndroidExplorer() {
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes wiggle { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
         @keyframes pulseUp { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-10px); opacity: 1; } }
+        @keyframes appEnter { from { transform: scale(0.86); opacity: 0; filter: blur(6px); } to { transform: scale(1); opacity: 1; filter: blur(0); } }
         .animate-wiggle { animation: wiggle 0.25s ease-in-out infinite; }
         .animate-pulse-up { animation: pulseUp 1.6s ease-in-out infinite; }
+        .animate-app-enter { animation: appEnter 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); transform-origin: center; }
       `}</style>
+
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
       <div className="relative w-full h-full md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] bg-black rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
