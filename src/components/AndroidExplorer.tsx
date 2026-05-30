@@ -881,31 +881,49 @@ export default function AndroidExplorer() {
 
       <div className="flex-1 flex flex-col justify-end pb-8">
         <div className="grid grid-cols-4 md:grid-cols-8 gap-y-10 gap-x-4 md:gap-x-6 px-4 md:px-8 w-full max-w-[1200px] justify-items-center self-center">
-          {homeApps.map((appName, index) => {
-            if (appName) return <div key={index} data-slot-idx={index}>{renderAppIcon(appName, index)}</div>;
-            return (
-              <ActionTarget
-                key={index} id={`empty-slot-${index}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                className={`w-[72px] h-[72px] md:w-20 md:h-20 ${isEditMode ? 'border-2 border-dashed border-white/50 rounded-[1.25rem] bg-white/10 transition-colors' : ''}`}
-              ><div data-slot-idx={index} className="w-full h-full"></div></ActionTarget>
-            );
-          })}
-          {installedApps.includes('math') && !isEditMode && (
-            <ActionTarget
-              id="app-icon-math" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-              onClick={() => setMathAppOpen(true)}
-              className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20"
-            >
-              <div className="w-[72px] h-[72px] md:w-20 md:h-20 bg-yellow-400 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl transition-transform group-hover:scale-105 active:scale-95">1+2</div>
-              <span className="text-white text-sm font-medium drop-shadow-md truncate w-full text-center">수학탐험대</span>
-            </ActionTarget>
-          )}
-          {PLAYSTORE_APPS.filter(a => installedApps.includes(a.id)).map(app => (
-            <div key={app.id} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 active:scale-95 transition-transform">
-              <div className="w-[72px] h-[72px] md:w-20 md:h-20 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl group-hover:scale-105 transition-transform" style={{ background: app.color }}>{app.label}</div>
-              <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{app.name}</span>
-            </div>
-          ))}
+          {(() => {
+            // 설치된 앱(math + 플레이스토어 앱)을 빈 슬롯에 채워 그리드가 어긋나지 않게 표시
+            const slots: any[] = [...homeApps];
+            const extras: string[] = [];
+            if (installedApps.includes('math') && !isEditMode) extras.push('__math');
+            PLAYSTORE_APPS.forEach(a => { if (installedApps.includes(a.id)) extras.push(`__ps:${a.id}`); });
+            for (const ex of extras) {
+              const i = slots.indexOf(null);
+              if (i >= 0) slots[i] = ex; else slots.push(ex);
+            }
+            return slots.map((appName, index) => {
+              if (appName === '__math') {
+                return (
+                  <ActionTarget
+                    key={`math-${index}`} id="app-icon-math" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                    onClick={() => setMathAppOpen(true)}
+                    className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20"
+                  >
+                    <div className="w-[72px] h-[72px] md:w-20 md:h-20 bg-yellow-400 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl transition-transform group-hover:scale-105 active:scale-95">1+2</div>
+                    <span className="text-white text-sm font-medium drop-shadow-md truncate w-full text-center">수학탐험대</span>
+                  </ActionTarget>
+                );
+              }
+              if (typeof appName === 'string' && appName.startsWith('__ps:')) {
+                const id = appName.slice(5);
+                const app = PLAYSTORE_APPS.find(a => a.id === id);
+                if (!app) return null;
+                return (
+                  <div key={`ps-${index}`} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 active:scale-95 transition-transform">
+                    <div className="w-[72px] h-[72px] md:w-20 md:h-20 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl group-hover:scale-105 transition-transform" style={{ background: app.color }}>{app.label}</div>
+                    <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{app.name}</span>
+                  </div>
+                );
+              }
+              if (appName) return <div key={index} data-slot-idx={index}>{renderAppIcon(appName, index)}</div>;
+              return (
+                <ActionTarget
+                  key={index} id={`empty-slot-${index}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                  className={`w-[72px] h-[72px] md:w-20 md:h-20 ${isEditMode ? 'border-2 border-dashed border-white/50 rounded-[1.25rem] bg-white/10 transition-colors' : ''}`}
+                ><div data-slot-idx={index} className="w-full h-full"></div></ActionTarget>
+              );
+            });
+          })()}
         </div>
       </div>
 
