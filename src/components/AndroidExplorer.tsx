@@ -1363,16 +1363,46 @@ export default function AndroidExplorer() {
                 {googleAccount ? (
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">{googleAccount[0].toUpperCase()}</div>
-                    <div>
-                      <div className="font-medium">{googleAccount}</div>
-                      <div className="text-xs text-green-400">동기화 켜짐</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{googleAccount}</div>
+                      <div className="text-xs text-green-400 flex items-center gap-1"><Check size={12}/> 동기화 켜짐</div>
                     </div>
+                    <ActionTarget
+                      id="google-logout-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => setLogoutConfirmOpen(true)}
+                    >
+                      <button className="px-4 py-2 rounded-full bg-red-500/20 text-red-400 text-sm font-bold border border-red-500/40 hover:bg-red-500/30 active:scale-95 transition">로그아웃</button>
+                    </ActionTarget>
                   </div>
                 ) : (
                   <div className="text-gray-500 text-sm">등록된 Google 계정이 없습니다.</div>
                 )}
               </div>
             </div>
+
+            {logoutConfirmOpen && (
+              <div className="fixed inset-0 z-[210] bg-black/70 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setLogoutConfirmOpen(false)}>
+                <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="text-xl font-bold mb-2">로그아웃 하시겠어요?</div>
+                  <div className="text-sm text-gray-400 mb-6">로그아웃하면 이 기기에서 Gmail, YouTube 등 Google 서비스 동기화가 중지됩니다. 언제든 다시 로그인할 수 있어요.</div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setLogoutConfirmOpen(false)} className="flex-1 py-3 rounded-2xl bg-[#2c2c2e] hover:bg-[#3a3a3c] active:scale-95 font-bold text-sm transition">취소</button>
+                    <ActionTarget
+                      id="google-logout-confirm" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => {
+                        setGoogleAccount(null);
+                        setGoogleEmail(''); setGooglePassword(''); setGoogleConsent(false);
+                        setGoogleLoginStep('email');
+                        setLogoutConfirmOpen(false);
+                      }}
+                      className="flex-1"
+                    >
+                      <button className="w-full py-3 rounded-2xl bg-red-500 hover:bg-red-600 active:scale-95 font-bold text-sm transition">로그아웃</button>
+                    </ActionTarget>
+                  </div>
+                </div>
+              </div>
+            )}
             <ActionTarget
               id="account-add-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
               onClick={() => setAccountAddOpen(true)}
