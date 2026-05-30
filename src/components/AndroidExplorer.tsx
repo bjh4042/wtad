@@ -79,7 +79,32 @@ const QUESTS = [
   { id: 45, text: "설정 앱을 다시 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
   { id: 46, text: "'디스플레이' 메뉴를 선택하세요.", targetId: 'settings-menu-display', exp: 10 },
   { id: 47, text: "글자 크기 슬라이더를 움직여 글자를 크게 만들어보세요.", targetId: 'settings-fontsize-slider', exp: 20 },
-  { id: 48, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  // ===== 알림 확인 및 지우기 =====
+  { id: 48, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 49, text: "상단 표시줄을 다시 드래그하여 퀵패널(알림)을 여세요.", targetId: 'swipe-trigger', exp: 10 },
+  { id: 50, text: "카카오톡 알림을 탭하여 메시지를 확인하세요.", targetId: 'notif-tap-1', exp: 20 },
+  { id: 51, text: "메시지 알림을 옆으로 스와이프(드래그)해서 지우세요.", targetId: 'notif-dismiss-2', exp: 20 },
+  { id: 52, text: "'모두 지우기' 버튼을 눌러 남은 알림을 정리하세요.", targetId: 'notif-clear-all', exp: 20 },
+  // ===== 앱 권한 관리 =====
+  { id: 53, text: "설정 앱을 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
+  { id: 54, text: "좌측 메뉴에서 '개인정보 보호'를 선택하세요.", targetId: 'settings-menu-privacy', exp: 20 },
+  { id: 55, text: "KakaoTalk 카드의 '위치' 권한 스위치를 켜주세요.", targetId: 'perm-KakaoTalk-위치', exp: 30 },
+  // ===== 구글 계정 추가 및 동기화 =====
+  { id: 56, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 57, text: "설정 앱을 다시 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
+  { id: 58, text: "'계정 및 백업' 메뉴를 선택하세요.", targetId: 'settings-menu-account', exp: 20 },
+  { id: 59, text: "'계정 추가' 버튼을 누르세요.", targetId: 'account-add-btn', exp: 20 },
+  { id: 60, text: "계정 종류에서 'Google'을 선택하세요.", targetId: 'account-google', exp: 20 },
+  { id: 61, text: "이메일 입력칸에 'wttest@gmail.com' 을 입력 후 '다음'을 누르세요.", targetId: 'google-email-next', exp: 30 },
+  { id: 62, text: "비밀번호에 'Ghkdlxld1!' 을 입력 후 '다음'을 누르세요.", targetId: 'google-password-next', exp: 30 },
+  { id: 63, text: "약관에 동의(체크) 후 '동의함'을 누르세요.", targetId: 'google-consent-agree', exp: 20 },
+  { id: 64, text: "동기화 완료 화면에서 '확인'을 누르세요.", targetId: 'google-done', exp: 30 },
+  // ===== 앱 업데이트 =====
+  { id: 65, text: "Play 스토어 앱을 실행하세요.", targetId: 'app-icon-PlayStore', exp: 10 },
+  { id: 66, text: "우측 상단의 프로필 아바타를 누르세요.", targetId: 'playstore-avatar', exp: 20 },
+  { id: 67, text: "메뉴에서 '앱 및 기기 관리'를 선택하세요.", targetId: 'playstore-manage', exp: 20 },
+  { id: 68, text: "'모두 업데이트' 버튼을 눌러 앱을 최신으로 만들어보세요.", targetId: 'playstore-update-all', exp: 30 },
+  { id: 69, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 ];
 
 
