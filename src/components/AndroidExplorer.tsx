@@ -1479,7 +1479,18 @@ export default function AndroidExplorer() {
         </div>
       </div>
 
-      <ActionTarget id="quick-panel-bg" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setQuickPanelOpen(false)} className="absolute inset-0 -z-10" />
+      <ActionTarget
+        id="quick-panel-bg"
+        currentTargetId={currentTargetId}
+        advanceQuest={advanceQuest}
+        onClick={() => setQuickPanelOpen(false)}
+        tooltipPosition="top"
+        tooltipText="여기를 눌러 퀵패널 닫기"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-full bg-white/15 backdrop-blur-md text-white text-sm font-medium flex items-center gap-2 cursor-pointer active:scale-95 shadow-lg"
+      >
+        <ChevronUp size={16} /> 닫기 (위로 스와이프)
+      </ActionTarget>
+
 
 
       {wifiModalOpen && (
