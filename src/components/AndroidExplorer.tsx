@@ -8,7 +8,7 @@ import {
   MonitorPlay, ShieldCheck, User, Bell, ImageIcon, Home,
   Lock, ShieldAlert, AlertTriangle, HeartPulse, BatteryCharging,
   Grid, Sliders, Smartphone, PaintBucket, Moon, Type, ChevronUp,
-  Cloud, MessageSquare, Power, Minus
+  Cloud, MessageSquare, Power, Minus, Share2, Edit3, Heart, Zap
 } from 'lucide-react';
 import iconStore from '@/assets/icons/store.png';
 import iconGallery from '@/assets/icons/gallery.png';
