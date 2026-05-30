@@ -2120,17 +2120,44 @@ export default function AndroidExplorer() {
                   id="playstore-update-all" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                   onClick={() => {
                     setUpdatingAll(true); setUpdateProgress(0);
-                    const iv = setInterval(() => {
-                      setUpdateProgress(p => {
-                        const next = p + Math.floor(Math.random()*12)+8;
-                        if (next >= 100) {
-                          clearInterval(iv);
-                          setTimeout(() => { setUpdatingAll(false); setAppsUpdated(true); }, 400);
-                          return 100;
-                        }
-                        return next;
-                      });
-                    }, 220);
+                    // 초기 상태: 모두 pending
+                    const initStatus: Record<string, 'pending'|'downloading'|'installing'|'done'> = {};
+                    const initProg: Record<string, number> = {};
+                    PENDING_UPDATES.forEach(a => { initStatus[a.id] = 'pending'; initProg[a.id] = 0; });
+                    setAppUpdateStatus(initStatus);
+                    setAppUpdateProgress(initProg);
+
+                    // 앱별 순차 업데이트
+                    let appIdx = 0;
+                    const updateNextApp = () => {
+                      if (appIdx >= PENDING_UPDATES.length) {
+                        setUpdateProgress(100);
+                        setTimeout(() => { setUpdatingAll(false); setAppsUpdated(true); }, 500);
+                        return;
+                      }
+                      const currentApp = PENDING_UPDATES[appIdx];
+                      setAppUpdateStatus(s => ({ ...s, [currentApp.id]: 'downloading' }));
+                      const iv = setInterval(() => {
+                        setAppUpdateProgress(p => {
+                          const cur = p[currentApp.id] || 0;
+                          const next = Math.min(100, cur + Math.floor(Math.random()*10) + 6);
+                          // 전체 진행률 갱신
+                          const totalDone = appIdx * 100 + next;
+                          setUpdateProgress(Math.floor(totalDone / PENDING_UPDATES.length));
+                          if (next >= 100) {
+                            clearInterval(iv);
+                            setAppUpdateStatus(s => ({ ...s, [currentApp.id]: 'installing' }));
+                            setTimeout(() => {
+                              setAppUpdateStatus(s => ({ ...s, [currentApp.id]: 'done' }));
+                              appIdx++;
+                              setTimeout(updateNextApp, 250);
+                            }, 500);
+                          }
+                          return { ...p, [currentApp.id]: next };
+                        });
+                      }, 180);
+                    };
+                    setTimeout(updateNextApp, 300);
                   }}
                 >
                   <button className="bg-[#01875f] hover:bg-[#01704e] text-white font-bold px-6 py-2.5 rounded-full text-sm active:scale-95 transition shadow">모두 업데이트</button>
@@ -2140,22 +2167,40 @@ export default function AndroidExplorer() {
 
             <div className="text-sm font-bold text-gray-700 mb-3">대기 중인 업데이트</div>
             <div className="space-y-3">
-              {PENDING_UPDATES.map(app => (
-                <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 transition">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-md shrink-0" style={{ background: app.color, color: app.text || '#fff' }}>{app.label}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold truncate">{app.name}</div>
-                    <div className="text-xs text-gray-500 truncate">{app.dev} · {app.size}</div>
+              {PENDING_UPDATES.map(app => {
+                const status = appUpdateStatus[app.id] || 'pending';
+                const progress = appUpdateProgress[app.id] || 0;
+                const isDone = appsUpdated || status === 'done';
+                const isDownloading = status === 'downloading';
+                const isInstalling = status === 'installing';
+                const sizeMB = parseInt(app.size) || 100;
+                return (
+                  <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 transition">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-md shrink-0" style={{ background: app.color, color: app.text || '#fff' }}>{app.label}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold truncate">{app.name}</div>
+                      <div className="text-xs text-gray-500 truncate">
+                        {isDone ? `${app.dev} · 설치됨` : isDownloading ? `다운로드 중… ${(sizeMB*progress/100).toFixed(1)} MB / ${sizeMB} MB` : isInstalling ? '설치 중…' : `${app.dev} · ${app.size}`}
+                      </div>
+                      {(isDownloading || isInstalling) && (
+                        <div className="w-full h-1 bg-gray-200 rounded-full mt-1.5 overflow-hidden">
+                          <div className="h-full bg-[#01875f] transition-all duration-200" style={{ width: isInstalling ? '100%' : `${progress}%` }}/>
+                        </div>
+                      )}
+                    </div>
+                    {isDone ? (
+                      <span className="text-xs text-green-600 font-bold flex items-center gap-1 px-3 py-1.5 bg-green-50 rounded-full"><Check size={14}/> 설치됨</span>
+                    ) : isDownloading || isInstalling ? (
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="text-xs font-bold text-[#01875f] tabular-nums">{isInstalling ? '설치 중' : `${progress}%`}</div>
+                        <div className="w-4 h-4 border-2 border-[#01875f] border-t-transparent rounded-full animate-spin"/>
+                      </div>
+                    ) : (
+                      <button className="px-4 py-1.5 rounded-full border border-[#01875f] text-[#01875f] font-bold text-sm">업데이트</button>
+                    )}
                   </div>
-                  {appsUpdated ? (
-                    <span className="text-xs text-green-600 font-bold flex items-center gap-1"><Check size={14}/> 최신</span>
-                  ) : updatingAll ? (
-                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"/>
-                  ) : (
-                    <button className="px-4 py-1.5 rounded-full border border-[#01875f] text-[#01875f] font-bold text-sm">업데이트</button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : isSearched && searchText === '똑똑수학탐험대' ? (
