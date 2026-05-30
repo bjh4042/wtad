@@ -79,7 +79,32 @@ const QUESTS = [
   { id: 45, text: "설정 앱을 다시 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
   { id: 46, text: "'디스플레이' 메뉴를 선택하세요.", targetId: 'settings-menu-display', exp: 10 },
   { id: 47, text: "글자 크기 슬라이더를 움직여 글자를 크게 만들어보세요.", targetId: 'settings-fontsize-slider', exp: 20 },
-  { id: 48, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  // ===== 알림 확인 및 지우기 =====
+  { id: 48, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 49, text: "상단 표시줄을 다시 드래그하여 퀵패널(알림)을 여세요.", targetId: 'swipe-trigger', exp: 10 },
+  { id: 50, text: "카카오톡 알림을 탭하여 메시지를 확인하세요.", targetId: 'notif-tap-1', exp: 20 },
+  { id: 51, text: "메시지 알림을 옆으로 스와이프(드래그)해서 지우세요.", targetId: 'notif-dismiss-2', exp: 20 },
+  { id: 52, text: "'모두 지우기' 버튼을 눌러 남은 알림을 정리하세요.", targetId: 'notif-clear-all', exp: 20 },
+  // ===== 앱 권한 관리 =====
+  { id: 53, text: "설정 앱을 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
+  { id: 54, text: "좌측 메뉴에서 '개인정보 보호'를 선택하세요.", targetId: 'settings-menu-privacy', exp: 20 },
+  { id: 55, text: "KakaoTalk 카드의 '위치' 권한 스위치를 켜주세요.", targetId: 'perm-KakaoTalk-위치', exp: 30 },
+  // ===== 구글 계정 추가 및 동기화 =====
+  { id: 56, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 57, text: "설정 앱을 다시 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
+  { id: 58, text: "'계정 및 백업' 메뉴를 선택하세요.", targetId: 'settings-menu-account', exp: 20 },
+  { id: 59, text: "'계정 추가' 버튼을 누르세요.", targetId: 'account-add-btn', exp: 20 },
+  { id: 60, text: "계정 종류에서 'Google'을 선택하세요.", targetId: 'account-google', exp: 20 },
+  { id: 61, text: "이메일 입력칸에 'wttest@gmail.com' 을 입력 후 '다음'을 누르세요.", targetId: 'google-email-next', exp: 30 },
+  { id: 62, text: "비밀번호에 'Ghkdlxld1!' 을 입력 후 '다음'을 누르세요.", targetId: 'google-password-next', exp: 30 },
+  { id: 63, text: "약관에 동의(체크) 후 '동의함'을 누르세요.", targetId: 'google-consent-agree', exp: 20 },
+  { id: 64, text: "동기화 완료 화면에서 '확인'을 누르세요.", targetId: 'google-done', exp: 30 },
+  // ===== 앱 업데이트 =====
+  { id: 65, text: "Play 스토어 앱을 실행하세요.", targetId: 'app-icon-PlayStore', exp: 10 },
+  { id: 66, text: "우측 상단의 프로필 아바타를 누르세요.", targetId: 'playstore-avatar', exp: 20 },
+  { id: 67, text: "메뉴에서 '앱 및 기기 관리'를 선택하세요.", targetId: 'playstore-manage', exp: 20 },
+  { id: 68, text: "'모두 업데이트' 버튼을 눌러 앱을 최신으로 만들어보세요.", targetId: 'playstore-update-all', exp: 30 },
+  { id: 69, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 ];
 
 
@@ -292,7 +317,25 @@ export default function AndroidExplorer() {
   const [notifications, setNotifications] = useState([
     { id: 1, app: 'KakaoTalk', appName: '카카오톡', title: '엄마', body: '학교 끝나면 바로 와~', color: 'bg-yellow-400' },
     { id: 2, app: 'Messages', appName: '메시지', title: '010-1234-5678', body: '[Web발신] 택배가 도착했습니다.', color: 'bg-blue-500' },
+    { id: 3, app: 'Gmail', appName: 'Gmail', title: 'Google', body: '새로운 기기에서 로그인되었습니다.', color: 'bg-red-500' },
   ]);
+  const [notifDrag, setNotifDrag] = useState<{ id: number; startX: number; dx: number } | null>(null);
+  const [readNotifIds, setReadNotifIds] = useState<number[]>([]);
+  // Google 계정 로그인
+  const [googleLoginOpen, setGoogleLoginOpen] = useState(false);
+  const [googleLoginStep, setGoogleLoginStep] = useState<'email' | 'password' | 'consent' | 'syncing' | 'done'>('email');
+  const [googleEmail, setGoogleEmail] = useState('');
+  const [googlePassword, setGooglePassword] = useState('');
+  const [googleError, setGoogleError] = useState('');
+  const [googleConsent, setGoogleConsent] = useState(false);
+  const [googleAccount, setGoogleAccount] = useState<string | null>(null);
+  const [accountAddOpen, setAccountAddOpen] = useState(false);
+  // Play Store 업데이트
+  const [playStoreView, setPlayStoreView] = useState<'home' | 'manage'>('home');
+  const [playStoreProfileOpen, setPlayStoreProfileOpen] = useState(false);
+  const [updatingAll, setUpdatingAll] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(0);
+  const [appsUpdated, setAppsUpdated] = useState(false);
   const [cameraPermissionAsked, setCameraPermissionAsked] = useState(false);
   const [cameraPermissionPrompt, setCameraPermissionPrompt] = useState(false);
   const [settingsSearch, setSettingsSearch] = useState('');
@@ -1252,23 +1295,112 @@ export default function AndroidExplorer() {
                     <div className="font-bold text-lg">{appName}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(perms).map(([pname, enabled]) => (
-                      <div key={pname} className="flex items-center justify-between bg-[#2c2c2e] rounded-xl px-3 py-2">
-                        <span className="text-sm flex items-center gap-2"><span>{PERMISSION_ICONS[pname] || '•'}</span>{pname}</span>
-                        <div
-                          onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
-                          className={`w-10 h-6 rounded-full p-0.5 cursor-pointer transition-colors ${enabled ? 'bg-blue-500' : 'bg-gray-600'}`}
-                        >
-                          <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${enabled ? 'translate-x-4' : ''} shadow-md`}></div>
+                    {Object.entries(perms).map(([pname, enabled]) => {
+                      const toggle = (
+                        <div className="flex items-center justify-between bg-[#2c2c2e] rounded-xl px-3 py-2">
+                          <span className="text-sm flex items-center gap-2"><span>{PERMISSION_ICONS[pname] || '•'}</span>{pname}</span>
+                          <div
+                            onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
+                            className={`w-10 h-6 rounded-full p-0.5 cursor-pointer transition-colors ${enabled ? 'bg-blue-500' : 'bg-gray-600'}`}
+                          >
+                            <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${enabled ? 'translate-x-4' : ''} shadow-md`}></div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                      return (
+                        <ActionTarget
+                          key={pname}
+                          id={`perm-${appName}-${pname}`}
+                          currentTargetId={currentTargetId}
+                          advanceQuest={advanceQuest}
+                          onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
+                        >
+                          {toggle}
+                        </ActionTarget>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {settingsMenu === 'account' && (
+          <div className="animate-[fadeIn_0.3s_ease-out]">
+            <h2 className="text-3xl font-medium mb-8 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400"/> 계정 및 백업</h2>
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden mb-4">
+              <div className="p-6 border-b border-gray-800">
+                <div className="text-sm text-gray-400 mb-1">Samsung 계정</div>
+                <div className="text-lg font-medium">로그인되지 않음</div>
+              </div>
+              <div className="p-6">
+                <div className="text-sm text-gray-400 mb-3">Google 계정</div>
+                {googleAccount ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">{googleAccount[0].toUpperCase()}</div>
+                    <div>
+                      <div className="font-medium">{googleAccount}</div>
+                      <div className="text-xs text-green-400">동기화 켜짐</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-sm">등록된 Google 계정이 없습니다.</div>
+                )}
+              </div>
+            </div>
+            <ActionTarget
+              id="account-add-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => setAccountAddOpen(true)}
+              className="bg-[#1c1c1e] rounded-3xl p-6 flex items-center gap-4 cursor-pointer hover:bg-[#2c2c2e] active:scale-[0.99] transition-all"
+            >
+              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-light">+</div>
+              <div>
+                <div className="font-medium text-lg">계정 추가</div>
+                <div className="text-xs text-gray-400">Google · Samsung · Microsoft 등</div>
+              </div>
+            </ActionTarget>
+
+            {accountAddOpen && (
+              <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setAccountAddOpen(false)}>
+                <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="text-xl font-bold">계정 추가</div>
+                    <X size={22} className="cursor-pointer text-gray-400" onClick={() => setAccountAddOpen(false)}/>
+                  </div>
+                  <div className="space-y-2">
+                    <ActionTarget
+                      id="account-google" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => {
+                        setAccountAddOpen(false);
+                        setGoogleLoginOpen(true);
+                        setGoogleLoginStep('email');
+                        setGoogleEmail(''); setGooglePassword(''); setGoogleError(''); setGoogleConsent(false);
+                      }}
+                      className="p-4 rounded-2xl bg-[#2c2c2e] hover:bg-[#3a3a3c] flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all"
+                    >
+                      <svg viewBox="0 0 48 48" className="w-7 h-7">
+                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
+                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.8 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                        <path fill="#4CAF50" d="M24 44c5.4 0 10.3-2.1 14-5.4l-6.5-5.5c-2 1.5-4.6 2.4-7.5 2.4-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.4 39.6 16.1 44 24 44z"/>
+                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.5 5.5C41.4 35.4 44 30 44 24c0-1.3-.1-2.4-.4-3.5z"/>
+                      </svg>
+                      <div className="flex-1"><div className="font-semibold">Google</div><div className="text-xs text-gray-400">Gmail · YouTube · Drive</div></div>
+                    </ActionTarget>
+                    {['Samsung', 'Microsoft', 'Outlook'].map(s => (
+                      <div key={s} className="p-4 rounded-2xl bg-[#2c2c2e] flex items-center gap-4 opacity-60">
+                        <div className="w-7 h-7 rounded-lg bg-gray-600 flex items-center justify-center text-xs font-bold">{s[0]}</div>
+                        <div className="flex-1"><div className="font-semibold">{s}</div></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+
 
       </div>
     </div>
@@ -1351,6 +1483,81 @@ export default function AndroidExplorer() {
       {/* 메인 패널 (스크롤 가능) */}
       <div className="w-full h-full pt-16 pb-8 px-4 md:px-12 overflow-y-auto flex flex-col items-center gap-3">
         <div className="w-full max-w-3xl flex flex-col gap-3">
+
+          {/* 알림 영역 */}
+          {notifications.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between px-2 mb-0.5">
+                <span className="text-white/80 text-xs font-semibold tracking-wide">알림 {notifications.length}</span>
+                <ActionTarget
+                  id="notif-clear-all" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                  onClick={() => { setNotifications([]); setTimeout(() => { setQuickPanelOpen(false); }, 400); }}
+                  tooltipPosition="left"
+                  tooltipText="모두 지우기"
+                  className="text-white/80 text-xs font-medium px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 cursor-pointer transition"
+                >
+                  모두 지우기
+                </ActionTarget>
+              </div>
+              {notifications.map(n => {
+                const drag = notifDrag && notifDrag.id === n.id ? notifDrag.dx : 0;
+                const opacity = Math.max(0, 1 - Math.abs(drag) / 200);
+                const isRead = readNotifIds.includes(n.id);
+                return (
+                  <ActionTarget
+                    key={n.id}
+                    id={`notif-tap-${n.id}`}
+                    currentTargetId={currentTargetId}
+                    advanceQuest={advanceQuest}
+                    extraTargetIds={[`notif-dismiss-${n.id}`]}
+                    disableClickAdvance={true}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (Math.abs(drag) > 5) return;
+                      setReadNotifIds(prev => prev.includes(n.id) ? prev : [...prev, n.id]);
+                      advanceQuest(`notif-tap-${n.id}`);
+                    }}
+                    tooltipPosition="bottom"
+                    tooltipText={currentTargetId === `notif-dismiss-${n.id}` ? '← 옆으로 스와이프해서 지우기' : '탭해서 확인'}
+                    onPointerDown={(e: any) => {
+                      e.stopPropagation();
+                      setNotifDrag({ id: n.id, startX: e.clientX, dx: 0 });
+                    }}
+                    onPointerMove={(e: any) => {
+                      if (!notifDrag || notifDrag.id !== n.id) return;
+                      setNotifDrag({ ...notifDrag, dx: e.clientX - notifDrag.startX });
+                    }}
+                    onPointerUp={(e: any) => {
+                      if (!notifDrag || notifDrag.id !== n.id) { setNotifDrag(null); return; }
+                      const d = notifDrag.dx;
+                      setNotifDrag(null);
+                      if (Math.abs(d) > 100) {
+                        setNotifications(prev => prev.filter(x => x.id !== n.id));
+                        advanceQuest(`notif-dismiss-${n.id}`);
+                      }
+                    }}
+                    className="bg-white/95 text-gray-900 rounded-2xl px-4 py-3 shadow-lg flex items-start gap-3 cursor-pointer select-none touch-none"
+                    style={{ transform: `translateX(${drag}px)`, opacity, transition: notifDrag && notifDrag.id === n.id ? 'none' : 'transform 0.2s, opacity 0.2s' }}
+                  >
+                    <div className={`w-8 h-8 rounded-lg ${n.color} flex items-center justify-center text-white text-xs font-bold shrink-0 shadow`}>
+                      {n.app === 'KakaoTalk' ? '💬' : n.app === 'Messages' ? '✉️' : n.app === 'Gmail' ? 'M' : '!'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-0.5">
+                        <span className="font-semibold">{n.appName}</span>
+                        <span>· 방금 전</span>
+                        {isRead && <span className="text-blue-500 font-medium">· 읽음</span>}
+                      </div>
+                      <div className="text-sm font-bold truncate">{n.title}</div>
+                      <div className="text-[13px] text-gray-700 truncate">{n.body}</div>
+                    </div>
+                  </ActionTarget>
+                );
+              })}
+            </div>
+          )}
+
+
 
           {/* Wi-Fi / 블루투스 대형 알약 */}
           <div className="grid grid-cols-2 gap-3">
@@ -1808,16 +2015,127 @@ export default function AndroidExplorer() {
     );
   };
 
-  const renderPlayStore = () => (
+  const renderPlayStore = () => {
+    const PENDING_UPDATES = [
+      { id: 'youtube', name: 'YouTube', dev: 'Google LLC', color: '#FF0000', label: '▶', size: '128 MB' },
+      { id: 'kakao', name: '카카오톡', dev: 'Kakao Corp.', color: '#FAE100', text: '#3A1D1D', label: '💬', size: '96 MB' },
+      { id: 'chrome', name: 'Chrome', dev: 'Google LLC', color: '#1A73E8', label: 'C', size: '210 MB' },
+    ];
+    return (
     <div className="flex-1 bg-white flex flex-col pt-8 text-[#202124] overflow-hidden min-h-0 relative animate-[fadeIn_0.3s_ease-out]">
       <div className="p-4 px-8 border-b border-gray-200 flex gap-4 items-center shadow-sm relative z-10 bg-white shrink-0">
         <Search size={24} className="text-gray-500" />
         <ActionTarget id="playstore-search-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setKeyboardOpen(true)} className="flex-1">
           <input type="text" placeholder="앱 및 게임 검색 (터치 후 가상 키보드로 타이핑)" className="w-full outline-none text-xl bg-transparent pointer-events-none" value={searchText} readOnly />
         </ActionTarget>
+        <ActionTarget
+          id="playstore-avatar" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+          onClick={() => setPlayStoreProfileOpen(true)}
+        >
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold cursor-pointer active:scale-90 transition shadow-md">
+            {googleAccount ? googleAccount[0].toUpperCase() : 'W'}
+          </div>
+        </ActionTarget>
       </div>
+
+      {playStoreProfileOpen && (
+        <div className="absolute inset-0 z-[60] bg-black/40" onClick={() => setPlayStoreProfileOpen(false)}>
+          <div className="absolute right-3 top-16 bg-white rounded-2xl shadow-2xl w-80 overflow-hidden animate-[fadeIn_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">{googleAccount ? googleAccount[0].toUpperCase() : 'W'}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold truncate">{googleAccount || '게스트'}</div>
+                <div className="text-xs text-gray-500 truncate">{googleAccount || '로그인되지 않음'}</div>
+              </div>
+            </div>
+            <ActionTarget
+              id="playstore-manage" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => { setPlayStoreView('manage'); setPlayStoreProfileOpen(false); }}
+              className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex items-center gap-3 transition"
+            >
+              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">📲</div>
+              <div className="flex-1">
+                <div className="font-medium text-sm">앱 및 기기 관리</div>
+                <div className="text-xs text-gray-500">업데이트 {PENDING_UPDATES.length}개 사용 가능</div>
+              </div>
+            </ActionTarget>
+            {['알림 및 설정', '결제 및 정기 결제', '도움말 및 의견'].map(s => (
+              <div key={s} className="p-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3 text-sm text-gray-700">
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">⚙</div>
+                {s}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 p-10 bg-white overflow-y-auto min-h-0 relative">
-        {isSearched && searchText === '똑똑수학탐험대' ? (
+        {playStoreView === 'manage' ? (
+          <div className="max-w-3xl mx-auto animate-[fadeIn_0.25s_ease-out]">
+            <button onClick={() => setPlayStoreView('home')} className="flex items-center gap-2 text-gray-600 mb-4 active:scale-95"><ChevronLeft size={20}/> 뒤로</button>
+            <h2 className="text-3xl font-bold mb-2">앱 및 기기 관리</h2>
+            <div className="text-sm text-gray-500 mb-6">최신 상태 유지를 위해 모든 앱을 업데이트하세요.</div>
+
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-6 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl">⬇</div>
+              <div className="flex-1">
+                <div className="font-bold text-lg">
+                  {appsUpdated ? '모든 앱이 최신 상태입니다' : `업데이트 사용 가능 (${PENDING_UPDATES.length}개)`}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">
+                  {updatingAll ? `업데이트 중… ${updateProgress}%` : appsUpdated ? '마지막 확인: 방금 전' : '총 434 MB · Wi-Fi 권장'}
+                </div>
+                {updatingAll && (
+                  <div className="w-full h-1.5 bg-blue-100 rounded-full mt-2 overflow-hidden">
+                    <div className="h-full bg-blue-600 transition-all" style={{ width: `${updateProgress}%` }}/>
+                  </div>
+                )}
+              </div>
+              {!appsUpdated && !updatingAll && (
+                <ActionTarget
+                  id="playstore-update-all" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                  onClick={() => {
+                    setUpdatingAll(true); setUpdateProgress(0);
+                    const iv = setInterval(() => {
+                      setUpdateProgress(p => {
+                        const next = p + Math.floor(Math.random()*12)+8;
+                        if (next >= 100) {
+                          clearInterval(iv);
+                          setTimeout(() => { setUpdatingAll(false); setAppsUpdated(true); }, 400);
+                          return 100;
+                        }
+                        return next;
+                      });
+                    }, 220);
+                  }}
+                >
+                  <button className="bg-[#01875f] hover:bg-[#01704e] text-white font-bold px-6 py-2.5 rounded-full text-sm active:scale-95 transition shadow">모두 업데이트</button>
+                </ActionTarget>
+              )}
+            </div>
+
+            <div className="text-sm font-bold text-gray-700 mb-3">대기 중인 업데이트</div>
+            <div className="space-y-3">
+              {PENDING_UPDATES.map(app => (
+                <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 transition">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-md shrink-0" style={{ background: app.color, color: app.text || '#fff' }}>{app.label}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold truncate">{app.name}</div>
+                    <div className="text-xs text-gray-500 truncate">{app.dev} · {app.size}</div>
+                  </div>
+                  {appsUpdated ? (
+                    <span className="text-xs text-green-600 font-bold flex items-center gap-1"><Check size={14}/> 최신</span>
+                  ) : updatingAll ? (
+                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"/>
+                  ) : (
+                    <button className="px-4 py-1.5 rounded-full border border-[#01875f] text-[#01875f] font-bold text-sm">업데이트</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : isSearched && searchText === '똑똑수학탐험대' ? (
+
           <div className="flex gap-8 max-w-3xl mx-auto mt-4 animate-[fadeIn_0.3s_ease-out]">
             <div className="w-40 h-40 bg-yellow-400 rounded-[2.5rem] flex items-center justify-center text-white font-black text-5xl shadow-lg border border-yellow-300">1+2</div>
             <div className="flex-1 flex flex-col justify-center gap-1">
@@ -1898,7 +2216,8 @@ export default function AndroidExplorer() {
       </div>
       {renderVirtualKeyboard()}
     </div>
-  );
+    );
+  };
 
   const renderNotes = () => {
     const startDraw = (e: any) => {
@@ -2027,6 +2346,7 @@ export default function AndroidExplorer() {
         onClick={() => {
           setCurrentApp(null); setQuickPanelOpen(false); setIsEditMode(false); setKeyboardOpen(false);
           setSearchText(''); setIsSearched(false); setTypingIndex(0); setKeyboardShift(false); setMathAppOpen(false);
+          setPlayStoreView('home'); setPlayStoreProfileOpen(false);
         }}
         className="w-24 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all"
       >
@@ -2287,6 +2607,178 @@ export default function AndroidExplorer() {
               </div>
             </div>
           )}
+
+          {/* Google 로그인 (실제와 유사한 풀스크린) */}
+          {googleLoginOpen && (
+            <div className="absolute inset-0 z-[180] bg-white flex flex-col text-[#202124] animate-[fadeIn_0.25s_ease-out] overflow-y-auto" style={{ fontFamily: 'Roboto, "Noto Sans KR", system-ui, -apple-system, sans-serif' }}>
+              <div className="flex items-center justify-between px-6 pt-12 pb-4">
+                <svg viewBox="0 0 272 92" className="h-7">
+                  <path fill="#4285F4" d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18S71.25 59.95 71.25 47.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"/>
+                  <path fill="#EA4335" d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"/>
+                  <path fill="#FBBC05" d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z"/>
+                  <path fill="#34A853" d="M225 3v65h-9.5V3h9.5z"/>
+                  <path fill="#EA4335" d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z"/>
+                  <path fill="#4285F4" d="M35.29 41.41V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49.01z"/>
+                </svg>
+                <button onClick={() => setGoogleLoginOpen(false)} className="text-gray-500 active:scale-90 transition"><X size={22}/></button>
+              </div>
+
+              <div className="flex-1 max-w-md w-full mx-auto px-8 pb-10">
+                {googleLoginStep === 'email' && (
+                  <div>
+                    <h1 className="text-[28px] leading-tight font-normal mb-2">로그인</h1>
+                    <p className="text-base text-gray-700 mb-8">Google 계정 사용</p>
+                    <div className="mb-2">
+                      <input
+                        type="email"
+                        value={googleEmail}
+                        onChange={(e) => { setGoogleEmail(e.target.value); setGoogleError(''); }}
+                        placeholder="이메일 또는 휴대전화"
+                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500' : 'border-gray-300 focus:border-blue-600'}`}
+                      />
+                      {googleError && <div className="text-red-600 text-sm mt-2">{googleError}</div>}
+                    </div>
+                    <button className="text-blue-600 text-sm font-medium mt-3 px-3 py-2 -ml-3 rounded">이메일을 잊으셨나요?</button>
+                    <p className="text-sm text-gray-600 mt-6 leading-relaxed">내 컴퓨터가 아닌가요? 게스트 모드를 사용해 비공개로 로그인하세요. <span className="text-blue-600 font-medium">자세히 알아보기</span></p>
+                    <div className="flex justify-between items-center mt-10">
+                      <button className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">계정 만들기</button>
+                      <ActionTarget
+                        id="google-email-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        disableClickAdvance={true}
+                        onClick={() => {
+                          if (googleEmail.trim().toLowerCase() === 'wttest@gmail.com') {
+                            setGoogleError(''); setGoogleLoginStep('password');
+                            advanceQuest('google-email-next');
+                          } else {
+                            setGoogleError('Google 계정을 찾을 수 없습니다.');
+                          }
+                        }}
+                      >
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
+                      </ActionTarget>
+                    </div>
+                  </div>
+                )}
+
+                {googleLoginStep === 'password' && (
+                  <div>
+                    <h1 className="text-[28px] leading-tight font-normal mb-2">환영합니다</h1>
+                    <div className="inline-flex items-center gap-2 mb-8 mt-3 border border-gray-300 rounded-full pl-1 pr-3 py-1 max-w-full">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">W</div>
+                      <span className="text-sm truncate">{googleEmail}</span>
+                      <ChevronLeft size={14} className="rotate-[-90deg] text-gray-600"/>
+                    </div>
+                    <div className="mb-2">
+                      <input
+                        type="password"
+                        value={googlePassword}
+                        onChange={(e) => { setGooglePassword(e.target.value); setGoogleError(''); }}
+                        placeholder="비밀번호 입력"
+                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500' : 'border-gray-300 focus:border-blue-600'}`}
+                      />
+                      {googleError && <div className="text-red-600 text-sm mt-2">{googleError}</div>}
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-gray-700 mt-4 cursor-pointer">
+                      <input type="checkbox" className="w-4 h-4"/> 비밀번호 표시
+                    </label>
+                    <div className="flex justify-between items-center mt-10">
+                      <button onClick={() => { setGoogleLoginStep('email'); setGoogleError(''); }} className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">비밀번호 찾기</button>
+                      <ActionTarget
+                        id="google-password-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        disableClickAdvance={true}
+                        onClick={() => {
+                          if (googlePassword === 'Ghkdlxld1!') {
+                            setGoogleError(''); setGoogleLoginStep('consent');
+                            advanceQuest('google-password-next');
+                          } else {
+                            setGoogleError('비밀번호가 올바르지 않습니다. 다시 시도하거나 비밀번호를 재설정하세요.');
+                          }
+                        }}
+                      >
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
+                      </ActionTarget>
+                    </div>
+                  </div>
+                )}
+
+                {googleLoginStep === 'consent' && (
+                  <div>
+                    <h1 className="text-[26px] leading-tight font-normal mb-3">Google 서비스 약관</h1>
+                    <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                      Google 계정을 추가하면 Gmail, YouTube, Drive 등 Google 서비스의 데이터가 이 기기와 동기화됩니다. 자세한 내용은 <span className="text-blue-600">개인정보처리방침</span> 및 <span className="text-blue-600">서비스 약관</span>을 참조하세요.
+                    </p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5 max-h-40 overflow-y-auto text-xs text-gray-600 leading-relaxed">
+                      Google 서비스를 사용함으로써 귀하는 본 약관을 따르고 Google 개인정보처리방침에 따라 데이터가 처리되는 데 동의합니다. 동기화 가능한 항목: 연락처 · 캘린더 · Gmail · Drive · 사진 · 앱 데이터. 언제든지 설정에서 동기화를 해제할 수 있습니다.
+                    </div>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input type="checkbox" checked={googleConsent} onChange={(e) => setGoogleConsent(e.target.checked)} className="w-5 h-5 mt-0.5"/>
+                      <span className="text-sm text-gray-800">위 약관에 동의하며, 기기 백업과 동기화를 허용합니다.</span>
+                    </label>
+                    <div className="flex justify-between items-center mt-10">
+                      <button onClick={() => setGoogleLoginOpen(false)} className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">취소</button>
+                      <ActionTarget
+                        id="google-consent-agree" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        disableClickAdvance={true}
+                        onClick={() => {
+                          if (!googleConsent) { setGoogleError('동의 체크박스를 선택하세요.'); return; }
+                          setGoogleError(''); setGoogleLoginStep('syncing');
+                          advanceQuest('google-consent-agree');
+                          setTimeout(() => setGoogleLoginStep('done'), 1800);
+                        }}
+                      >
+                        <button className={`font-medium px-6 py-2.5 rounded text-sm transition ${googleConsent ? 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95' : 'bg-gray-200 text-gray-400'}`}>동의함</button>
+                      </ActionTarget>
+                    </div>
+                    {googleError && <div className="text-red-600 text-sm mt-3 text-right">{googleError}</div>}
+                  </div>
+                )}
+
+                {googleLoginStep === 'syncing' && (
+                  <div className="flex flex-col items-center justify-center text-center py-20">
+                    <div className="w-14 h-14 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+                    <div className="text-lg font-medium">Google 계정 동기화 중…</div>
+                    <div className="text-sm text-gray-500 mt-2">Gmail · 연락처 · 캘린더 · Drive</div>
+                  </div>
+                )}
+
+                {googleLoginStep === 'done' && (
+                  <div className="flex flex-col items-center text-center py-12">
+                    <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-5">
+                      <Check size={42} className="text-green-600" strokeWidth={3}/>
+                    </div>
+                    <h1 className="text-2xl font-normal mb-2">환영합니다, {googleEmail}</h1>
+                    <p className="text-sm text-gray-600 mb-8 max-w-xs">Google 계정이 이 기기에 추가되었어요. Gmail, YouTube 등에 자동으로 로그인됩니다.</p>
+                    <ActionTarget
+                      id="google-done" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => {
+                        setGoogleAccount(googleEmail);
+                        setGoogleLoginOpen(false);
+                      }}
+                    >
+                      <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-10 py-2.5 rounded text-sm active:scale-95 transition">확인</button>
+                    </ActionTarget>
+                  </div>
+                )}
+
+                {(googleLoginStep === 'email' || googleLoginStep === 'password') && (
+                  <div className="mt-8 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed">
+                    <div className="font-bold mb-1">💡 학습용 안내</div>
+                    아이디: <span className="font-mono font-bold">wttest@gmail.com</span><br/>
+                    비밀번호: <span className="font-mono font-bold">Ghkdlxld1!</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center px-6 py-4 text-xs text-gray-500 border-t border-gray-100">
+                <select className="bg-transparent outline-none"><option>한국어</option></select>
+                <div className="flex gap-5">
+                  <span>도움말</span><span>개인정보처리방침</span><span>약관</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+
 
           {/* Lock screen overlay */}
           {locked && (
