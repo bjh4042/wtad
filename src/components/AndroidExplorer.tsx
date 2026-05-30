@@ -2495,6 +2495,178 @@ export default function AndroidExplorer() {
             </div>
           )}
 
+          {/* Google 로그인 (실제와 유사한 풀스크린) */}
+          {googleLoginOpen && (
+            <div className="absolute inset-0 z-[180] bg-white flex flex-col text-[#202124] animate-[fadeIn_0.25s_ease-out] overflow-y-auto" style={{ fontFamily: 'Roboto, "Noto Sans KR", system-ui, -apple-system, sans-serif' }}>
+              <div className="flex items-center justify-between px-6 pt-12 pb-4">
+                <svg viewBox="0 0 272 92" className="h-7">
+                  <path fill="#4285F4" d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18S71.25 59.95 71.25 47.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"/>
+                  <path fill="#EA4335" d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z"/>
+                  <path fill="#FBBC05" d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z"/>
+                  <path fill="#34A853" d="M225 3v65h-9.5V3h9.5z"/>
+                  <path fill="#EA4335" d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z"/>
+                  <path fill="#4285F4" d="M35.29 41.41V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49.01z"/>
+                </svg>
+                <button onClick={() => setGoogleLoginOpen(false)} className="text-gray-500 active:scale-90 transition"><X size={22}/></button>
+              </div>
+
+              <div className="flex-1 max-w-md w-full mx-auto px-8 pb-10">
+                {googleLoginStep === 'email' && (
+                  <div>
+                    <h1 className="text-[28px] leading-tight font-normal mb-2">로그인</h1>
+                    <p className="text-base text-gray-700 mb-8">Google 계정 사용</p>
+                    <div className="mb-2">
+                      <input
+                        type="email"
+                        value={googleEmail}
+                        onChange={(e) => { setGoogleEmail(e.target.value); setGoogleError(''); }}
+                        placeholder="이메일 또는 휴대전화"
+                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500' : 'border-gray-300 focus:border-blue-600'}`}
+                      />
+                      {googleError && <div className="text-red-600 text-sm mt-2">{googleError}</div>}
+                    </div>
+                    <button className="text-blue-600 text-sm font-medium mt-3 px-3 py-2 -ml-3 rounded">이메일을 잊으셨나요?</button>
+                    <p className="text-sm text-gray-600 mt-6 leading-relaxed">내 컴퓨터가 아닌가요? 게스트 모드를 사용해 비공개로 로그인하세요. <span className="text-blue-600 font-medium">자세히 알아보기</span></p>
+                    <div className="flex justify-between items-center mt-10">
+                      <button className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">계정 만들기</button>
+                      <ActionTarget
+                        id="google-email-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        disableClickAdvance={true}
+                        onClick={() => {
+                          if (googleEmail.trim().toLowerCase() === 'wttest@gmail.com') {
+                            setGoogleError(''); setGoogleLoginStep('password');
+                            advanceQuest('google-email-next');
+                          } else {
+                            setGoogleError('Google 계정을 찾을 수 없습니다.');
+                          }
+                        }}
+                      >
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
+                      </ActionTarget>
+                    </div>
+                  </div>
+                )}
+
+                {googleLoginStep === 'password' && (
+                  <div>
+                    <h1 className="text-[28px] leading-tight font-normal mb-2">환영합니다</h1>
+                    <div className="inline-flex items-center gap-2 mb-8 mt-3 border border-gray-300 rounded-full pl-1 pr-3 py-1 max-w-full">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">W</div>
+                      <span className="text-sm truncate">{googleEmail}</span>
+                      <ChevronLeft size={14} className="rotate-[-90deg] text-gray-600"/>
+                    </div>
+                    <div className="mb-2">
+                      <input
+                        type="password"
+                        value={googlePassword}
+                        onChange={(e) => { setGooglePassword(e.target.value); setGoogleError(''); }}
+                        placeholder="비밀번호 입력"
+                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500' : 'border-gray-300 focus:border-blue-600'}`}
+                      />
+                      {googleError && <div className="text-red-600 text-sm mt-2">{googleError}</div>}
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-gray-700 mt-4 cursor-pointer">
+                      <input type="checkbox" className="w-4 h-4"/> 비밀번호 표시
+                    </label>
+                    <div className="flex justify-between items-center mt-10">
+                      <button onClick={() => { setGoogleLoginStep('email'); setGoogleError(''); }} className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">비밀번호 찾기</button>
+                      <ActionTarget
+                        id="google-password-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        disableClickAdvance={true}
+                        onClick={() => {
+                          if (googlePassword === 'Ghkdlxld1!') {
+                            setGoogleError(''); setGoogleLoginStep('consent');
+                            advanceQuest('google-password-next');
+                          } else {
+                            setGoogleError('비밀번호가 올바르지 않습니다. 다시 시도하거나 비밀번호를 재설정하세요.');
+                          }
+                        }}
+                      >
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
+                      </ActionTarget>
+                    </div>
+                  </div>
+                )}
+
+                {googleLoginStep === 'consent' && (
+                  <div>
+                    <h1 className="text-[26px] leading-tight font-normal mb-3">Google 서비스 약관</h1>
+                    <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                      Google 계정을 추가하면 Gmail, YouTube, Drive 등 Google 서비스의 데이터가 이 기기와 동기화됩니다. 자세한 내용은 <span className="text-blue-600">개인정보처리방침</span> 및 <span className="text-blue-600">서비스 약관</span>을 참조하세요.
+                    </p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5 max-h-40 overflow-y-auto text-xs text-gray-600 leading-relaxed">
+                      Google 서비스를 사용함으로써 귀하는 본 약관을 따르고 Google 개인정보처리방침에 따라 데이터가 처리되는 데 동의합니다. 동기화 가능한 항목: 연락처 · 캘린더 · Gmail · Drive · 사진 · 앱 데이터. 언제든지 설정에서 동기화를 해제할 수 있습니다.
+                    </div>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input type="checkbox" checked={googleConsent} onChange={(e) => setGoogleConsent(e.target.checked)} className="w-5 h-5 mt-0.5"/>
+                      <span className="text-sm text-gray-800">위 약관에 동의하며, 기기 백업과 동기화를 허용합니다.</span>
+                    </label>
+                    <div className="flex justify-between items-center mt-10">
+                      <button onClick={() => setGoogleLoginOpen(false)} className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">취소</button>
+                      <ActionTarget
+                        id="google-consent-agree" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        disableClickAdvance={true}
+                        onClick={() => {
+                          if (!googleConsent) { setGoogleError('동의 체크박스를 선택하세요.'); return; }
+                          setGoogleError(''); setGoogleLoginStep('syncing');
+                          advanceQuest('google-consent-agree');
+                          setTimeout(() => setGoogleLoginStep('done'), 1800);
+                        }}
+                      >
+                        <button className={`font-medium px-6 py-2.5 rounded text-sm transition ${googleConsent ? 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95' : 'bg-gray-200 text-gray-400'}`}>동의함</button>
+                      </ActionTarget>
+                    </div>
+                    {googleError && <div className="text-red-600 text-sm mt-3 text-right">{googleError}</div>}
+                  </div>
+                )}
+
+                {googleLoginStep === 'syncing' && (
+                  <div className="flex flex-col items-center justify-center text-center py-20">
+                    <div className="w-14 h-14 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+                    <div className="text-lg font-medium">Google 계정 동기화 중…</div>
+                    <div className="text-sm text-gray-500 mt-2">Gmail · 연락처 · 캘린더 · Drive</div>
+                  </div>
+                )}
+
+                {googleLoginStep === 'done' && (
+                  <div className="flex flex-col items-center text-center py-12">
+                    <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-5">
+                      <Check size={42} className="text-green-600" strokeWidth={3}/>
+                    </div>
+                    <h1 className="text-2xl font-normal mb-2">환영합니다, {googleEmail}</h1>
+                    <p className="text-sm text-gray-600 mb-8 max-w-xs">Google 계정이 이 기기에 추가되었어요. Gmail, YouTube 등에 자동으로 로그인됩니다.</p>
+                    <ActionTarget
+                      id="google-done" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => {
+                        setGoogleAccount(googleEmail);
+                        setGoogleLoginOpen(false);
+                      }}
+                    >
+                      <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-10 py-2.5 rounded text-sm active:scale-95 transition">확인</button>
+                    </ActionTarget>
+                  </div>
+                )}
+
+                {(googleLoginStep === 'email' || googleLoginStep === 'password') && (
+                  <div className="mt-8 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed">
+                    <div className="font-bold mb-1">💡 학습용 안내</div>
+                    아이디: <span className="font-mono font-bold">wttest@gmail.com</span><br/>
+                    비밀번호: <span className="font-mono font-bold">Ghkdlxld1!</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center px-6 py-4 text-xs text-gray-500 border-t border-gray-100">
+                <select className="bg-transparent outline-none"><option>한국어</option></select>
+                <div className="flex gap-5">
+                  <span>도움말</span><span>개인정보처리방침</span><span>약관</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+
+
           {/* Lock screen overlay */}
           {locked && (
             <div
