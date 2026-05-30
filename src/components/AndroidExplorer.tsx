@@ -332,6 +332,22 @@ export default function AndroidExplorer() {
   const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
 
+  // 미션 리스트 팝업 (12번)
+  const [missionListOpen, setMissionListOpen] = useState(false);
+  const [missionListCompact, setMissionListCompact] = useState(false);
+  const [missionListPos, setMissionListPos] = useState({ x: 420, y: 60 });
+  const [isDraggingList, setIsDraggingList] = useState(false);
+  const dragRefList = useRef<any>(null);
+  const missionListRef = useRef<any>(null);
+
+  // 리워드 (3번) - confetti + level-up flash
+  const [confettiKey, setConfettiKey] = useState(0);
+  const [rewardToast, setRewardToast] = useState<{ exp: number; key: number } | null>(null);
+  const [levelUpFlash, setLevelUpFlash] = useState(0);
+  const prevLevelRef = useRef<number>(1);
+
+
+
 
   const currentTargetId = QUESTS[questIdx]?.targetId;
 
@@ -400,12 +416,25 @@ export default function AndroidExplorer() {
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
       if (!completedQuests.includes(questIdx)) {
-        setExp(e => e + QUESTS[questIdx].exp);
+        const gained = QUESTS[questIdx].exp;
+        const newExp = exp + gained;
+        setExp(newExp);
         setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
+        // 리워드 효과
+        setConfettiKey(k => k + 1);
+        setRewardToast({ exp: gained, key: Date.now() });
+        setTimeout(() => setRewardToast(null), 1800);
+        // 레벨업 감지
+        const newLevel = Math.floor(newExp / 100) + 1;
+        if (newLevel > prevLevelRef.current) {
+          prevLevelRef.current = newLevel;
+          setLevelUpFlash(f => f + 1);
+        }
       }
       setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
     }
   };
+
 
   const resetProgress = () => {
     if (typeof window !== 'undefined') {
@@ -430,6 +459,13 @@ export default function AndroidExplorer() {
     dragRefExp.current = { startX: clientX, startY: clientY, initX: expPos.x, initY: expPos.y };
   };
 
+  const handleDragStartList = (e) => {
+    setIsDraggingList(true);
+    const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    dragRefList.current = { startX: clientX, startY: clientY, initX: missionListPos.x, initY: missionListPos.y };
+  };
+
   const handleGlobalMove = (e) => {
     if (isDraggingExp && expMenuRef.current && dragRefExp.current) {
       const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
@@ -440,6 +476,16 @@ export default function AndroidExplorer() {
       expMenuRef.current.style.willChange = 'transform';
       dragRefExp.current.lastDx = dx;
       dragRefExp.current.lastDy = dy;
+    }
+    if (isDraggingList && missionListRef.current && dragRefList.current) {
+      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+      const dx = clientX - dragRefList.current.startX;
+      const dy = clientY - dragRefList.current.startY;
+      missionListRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      missionListRef.current.style.willChange = 'transform';
+      dragRefList.current.lastDx = dx;
+      dragRefList.current.lastDy = dy;
     }
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -454,6 +500,7 @@ export default function AndroidExplorer() {
       }
     }
   };
+
 
 
   const handleGlobalEnd = () => {
@@ -475,9 +522,29 @@ export default function AndroidExplorer() {
         });
       });
     }
+    if (isDraggingList && missionListRef.current && dragRefList.current) {
+      const dx = dragRefList.current.lastDx || 0;
+      const dy = dragRefList.current.lastDy || 0;
+      missionListRef.current.style.transition = 'none';
+      missionListRef.current.style.transform = 'none';
+      missionListRef.current.style.willChange = '';
+      setMissionListPos({
+        x: dragRefList.current.initX + dx,
+        y: dragRefList.current.initY + dy
+      });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (missionListRef.current) {
+            missionListRef.current.style.transition = '';
+          }
+        });
+      });
+    }
     setIsDraggingExp(false);
+    setIsDraggingList(false);
     setTouchStartY(null);
   };
+
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
 
   const handleAppPressStart = (appName, index?: number) => {
@@ -1943,10 +2010,33 @@ export default function AndroidExplorer() {
         @keyframes wiggle { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
         @keyframes pulseUp { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-10px); opacity: 1; } }
         @keyframes appEnter { from { transform: scale(0.86); opacity: 0; filter: blur(6px); } to { transform: scale(1); opacity: 1; filter: blur(0); } }
+        @keyframes confettiFall {
+          0% { transform: translate3d(0,-20vh,0) rotate(0deg); opacity: 1; }
+          100% { transform: translate3d(var(--cx, 0px), 110vh, 0) rotate(720deg); opacity: 0; }
+        }
+        @keyframes rewardPop {
+          0% { transform: translate(-50%, -10%) scale(0.5); opacity: 0; }
+          25% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+          75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -90%) scale(0.95); opacity: 0; }
+        }
+        @keyframes levelUpFlash {
+          0% { opacity: 0; transform: scale(0.5); }
+          15% { opacity: 1; transform: scale(1.2); }
+          70% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(1.4); }
+        }
+        @keyframes starPop {
+          0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+          60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
         .animate-wiggle { animation: wiggle 0.25s ease-in-out infinite; }
         .animate-pulse-up { animation: pulseUp 1.6s ease-in-out infinite; }
         .animate-app-enter { animation: appEnter 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); transform-origin: center; }
+        .animate-star-pop { animation: starPop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
       `}</style>
+
 
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
@@ -2177,37 +2267,85 @@ export default function AndroidExplorer() {
         <div ref={expMenuRef} className="fixed md:absolute z-[300] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300" style={{ top: expPos.y, left: expPos.x, borderColor: `${themeColor}55` }}>
           <div className="text-white p-3 md:p-4 flex justify-between items-center cursor-move" style={{ background: themeColor }} onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); setDarkMode(d => !d); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title={darkMode ? '라이트 모드' : '다크 모드'}
+              >
+                {darkMode ? <Sun size={16}/> : <Moon size={16}/>}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setMissionListOpen(o => !o); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className={`p-1.5 rounded-lg transition-colors ${missionListOpen ? 'bg-white/30' : 'hover:bg-white/20 active:bg-white/30'}`}
+                title="미션 목록"
+              >
+                <Grid size={16}/>
+              </button>
               <button
                 onClick={() => setIsCompact(c => !c)}
-                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
                 title={isCompact ? '확대' : '축소'}
               >
-                {isCompact ? <ChevronUp size={18}/> : <Minus size={18}/>}
+                {isCompact ? <ChevronUp size={16}/> : <Minus size={16}/>}
               </button>
               <button
                 onClick={() => setShowExpMenu(false)}
-                className="p-1 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
                 title="닫기"
               >
-                <X size={20}/>
+                <X size={18}/>
               </button>
             </div>
           </div>
           {!isCompact ? (
             <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
+              {/* 레벨 + EXP */}
               <div className="flex justify-between items-end mb-2">
                 <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
                 <span className="text-sm md:text-lg font-bold" style={{ color: themeColor }}>{exp} EXP</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 shadow-inner">
-                <div className="h-2.5 md:h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%`, background: themeColor }}></div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 md:h-3 mb-3 shadow-inner overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${(exp % 100)}%`, background: `linear-gradient(90deg, ${themeColor}, ${themeColor}cc)` }}></div>
               </div>
+
+              {/* 전체 미션 진행률 (체크포인트) */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-bold text-gray-600">전체 진행률</span>
+                  <span className="text-[11px] font-bold" style={{ color: themeColor }}>
+                    {completedQuests.length}/{QUESTS.length} · {Math.round((completedQuests.length / QUESTS.length) * 100)}%
+                  </span>
+                </div>
+                <div className="relative w-full bg-gray-200 rounded-full h-2 shadow-inner overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-500" style={{ width: `${(completedQuests.length / QUESTS.length) * 100}%`, background: `linear-gradient(90deg, #10b981, ${themeColor})` }}></div>
+                </div>
+                {/* 체크포인트 점 (10단계) */}
+                <div className="flex justify-between mt-1.5 px-0.5">
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const checkpoint = Math.round(((i + 1) / 10) * QUESTS.length);
+                    const reached = completedQuests.length >= checkpoint;
+                    return (
+                      <div
+                        key={i}
+                        className={`w-1.5 h-1.5 rounded-full transition-all ${reached ? 'scale-125' : ''}`}
+                        style={{ background: reached ? themeColor : '#d1d5db' }}
+                        title={`${checkpoint}번째 미션`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="bg-white p-3 md:p-4 rounded-2xl border shadow-sm relative min-h-[90px] flex flex-col justify-center" style={{ borderColor: `${themeColor}33` }}>
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-xs md:text-sm font-bold" style={{ color: themeColor }}>현재 임무 {questIdx + 1}/{QUESTS.length}</div>
                   {completedQuests.includes(questIdx) && (
-                    <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1"><Check size={10}/> 완료</div>
+                    <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1 animate-star-pop">⭐ 완료</div>
                   )}
                 </div>
                 <div className="text-gray-800 font-bold text-sm md:text-[17px] leading-relaxed break-keep">
@@ -2240,9 +2378,10 @@ export default function AndroidExplorer() {
                 </button>
               </div>
               <div className="text-[10px] text-gray-500 mt-2 text-center">
-                ◀▶ 로 완료한 미션을 다시 연습할 수 있어요 ({completedQuests.length}/{QUESTS.length} 완료)
+                ◀▶ 로 완료한 미션을 다시 연습할 수 있어요
               </div>
             </div>
+
           ) : (
             <div className="p-3 md:p-4" style={{ background: `${themeColor}0d` }}>
               <div className="flex items-center justify-between">
@@ -2321,6 +2460,205 @@ export default function AndroidExplorer() {
           <Check size={28} className="text-white" />
         </div>
       )}
+
+      {/* === 미션 목록 팝업 (12번) === */}
+      {missionListOpen && (
+        <div
+          ref={missionListRef}
+          className="fixed md:absolute z-[305] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border overflow-hidden transition-all duration-300 animate-[fadeIn_0.2s_ease-out]"
+          style={{
+            top: missionListPos.y,
+            left: missionListPos.x,
+            width: missionListCompact ? 280 : 'calc(100vw - 16px)',
+            maxWidth: missionListCompact ? 280 : 420,
+            borderColor: `${themeColor}55`,
+          }}
+        >
+          <div
+            className="text-white p-3 md:p-4 flex justify-between items-center cursor-move"
+            style={{ background: themeColor }}
+            onMouseDown={handleDragStartList}
+            onTouchStart={handleDragStartList}
+          >
+            <div className="flex items-center gap-2 font-bold text-base md:text-lg">
+              <Grid size={18}/> 미션 목록
+              <span className="text-xs font-normal opacity-80">({completedQuests.length}/{QUESTS.length})</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); setMissionListCompact(c => !c); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title={missionListCompact ? '확대' : '축소'}
+              >
+                {missionListCompact ? <ChevronUp size={16}/> : <Minus size={16}/>}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setMissionListOpen(false); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title="닫기"
+              >
+                <X size={18}/>
+              </button>
+            </div>
+          </div>
+          {!missionListCompact ? (
+            <div className="p-3 md:p-4 max-h-[60vh] overflow-y-auto" style={{ background: `${themeColor}08` }}>
+              {/* 카테고리 */}
+              {[
+                { title: '🔓 기본 조작', range: [0, 7] },
+                { title: '⚙️ 설정 · 디스플레이', range: [7, 13] },
+                { title: '📸 카메라 · 갤러리', range: [13, 23] },
+                { title: '🛍 Play 스토어', range: [23, 30] },
+                { title: '🎛 퀵패널 · 블루투스', range: [30, 40] },
+                { title: '📝 노트 · 마무리', range: [40, 49] },
+              ].map((cat) => (
+                <div key={cat.title} className="mb-3">
+                  <div className="text-xs font-bold text-gray-700 mb-1.5 px-1">{cat.title}</div>
+                  <div className="space-y-1">
+                    {QUESTS.slice(cat.range[0], cat.range[1]).map((q, i) => {
+                      const idx = cat.range[0] + i;
+                      const isDone = completedQuests.includes(idx);
+                      const isCurrent = idx === questIdx;
+                      const isLocked = idx > questIdx && !completedQuests.includes(idx);
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => !isLocked && gotoQuest(idx)}
+                          disabled={isLocked}
+                          className={`w-full text-left p-2 rounded-xl flex items-start gap-2 transition-all ${
+                            isCurrent
+                              ? 'bg-white shadow-md ring-2'
+                              : isDone
+                                ? 'bg-green-50 hover:bg-green-100 active:scale-[0.98]'
+                                : isLocked
+                                  ? 'bg-gray-100 opacity-50 cursor-not-allowed'
+                                  : 'bg-white hover:bg-gray-50 active:scale-[0.98]'
+                          }`}
+                          style={isCurrent ? { boxShadow: `0 0 0 2px ${themeColor}` } : {}}
+                        >
+                          <div
+                            className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white`}
+                            style={{ background: isDone ? '#10b981' : isCurrent ? themeColor : '#9ca3af' }}
+                          >
+                            {isDone ? <Check size={14}/> : isLocked ? <Lock size={12}/> : idx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-[12px] leading-snug ${isDone ? 'text-gray-600 line-through' : 'text-gray-800 font-medium'}`}>
+                              {q.text}
+                            </div>
+                            <div className="text-[10px] text-gray-500 mt-0.5">+{q.exp} EXP</div>
+                          </div>
+                          {isCurrent && <div className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white shrink-0" style={{ background: themeColor }}>지금</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-3" style={{ background: `${themeColor}08` }}>
+              <div className="text-xs text-gray-600 mb-2">완료한 미션</div>
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${(completedQuests.length / QUESTS.length) * 100}%`, background: themeColor }}></div>
+              </div>
+              <div className="text-center text-xs font-bold mt-2" style={{ color: themeColor }}>
+                {completedQuests.length} / {QUESTS.length}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* === 미션 목록 플로팅 버튼 (미션 센터가 닫혀 있을 때) === */}
+      {!showExpMenu && !missionListOpen && (
+        <button
+          onClick={() => setMissionListOpen(true)}
+          className="fixed md:absolute bottom-4 right-[5.5rem] md:bottom-8 md:right-28 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-2xl cursor-pointer active:scale-90 transition-all z-[300] text-white"
+          style={{ background: themeColor }}
+          title="미션 목록"
+        >
+          <Grid size={22} />
+        </button>
+      )}
+
+      {/* === Reward Toast (미션 완료 시) === */}
+      {rewardToast && (
+        <div
+          key={rewardToast.key}
+          className="fixed inset-0 pointer-events-none z-[400] flex items-center justify-center"
+        >
+          <div
+            className="px-6 py-4 rounded-3xl font-black text-white text-2xl md:text-4xl shadow-2xl whitespace-nowrap"
+            style={{
+              background: `linear-gradient(135deg, ${themeColor}, #10b981)`,
+              animation: 'rewardPop 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+            }}
+          >
+            ⭐ +{rewardToast.exp} EXP!
+          </div>
+        </div>
+      )}
+
+      {/* === Confetti (미션 완료 시) === */}
+      {confettiKey > 0 && (
+        <div key={confettiKey} className="fixed inset-0 pointer-events-none z-[399] overflow-hidden">
+          {Array.from({ length: 40 }).map((_, i) => {
+            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#06b6d4', '#ef4444'];
+            const left = Math.random() * 100;
+            const cx = (Math.random() - 0.5) * 200;
+            const delay = Math.random() * 0.3;
+            const duration = 1.4 + Math.random() * 1.0;
+            const size = 6 + Math.random() * 8;
+            const color = colors[i % colors.length];
+            const shape = i % 3 === 0 ? '50%' : i % 3 === 1 ? '2px' : '0';
+            return (
+              <span
+                key={i}
+                style={{
+                  position: 'absolute',
+                  left: `${left}%`,
+                  top: '-5vh',
+                  width: size,
+                  height: size,
+                  background: color,
+                  borderRadius: shape,
+                  animation: `confettiFall ${duration}s ease-out ${delay}s forwards`,
+                  ['--cx' as any]: `${cx}px`,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* === Level-up flash === */}
+      {levelUpFlash > 0 && (
+        <div
+          key={`lvl-${levelUpFlash}`}
+          className="fixed inset-0 pointer-events-none z-[401] flex items-center justify-center"
+        >
+          <div
+            className="px-8 py-6 rounded-3xl font-black text-white text-3xl md:text-5xl shadow-[0_0_80px_rgba(255,200,0,0.8)] whitespace-nowrap"
+            style={{
+              background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444)',
+              animation: 'levelUpFlash 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              transformOrigin: 'center',
+            }}
+          >
+            🎉 LEVEL UP! 🎉
+          </div>
+        </div>
+      )}
+
+
 
     </div>
   );
