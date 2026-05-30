@@ -1305,9 +1305,13 @@ export default function AndroidExplorer() {
             </>
           )}
           <span className="text-[11px] font-bold ml-1 tabular-nums">98%</span>
-          <div className="relative w-7 h-3.5 border-2 border-white rounded-[3px] flex items-center px-0.5">
-            <div className="h-full w-[88%] bg-white rounded-sm"></div>
-            <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-0.5 h-1.5 bg-white rounded-r"></div>
+          {/* 배터리 아이콘 — 깔끔한 캡슐 형태 + 충전 번개 */}
+          <div className="relative flex items-center ml-0.5">
+            <div className="relative w-[26px] h-[12px] border-[1.5px] border-white/95 rounded-[3px] p-[1.5px] bg-transparent">
+              <div className="h-full bg-white rounded-[1.5px]" style={{ width: '92%' }}></div>
+              <Zap size={8} strokeWidth={3} className="absolute inset-0 m-auto text-[#0f172a] fill-[#0f172a]" />
+            </div>
+            <div className="w-[2px] h-[5px] bg-white/95 rounded-r-[1px] -ml-px"></div>
           </div>
         </div>
       </ActionTarget>
