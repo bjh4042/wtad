@@ -1305,8 +1305,12 @@ export default function AndroidExplorer() {
 
 
   const renderQuickPanel = () => (
-    <div className={`absolute inset-0 z-50 transition-opacity duration-300 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-      style={{ background: 'radial-gradient(ellipse at top, rgba(60,60,60,0.55) 0%, rgba(0,0,0,0.65) 70%)', backdropFilter: 'blur(28px)' }}>
+    <div
+      className={`absolute inset-0 z-50 transition-opacity duration-300 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      style={{ background: 'radial-gradient(ellipse at top, rgba(60,60,60,0.55) 0%, rgba(0,0,0,0.65) 70%)', backdropFilter: 'blur(28px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) { setQuickPanelOpen(false); advanceQuest('quick-panel-bg'); } }}
+    >
+
       {/* 상단 상태 줄 + 액션 아이콘 */}
       <div className="absolute top-0 left-0 right-0 flex justify-between items-center px-8 py-5 text-white/95 z-10">
         <span className="text-sm font-medium tracking-tight drop-shadow">{airplane ? '비행기 탑승 모드' : 'SIM 카드 없음 · 제한구역서비스'}</span>
