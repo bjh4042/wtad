@@ -1395,6 +1395,81 @@ export default function AndroidExplorer() {
       <div className="w-full h-full pt-16 pb-8 px-4 md:px-12 overflow-y-auto flex flex-col items-center gap-3">
         <div className="w-full max-w-3xl flex flex-col gap-3">
 
+          {/* 알림 영역 */}
+          {notifications.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between px-2 mb-0.5">
+                <span className="text-white/80 text-xs font-semibold tracking-wide">알림 {notifications.length}</span>
+                <ActionTarget
+                  id="notif-clear-all" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                  onClick={() => { setNotifications([]); setTimeout(() => { setQuickPanelOpen(false); }, 400); }}
+                  tooltipPosition="left"
+                  tooltipText="모두 지우기"
+                  className="text-white/80 text-xs font-medium px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 cursor-pointer transition"
+                >
+                  모두 지우기
+                </ActionTarget>
+              </div>
+              {notifications.map(n => {
+                const drag = notifDrag && notifDrag.id === n.id ? notifDrag.dx : 0;
+                const opacity = Math.max(0, 1 - Math.abs(drag) / 200);
+                const isRead = readNotifIds.includes(n.id);
+                return (
+                  <ActionTarget
+                    key={n.id}
+                    id={`notif-tap-${n.id}`}
+                    currentTargetId={currentTargetId}
+                    advanceQuest={advanceQuest}
+                    extraTargetIds={[`notif-dismiss-${n.id}`]}
+                    disableClickAdvance={true}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (Math.abs(drag) > 5) return;
+                      setReadNotifIds(prev => prev.includes(n.id) ? prev : [...prev, n.id]);
+                      advanceQuest(`notif-tap-${n.id}`);
+                    }}
+                    tooltipPosition="bottom"
+                    tooltipText={currentTargetId === `notif-dismiss-${n.id}` ? '← 옆으로 스와이프해서 지우기' : '탭해서 확인'}
+                    onPointerDown={(e: any) => {
+                      e.stopPropagation();
+                      setNotifDrag({ id: n.id, startX: e.clientX, dx: 0 });
+                    }}
+                    onPointerMove={(e: any) => {
+                      if (!notifDrag || notifDrag.id !== n.id) return;
+                      setNotifDrag({ ...notifDrag, dx: e.clientX - notifDrag.startX });
+                    }}
+                    onPointerUp={(e: any) => {
+                      if (!notifDrag || notifDrag.id !== n.id) { setNotifDrag(null); return; }
+                      const d = notifDrag.dx;
+                      setNotifDrag(null);
+                      if (Math.abs(d) > 100) {
+                        setNotifications(prev => prev.filter(x => x.id !== n.id));
+                        advanceQuest(`notif-dismiss-${n.id}`);
+                      }
+                    }}
+                    className="bg-white/95 text-gray-900 rounded-2xl px-4 py-3 shadow-lg flex items-start gap-3 cursor-pointer select-none touch-none"
+                    style={{ transform: `translateX(${drag}px)`, opacity, transition: notifDrag && notifDrag.id === n.id ? 'none' : 'transform 0.2s, opacity 0.2s' }}
+                  >
+                    <div className={`w-8 h-8 rounded-lg ${n.color} flex items-center justify-center text-white text-xs font-bold shrink-0 shadow`}>
+                      {n.app === 'KakaoTalk' ? '💬' : n.app === 'Messages' ? '✉️' : n.app === 'Gmail' ? 'M' : '!'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-0.5">
+                        <span className="font-semibold">{n.appName}</span>
+                        <span>· 방금 전</span>
+                        {isRead && <span className="text-blue-500 font-medium">· 읽음</span>}
+                      </div>
+                      <div className="text-sm font-bold truncate">{n.title}</div>
+                      <div className="text-[13px] text-gray-700 truncate">{n.body}</div>
+                    </div>
+                  </ActionTarget>
+                );
+              })}
+            </div>
+          )}
+
+
+
           {/* Wi-Fi / 블루투스 대형 알약 */}
           <div className="grid grid-cols-2 gap-3">
             <ActionTarget
