@@ -337,12 +337,19 @@ export default function AndroidExplorer() {
   const [googleConsent, setGoogleConsent] = useState(false);
   const [googleAccount, setGoogleAccount] = useState<string | null>(null);
   const [accountAddOpen, setAccountAddOpen] = useState(false);
+  const [googleShake, setGoogleShake] = useState(0);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const googleEmailRef = useRef<HTMLInputElement>(null);
+  const googlePasswordRef = useRef<HTMLInputElement>(null);
   // Play Store 업데이트
   const [playStoreView, setPlayStoreView] = useState<'home' | 'manage'>('home');
   const [playStoreProfileOpen, setPlayStoreProfileOpen] = useState(false);
   const [updatingAll, setUpdatingAll] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
   const [appsUpdated, setAppsUpdated] = useState(false);
+  // 앱별 업데이트 진행 상태
+  const [appUpdateStatus, setAppUpdateStatus] = useState<Record<string, 'pending'|'downloading'|'installing'|'done'>>({});
+  const [appUpdateProgress, setAppUpdateProgress] = useState<Record<string, number>>({});
   const [cameraPermissionAsked, setCameraPermissionAsked] = useState(false);
   const [cameraPermissionPrompt, setCameraPermissionPrompt] = useState(false);
   const [settingsSearch, setSettingsSearch] = useState('');
