@@ -332,6 +332,22 @@ export default function AndroidExplorer() {
   const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
 
+  // 미션 리스트 팝업 (12번)
+  const [missionListOpen, setMissionListOpen] = useState(false);
+  const [missionListCompact, setMissionListCompact] = useState(false);
+  const [missionListPos, setMissionListPos] = useState({ x: 420, y: 60 });
+  const [isDraggingList, setIsDraggingList] = useState(false);
+  const dragRefList = useRef<any>(null);
+  const missionListRef = useRef<any>(null);
+
+  // 리워드 (3번) - confetti + level-up flash
+  const [confettiKey, setConfettiKey] = useState(0);
+  const [rewardToast, setRewardToast] = useState<{ exp: number; key: number } | null>(null);
+  const [levelUpFlash, setLevelUpFlash] = useState(0);
+  const prevLevelRef = useRef<number>(1);
+
+
+
 
   const currentTargetId = QUESTS[questIdx]?.targetId;
 
