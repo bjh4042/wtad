@@ -2346,6 +2346,7 @@ export default function AndroidExplorer() {
         onClick={() => {
           setCurrentApp(null); setQuickPanelOpen(false); setIsEditMode(false); setKeyboardOpen(false);
           setSearchText(''); setIsSearched(false); setTypingIndex(0); setKeyboardShift(false); setMathAppOpen(false);
+          setPlayStoreView('home'); setPlayStoreProfileOpen(false);
         }}
         className="w-24 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all"
       >
