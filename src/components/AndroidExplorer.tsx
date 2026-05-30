@@ -2216,7 +2216,8 @@ export default function AndroidExplorer() {
       </div>
       {renderVirtualKeyboard()}
     </div>
-  );
+    );
+  };
 
   const renderNotes = () => {
     const startDraw = (e: any) => {
