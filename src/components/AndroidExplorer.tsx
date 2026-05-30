@@ -416,12 +416,25 @@ export default function AndroidExplorer() {
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
       if (!completedQuests.includes(questIdx)) {
-        setExp(e => e + QUESTS[questIdx].exp);
+        const gained = QUESTS[questIdx].exp;
+        const newExp = exp + gained;
+        setExp(newExp);
         setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
+        // 리워드 효과
+        setConfettiKey(k => k + 1);
+        setRewardToast({ exp: gained, key: Date.now() });
+        setTimeout(() => setRewardToast(null), 1800);
+        // 레벨업 감지
+        const newLevel = Math.floor(newExp / 100) + 1;
+        if (newLevel > prevLevelRef.current) {
+          prevLevelRef.current = newLevel;
+          setLevelUpFlash(f => f + 1);
+        }
       }
       setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
     }
   };
+
 
   const resetProgress = () => {
     if (typeof window !== 'undefined') {
