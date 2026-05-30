@@ -1654,10 +1654,29 @@ export default function AndroidExplorer() {
               )}
             </div>
           </div>
-          <div className="h-24 flex justify-around items-center px-12 bg-[#111] pb-4 shrink-0">
+          <div className="h-24 flex justify-around items-center px-4 md:px-12 bg-[#111] pb-4 shrink-0 text-gray-300">
+            <button className="flex flex-col items-center gap-1 active:scale-90 transition-transform hover:text-white">
+              <Share2 size={24}/>
+              <span className="text-[11px]">공유</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 active:scale-90 transition-transform hover:text-white">
+              <Edit3 size={24}/>
+              <span className="text-[11px]">편집</span>
+            </button>
             <ActionTarget id="gallery-delete" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setDeleteConfirm(true)}>
-              <Trash2 size={28} className="cursor-pointer text-gray-300 hover:text-white active:scale-90 transition-all" />
+              <div className="flex flex-col items-center gap-1 cursor-pointer active:scale-90 transition-transform hover:text-white">
+                <Trash2 size={24}/>
+                <span className="text-[11px]">삭제</span>
+              </div>
             </ActionTarget>
+            <button className="flex flex-col items-center gap-1 active:scale-90 transition-transform hover:text-white">
+              <Heart size={24}/>
+              <span className="text-[11px]">즐겨찾기</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 active:scale-90 transition-transform hover:text-white">
+              <MoreHorizontal size={24}/>
+              <span className="text-[11px]">더보기</span>
+            </button>
           </div>
         </div>
       );
