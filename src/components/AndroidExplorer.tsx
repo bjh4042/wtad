@@ -459,6 +459,13 @@ export default function AndroidExplorer() {
     dragRefExp.current = { startX: clientX, startY: clientY, initX: expPos.x, initY: expPos.y };
   };
 
+  const handleDragStartList = (e) => {
+    setIsDraggingList(true);
+    const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+    dragRefList.current = { startX: clientX, startY: clientY, initX: missionListPos.x, initY: missionListPos.y };
+  };
+
   const handleGlobalMove = (e) => {
     if (isDraggingExp && expMenuRef.current && dragRefExp.current) {
       const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
@@ -469,6 +476,16 @@ export default function AndroidExplorer() {
       expMenuRef.current.style.willChange = 'transform';
       dragRefExp.current.lastDx = dx;
       dragRefExp.current.lastDy = dy;
+    }
+    if (isDraggingList && missionListRef.current && dragRefList.current) {
+      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+      const dx = clientX - dragRefList.current.startX;
+      const dy = clientY - dragRefList.current.startY;
+      missionListRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      missionListRef.current.style.willChange = 'transform';
+      dragRefList.current.lastDx = dx;
+      dragRefList.current.lastDy = dy;
     }
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -483,6 +500,7 @@ export default function AndroidExplorer() {
       }
     }
   };
+
 
 
   const handleGlobalEnd = () => {
