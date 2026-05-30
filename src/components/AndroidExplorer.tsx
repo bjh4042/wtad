@@ -2010,10 +2010,33 @@ export default function AndroidExplorer() {
         @keyframes wiggle { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
         @keyframes pulseUp { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-10px); opacity: 1; } }
         @keyframes appEnter { from { transform: scale(0.86); opacity: 0; filter: blur(6px); } to { transform: scale(1); opacity: 1; filter: blur(0); } }
+        @keyframes confettiFall {
+          0% { transform: translate3d(0,-20vh,0) rotate(0deg); opacity: 1; }
+          100% { transform: translate3d(var(--cx, 0px), 110vh, 0) rotate(720deg); opacity: 0; }
+        }
+        @keyframes rewardPop {
+          0% { transform: translate(-50%, -10%) scale(0.5); opacity: 0; }
+          25% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+          75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -90%) scale(0.95); opacity: 0; }
+        }
+        @keyframes levelUpFlash {
+          0% { opacity: 0; transform: scale(0.5); }
+          15% { opacity: 1; transform: scale(1.2); }
+          70% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(1.4); }
+        }
+        @keyframes starPop {
+          0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+          60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
         .animate-wiggle { animation: wiggle 0.25s ease-in-out infinite; }
         .animate-pulse-up { animation: pulseUp 1.6s ease-in-out infinite; }
         .animate-app-enter { animation: appEnter 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); transform-origin: center; }
+        .animate-star-pop { animation: starPop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
       `}</style>
+
 
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
