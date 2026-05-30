@@ -1295,17 +1295,30 @@ export default function AndroidExplorer() {
                     <div className="font-bold text-lg">{appName}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(perms).map(([pname, enabled]) => (
-                      <div key={pname} className="flex items-center justify-between bg-[#2c2c2e] rounded-xl px-3 py-2">
-                        <span className="text-sm flex items-center gap-2"><span>{PERMISSION_ICONS[pname] || '•'}</span>{pname}</span>
-                        <div
-                          onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
-                          className={`w-10 h-6 rounded-full p-0.5 cursor-pointer transition-colors ${enabled ? 'bg-blue-500' : 'bg-gray-600'}`}
-                        >
-                          <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${enabled ? 'translate-x-4' : ''} shadow-md`}></div>
+                    {Object.entries(perms).map(([pname, enabled]) => {
+                      const toggle = (
+                        <div className="flex items-center justify-between bg-[#2c2c2e] rounded-xl px-3 py-2">
+                          <span className="text-sm flex items-center gap-2"><span>{PERMISSION_ICONS[pname] || '•'}</span>{pname}</span>
+                          <div
+                            onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
+                            className={`w-10 h-6 rounded-full p-0.5 cursor-pointer transition-colors ${enabled ? 'bg-blue-500' : 'bg-gray-600'}`}
+                          >
+                            <div className={`w-5 h-5 bg-white rounded-full transform transition-transform ${enabled ? 'translate-x-4' : ''} shadow-md`}></div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                      return (
+                        <ActionTarget
+                          key={pname}
+                          id={`perm-${appName}-${pname}`}
+                          currentTargetId={currentTargetId}
+                          advanceQuest={advanceQuest}
+                          onClick={() => setAppPermissions(prev => ({ ...prev, [appName]: { ...prev[appName], [pname]: !enabled } }))}
+                        >
+                          {toggle}
+                        </ActionTarget>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
