@@ -1326,6 +1326,82 @@ export default function AndroidExplorer() {
           </div>
         )}
 
+        {settingsMenu === 'account' && (
+          <div className="animate-[fadeIn_0.3s_ease-out]">
+            <h2 className="text-3xl font-medium mb-8 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400"/> 계정 및 백업</h2>
+            <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden mb-4">
+              <div className="p-6 border-b border-gray-800">
+                <div className="text-sm text-gray-400 mb-1">Samsung 계정</div>
+                <div className="text-lg font-medium">로그인되지 않음</div>
+              </div>
+              <div className="p-6">
+                <div className="text-sm text-gray-400 mb-3">Google 계정</div>
+                {googleAccount ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">{googleAccount[0].toUpperCase()}</div>
+                    <div>
+                      <div className="font-medium">{googleAccount}</div>
+                      <div className="text-xs text-green-400">동기화 켜짐</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-sm">등록된 Google 계정이 없습니다.</div>
+                )}
+              </div>
+            </div>
+            <ActionTarget
+              id="account-add-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => setAccountAddOpen(true)}
+              className="bg-[#1c1c1e] rounded-3xl p-6 flex items-center gap-4 cursor-pointer hover:bg-[#2c2c2e] active:scale-[0.99] transition-all"
+            >
+              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-light">+</div>
+              <div>
+                <div className="font-medium text-lg">계정 추가</div>
+                <div className="text-xs text-gray-400">Google · Samsung · Microsoft 등</div>
+              </div>
+            </ActionTarget>
+
+            {accountAddOpen && (
+              <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setAccountAddOpen(false)}>
+                <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="text-xl font-bold">계정 추가</div>
+                    <X size={22} className="cursor-pointer text-gray-400" onClick={() => setAccountAddOpen(false)}/>
+                  </div>
+                  <div className="space-y-2">
+                    <ActionTarget
+                      id="account-google" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => {
+                        setAccountAddOpen(false);
+                        setGoogleLoginOpen(true);
+                        setGoogleLoginStep('email');
+                        setGoogleEmail(''); setGooglePassword(''); setGoogleError(''); setGoogleConsent(false);
+                      }}
+                      className="p-4 rounded-2xl bg-[#2c2c2e] hover:bg-[#3a3a3c] flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all"
+                    >
+                      <svg viewBox="0 0 48 48" className="w-7 h-7">
+                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
+                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.8 1.2 8 3l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                        <path fill="#4CAF50" d="M24 44c5.4 0 10.3-2.1 14-5.4l-6.5-5.5c-2 1.5-4.6 2.4-7.5 2.4-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.4 39.6 16.1 44 24 44z"/>
+                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.5 5.5C41.4 35.4 44 30 44 24c0-1.3-.1-2.4-.4-3.5z"/>
+                      </svg>
+                      <div className="flex-1"><div className="font-semibold">Google</div><div className="text-xs text-gray-400">Gmail · YouTube · Drive</div></div>
+                    </ActionTarget>
+                    {['Samsung', 'Microsoft', 'Outlook'].map(s => (
+                      <div key={s} className="p-4 rounded-2xl bg-[#2c2c2e] flex items-center gap-4 opacity-60">
+                        <div className="w-7 h-7 rounded-lg bg-gray-600 flex items-center justify-center text-xs font-bold">{s[0]}</div>
+                        <div className="flex-1"><div className="font-semibold">{s}</div></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+
+
       </div>
     </div>
   );
