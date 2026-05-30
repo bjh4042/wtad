@@ -1305,8 +1305,12 @@ export default function AndroidExplorer() {
 
 
   const renderQuickPanel = () => (
-    <div className={`absolute inset-0 z-50 transition-opacity duration-300 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-      style={{ background: 'radial-gradient(ellipse at top, rgba(60,60,60,0.55) 0%, rgba(0,0,0,0.65) 70%)', backdropFilter: 'blur(28px)' }}>
+    <div
+      className={`absolute inset-0 z-50 transition-opacity duration-300 ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      style={{ background: 'radial-gradient(ellipse at top, rgba(60,60,60,0.55) 0%, rgba(0,0,0,0.65) 70%)', backdropFilter: 'blur(28px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) { setQuickPanelOpen(false); advanceQuest('quick-panel-bg'); } }}
+    >
+
       {/* 상단 상태 줄 + 액션 아이콘 */}
       <div className="absolute top-0 left-0 right-0 flex justify-between items-center px-8 py-5 text-white/95 z-10">
         <span className="text-sm font-medium tracking-tight drop-shadow">{airplane ? '비행기 탑승 모드' : 'SIM 카드 없음 · 제한구역서비스'}</span>
@@ -1475,7 +1479,18 @@ export default function AndroidExplorer() {
         </div>
       </div>
 
-      <ActionTarget id="quick-panel-bg" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setQuickPanelOpen(false)} className="absolute inset-0 -z-10" />
+      <ActionTarget
+        id="quick-panel-bg"
+        currentTargetId={currentTargetId}
+        advanceQuest={advanceQuest}
+        onClick={() => setQuickPanelOpen(false)}
+        tooltipPosition="top"
+        tooltipText="여기를 눌러 퀵패널 닫기"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-full bg-white/15 backdrop-blur-md text-white text-sm font-medium flex items-center gap-2 cursor-pointer active:scale-95 shadow-lg"
+      >
+        <ChevronUp size={16} /> 닫기 (위로 스와이프)
+      </ActionTarget>
+
 
 
       {wifiModalOpen && (
