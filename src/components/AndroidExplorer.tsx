@@ -2647,20 +2647,62 @@ export default function AndroidExplorer() {
                 <button onClick={() => setGoogleLoginOpen(false)} className="text-gray-500 active:scale-90 transition"><X size={22}/></button>
               </div>
 
+              {/* Step Indicator */}
+              {(() => {
+                const steps = [
+                  { key: 'email', label: '이메일' },
+                  { key: 'password', label: '비밀번호' },
+                  { key: 'consent', label: '약관' },
+                  { key: 'syncing', label: '동기화' },
+                  { key: 'done', label: '완료' },
+                ];
+                const order = ['email','password','consent','syncing','done'];
+                const curIdx = order.indexOf(googleLoginStep);
+                return (
+                  <div className="max-w-md w-full mx-auto px-8 mb-6">
+                    <div className="flex items-center">
+                      {steps.map((s, i) => {
+                        const done = i < curIdx;
+                        const active = i === curIdx;
+                        return (
+                          <React.Fragment key={s.key}>
+                            <div className="flex flex-col items-center">
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${done ? 'bg-blue-600 text-white' : active ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-gray-200 text-gray-500'}`}>
+                                {done ? <Check size={14} strokeWidth={3}/> : i + 1}
+                              </div>
+                              <div className={`text-[10px] mt-1 ${active ? 'text-blue-600 font-medium' : done ? 'text-gray-700' : 'text-gray-400'}`}>{s.label}</div>
+                            </div>
+                            {i < steps.length - 1 && (
+                              <div className={`flex-1 h-0.5 mx-1 mt-[-14px] ${i < curIdx ? 'bg-blue-600' : 'bg-gray-200'}`}/>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="flex-1 max-w-md w-full mx-auto px-8 pb-10">
                 {googleLoginStep === 'email' && (
                   <div>
                     <h1 className="text-[28px] leading-tight font-normal mb-2">로그인</h1>
                     <p className="text-base text-gray-700 mb-8">Google 계정 사용</p>
-                    <div className="mb-2">
+                    <div className="mb-2" key={`email-${googleShake}`} style={googleError ? { animation: 'shake 0.4s ease-in-out' } : undefined}>
                       <input
+                        ref={googleEmailRef}
                         type="email"
                         value={googleEmail}
                         onChange={(e) => { setGoogleEmail(e.target.value); setGoogleError(''); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') document.getElementById('google-email-next-btn')?.click(); }}
                         placeholder="이메일 또는 휴대전화"
-                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500' : 'border-gray-300 focus:border-blue-600'}`}
+                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-blue-600'}`}
                       />
-                      {googleError && <div className="text-red-600 text-sm mt-2">{googleError}</div>}
+                      {googleError && (
+                        <div className="flex items-center gap-1.5 text-red-600 text-sm mt-2">
+                          <AlertTriangle size={14}/> {googleError}
+                        </div>
+                      )}
                     </div>
                     <button className="text-blue-600 text-sm font-medium mt-3 px-3 py-2 -ml-3 rounded">이메일을 잊으셨나요?</button>
                     <p className="text-sm text-gray-600 mt-6 leading-relaxed">내 컴퓨터가 아닌가요? 게스트 모드를 사용해 비공개로 로그인하세요. <span className="text-blue-600 font-medium">자세히 알아보기</span></p>
@@ -2674,11 +2716,13 @@ export default function AndroidExplorer() {
                             setGoogleError(''); setGoogleLoginStep('password');
                             advanceQuest('google-email-next');
                           } else {
-                            setGoogleError('Google 계정을 찾을 수 없습니다.');
+                            setGoogleError('Google 계정을 찾을 수 없습니다. 이메일을 다시 확인하세요.');
+                            setGoogleShake(s => s + 1);
+                            setTimeout(() => googleEmailRef.current?.focus(), 50);
                           }
                         }}
                       >
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
+                        <button id="google-email-next-btn" className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
                       </ActionTarget>
                     </div>
                   </div>
@@ -2687,26 +2731,32 @@ export default function AndroidExplorer() {
                 {googleLoginStep === 'password' && (
                   <div>
                     <h1 className="text-[28px] leading-tight font-normal mb-2">환영합니다</h1>
-                    <div className="inline-flex items-center gap-2 mb-8 mt-3 border border-gray-300 rounded-full pl-1 pr-3 py-1 max-w-full">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">W</div>
+                    <div className="inline-flex items-center gap-2 mb-8 mt-3 border border-gray-300 rounded-full pl-1 pr-3 py-1 max-w-full cursor-pointer hover:bg-gray-50" onClick={() => { setGoogleLoginStep('email'); setGoogleError(''); setGooglePassword(''); }}>
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">{googleEmail[0]?.toUpperCase() || 'W'}</div>
                       <span className="text-sm truncate">{googleEmail}</span>
                       <ChevronLeft size={14} className="rotate-[-90deg] text-gray-600"/>
                     </div>
-                    <div className="mb-2">
+                    <div className="mb-2" key={`pw-${googleShake}`} style={googleError ? { animation: 'shake 0.4s ease-in-out' } : undefined}>
                       <input
+                        ref={googlePasswordRef}
                         type="password"
                         value={googlePassword}
                         onChange={(e) => { setGooglePassword(e.target.value); setGoogleError(''); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') document.getElementById('google-password-next-btn')?.click(); }}
                         placeholder="비밀번호 입력"
-                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500' : 'border-gray-300 focus:border-blue-600'}`}
+                        className={`w-full border-2 rounded text-base px-3 py-3.5 outline-none transition-colors ${googleError ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-blue-600'}`}
                       />
-                      {googleError && <div className="text-red-600 text-sm mt-2">{googleError}</div>}
+                      {googleError && (
+                        <div className="flex items-center gap-1.5 text-red-600 text-sm mt-2">
+                          <AlertTriangle size={14}/> {googleError}
+                        </div>
+                      )}
                     </div>
                     <label className="flex items-center gap-2 text-sm text-gray-700 mt-4 cursor-pointer">
                       <input type="checkbox" className="w-4 h-4"/> 비밀번호 표시
                     </label>
                     <div className="flex justify-between items-center mt-10">
-                      <button onClick={() => { setGoogleLoginStep('email'); setGoogleError(''); }} className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">비밀번호 찾기</button>
+                      <button onClick={() => { setGoogleLoginStep('email'); setGoogleError(''); }} className="flex items-center gap-1 text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded"><ChevronLeft size={16}/> 뒤로</button>
                       <ActionTarget
                         id="google-password-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                         disableClickAdvance={true}
@@ -2715,11 +2765,14 @@ export default function AndroidExplorer() {
                             setGoogleError(''); setGoogleLoginStep('consent');
                             advanceQuest('google-password-next');
                           } else {
-                            setGoogleError('비밀번호가 올바르지 않습니다. 다시 시도하거나 비밀번호를 재설정하세요.');
+                            setGoogleError('비밀번호가 올바르지 않습니다. 다시 시도하세요.');
+                            setGoogleShake(s => s + 1);
+                            setGooglePassword('');
+                            setTimeout(() => googlePasswordRef.current?.focus(), 50);
                           }
                         }}
                       >
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
+                        <button id="google-password-next-btn" className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded text-sm active:scale-95 transition">다음</button>
                       </ActionTarget>
                     </div>
                   </div>
@@ -2729,22 +2782,27 @@ export default function AndroidExplorer() {
                   <div>
                     <h1 className="text-[26px] leading-tight font-normal mb-3">Google 서비스 약관</h1>
                     <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                      Google 계정을 추가하면 Gmail, YouTube, Drive 등 Google 서비스의 데이터가 이 기기와 동기화됩니다. 자세한 내용은 <span className="text-blue-600">개인정보처리방침</span> 및 <span className="text-blue-600">서비스 약관</span>을 참조하세요.
+                      Google 계정을 추가하면 Gmail, YouTube, Drive 등 Google 서비스의 데이터가 이 기기와 동기화됩니다.
                     </p>
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5 max-h-40 overflow-y-auto text-xs text-gray-600 leading-relaxed">
                       Google 서비스를 사용함으로써 귀하는 본 약관을 따르고 Google 개인정보처리방침에 따라 데이터가 처리되는 데 동의합니다. 동기화 가능한 항목: 연락처 · 캘린더 · Gmail · Drive · 사진 · 앱 데이터. 언제든지 설정에서 동기화를 해제할 수 있습니다.
                     </div>
                     <label className="flex items-start gap-3 cursor-pointer">
-                      <input type="checkbox" checked={googleConsent} onChange={(e) => setGoogleConsent(e.target.checked)} className="w-5 h-5 mt-0.5"/>
+                      <input type="checkbox" checked={googleConsent} onChange={(e) => { setGoogleConsent(e.target.checked); setGoogleError(''); }} className="w-5 h-5 mt-0.5"/>
                       <span className="text-sm text-gray-800">위 약관에 동의하며, 기기 백업과 동기화를 허용합니다.</span>
                     </label>
+                    {googleError && (
+                      <div className="flex items-center gap-1.5 text-red-600 text-sm mt-3" key={`consent-${googleShake}`} style={{ animation: 'shake 0.4s ease-in-out' }}>
+                        <AlertTriangle size={14}/> {googleError}
+                      </div>
+                    )}
                     <div className="flex justify-between items-center mt-10">
-                      <button onClick={() => setGoogleLoginOpen(false)} className="text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded">취소</button>
+                      <button onClick={() => { setGoogleLoginStep('password'); setGoogleError(''); }} className="flex items-center gap-1 text-blue-600 text-sm font-medium px-3 py-2 -ml-3 rounded"><ChevronLeft size={16}/> 뒤로</button>
                       <ActionTarget
                         id="google-consent-agree" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                         disableClickAdvance={true}
                         onClick={() => {
-                          if (!googleConsent) { setGoogleError('동의 체크박스를 선택하세요.'); return; }
+                          if (!googleConsent) { setGoogleError('동의 체크박스를 선택하세요.'); setGoogleShake(s => s + 1); return; }
                           setGoogleError(''); setGoogleLoginStep('syncing');
                           advanceQuest('google-consent-agree');
                           setTimeout(() => setGoogleLoginStep('done'), 1800);
@@ -2753,21 +2811,25 @@ export default function AndroidExplorer() {
                         <button className={`font-medium px-6 py-2.5 rounded text-sm transition ${googleConsent ? 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95' : 'bg-gray-200 text-gray-400'}`}>동의함</button>
                       </ActionTarget>
                     </div>
-                    {googleError && <div className="text-red-600 text-sm mt-3 text-right">{googleError}</div>}
                   </div>
                 )}
 
                 {googleLoginStep === 'syncing' && (
-                  <div className="flex flex-col items-center justify-center text-center py-20">
+                  <div className="flex flex-col items-center justify-center text-center py-16">
                     <div className="w-14 h-14 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
                     <div className="text-lg font-medium">Google 계정 동기화 중…</div>
                     <div className="text-sm text-gray-500 mt-2">Gmail · 연락처 · 캘린더 · Drive</div>
+                    <div className="mt-6 space-y-1.5 text-xs text-gray-600">
+                      {['연락처','캘린더','Gmail','Drive'].map(s => (
+                        <div key={s} className="flex items-center gap-2"><Check size={12} className="text-green-600"/> {s} 동기화 완료</div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {googleLoginStep === 'done' && (
                   <div className="flex flex-col items-center text-center py-12">
-                    <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-5">
+                    <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-5 animate-[fadeIn_0.3s_ease-out]">
                       <Check size={42} className="text-green-600" strokeWidth={3}/>
                     </div>
                     <h1 className="text-2xl font-normal mb-2">환영합니다, {googleEmail}</h1>
