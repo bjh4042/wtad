@@ -317,7 +317,25 @@ export default function AndroidExplorer() {
   const [notifications, setNotifications] = useState([
     { id: 1, app: 'KakaoTalk', appName: '카카오톡', title: '엄마', body: '학교 끝나면 바로 와~', color: 'bg-yellow-400' },
     { id: 2, app: 'Messages', appName: '메시지', title: '010-1234-5678', body: '[Web발신] 택배가 도착했습니다.', color: 'bg-blue-500' },
+    { id: 3, app: 'Gmail', appName: 'Gmail', title: 'Google', body: '새로운 기기에서 로그인되었습니다.', color: 'bg-red-500' },
   ]);
+  const [notifDrag, setNotifDrag] = useState<{ id: number; startX: number; dx: number } | null>(null);
+  const [readNotifIds, setReadNotifIds] = useState<number[]>([]);
+  // Google 계정 로그인
+  const [googleLoginOpen, setGoogleLoginOpen] = useState(false);
+  const [googleLoginStep, setGoogleLoginStep] = useState<'email' | 'password' | 'consent' | 'syncing' | 'done'>('email');
+  const [googleEmail, setGoogleEmail] = useState('');
+  const [googlePassword, setGooglePassword] = useState('');
+  const [googleError, setGoogleError] = useState('');
+  const [googleConsent, setGoogleConsent] = useState(false);
+  const [googleAccount, setGoogleAccount] = useState<string | null>(null);
+  const [accountAddOpen, setAccountAddOpen] = useState(false);
+  // Play Store 업데이트
+  const [playStoreView, setPlayStoreView] = useState<'home' | 'manage'>('home');
+  const [playStoreProfileOpen, setPlayStoreProfileOpen] = useState(false);
+  const [updatingAll, setUpdatingAll] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(0);
+  const [appsUpdated, setAppsUpdated] = useState(false);
   const [cameraPermissionAsked, setCameraPermissionAsked] = useState(false);
   const [cameraPermissionPrompt, setCameraPermissionPrompt] = useState(false);
   const [settingsSearch, setSettingsSearch] = useState('');
