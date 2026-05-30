@@ -522,9 +522,29 @@ export default function AndroidExplorer() {
         });
       });
     }
+    if (isDraggingList && missionListRef.current && dragRefList.current) {
+      const dx = dragRefList.current.lastDx || 0;
+      const dy = dragRefList.current.lastDy || 0;
+      missionListRef.current.style.transition = 'none';
+      missionListRef.current.style.transform = 'none';
+      missionListRef.current.style.willChange = '';
+      setMissionListPos({
+        x: dragRefList.current.initX + dx,
+        y: dragRefList.current.initY + dy
+      });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (missionListRef.current) {
+            missionListRef.current.style.transition = '';
+          }
+        });
+      });
+    }
     setIsDraggingExp(false);
+    setIsDraggingList(false);
     setTouchStartY(null);
   };
+
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
 
   const handleAppPressStart = (appName, index?: number) => {
