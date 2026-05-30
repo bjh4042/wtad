@@ -2015,16 +2015,127 @@ export default function AndroidExplorer() {
     );
   };
 
-  const renderPlayStore = () => (
+  const renderPlayStore = () => {
+    const PENDING_UPDATES = [
+      { id: 'youtube', name: 'YouTube', dev: 'Google LLC', color: '#FF0000', label: '▶', size: '128 MB' },
+      { id: 'kakao', name: '카카오톡', dev: 'Kakao Corp.', color: '#FAE100', text: '#3A1D1D', label: '💬', size: '96 MB' },
+      { id: 'chrome', name: 'Chrome', dev: 'Google LLC', color: '#1A73E8', label: 'C', size: '210 MB' },
+    ];
+    return (
     <div className="flex-1 bg-white flex flex-col pt-8 text-[#202124] overflow-hidden min-h-0 relative animate-[fadeIn_0.3s_ease-out]">
       <div className="p-4 px-8 border-b border-gray-200 flex gap-4 items-center shadow-sm relative z-10 bg-white shrink-0">
         <Search size={24} className="text-gray-500" />
         <ActionTarget id="playstore-search-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setKeyboardOpen(true)} className="flex-1">
           <input type="text" placeholder="앱 및 게임 검색 (터치 후 가상 키보드로 타이핑)" className="w-full outline-none text-xl bg-transparent pointer-events-none" value={searchText} readOnly />
         </ActionTarget>
+        <ActionTarget
+          id="playstore-avatar" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+          onClick={() => setPlayStoreProfileOpen(true)}
+        >
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold cursor-pointer active:scale-90 transition shadow-md">
+            {googleAccount ? googleAccount[0].toUpperCase() : 'W'}
+          </div>
+        </ActionTarget>
       </div>
+
+      {playStoreProfileOpen && (
+        <div className="absolute inset-0 z-[60] bg-black/40" onClick={() => setPlayStoreProfileOpen(false)}>
+          <div className="absolute right-3 top-16 bg-white rounded-2xl shadow-2xl w-80 overflow-hidden animate-[fadeIn_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">{googleAccount ? googleAccount[0].toUpperCase() : 'W'}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold truncate">{googleAccount || '게스트'}</div>
+                <div className="text-xs text-gray-500 truncate">{googleAccount || '로그인되지 않음'}</div>
+              </div>
+            </div>
+            <ActionTarget
+              id="playstore-manage" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+              onClick={() => { setPlayStoreView('manage'); setPlayStoreProfileOpen(false); }}
+              className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex items-center gap-3 transition"
+            >
+              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">📲</div>
+              <div className="flex-1">
+                <div className="font-medium text-sm">앱 및 기기 관리</div>
+                <div className="text-xs text-gray-500">업데이트 {PENDING_UPDATES.length}개 사용 가능</div>
+              </div>
+            </ActionTarget>
+            {['알림 및 설정', '결제 및 정기 결제', '도움말 및 의견'].map(s => (
+              <div key={s} className="p-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3 text-sm text-gray-700">
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">⚙</div>
+                {s}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 p-10 bg-white overflow-y-auto min-h-0 relative">
-        {isSearched && searchText === '똑똑수학탐험대' ? (
+        {playStoreView === 'manage' ? (
+          <div className="max-w-3xl mx-auto animate-[fadeIn_0.25s_ease-out]">
+            <button onClick={() => setPlayStoreView('home')} className="flex items-center gap-2 text-gray-600 mb-4 active:scale-95"><ChevronLeft size={20}/> 뒤로</button>
+            <h2 className="text-3xl font-bold mb-2">앱 및 기기 관리</h2>
+            <div className="text-sm text-gray-500 mb-6">최신 상태 유지를 위해 모든 앱을 업데이트하세요.</div>
+
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-6 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl">⬇</div>
+              <div className="flex-1">
+                <div className="font-bold text-lg">
+                  {appsUpdated ? '모든 앱이 최신 상태입니다' : `업데이트 사용 가능 (${PENDING_UPDATES.length}개)`}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">
+                  {updatingAll ? `업데이트 중… ${updateProgress}%` : appsUpdated ? '마지막 확인: 방금 전' : '총 434 MB · Wi-Fi 권장'}
+                </div>
+                {updatingAll && (
+                  <div className="w-full h-1.5 bg-blue-100 rounded-full mt-2 overflow-hidden">
+                    <div className="h-full bg-blue-600 transition-all" style={{ width: `${updateProgress}%` }}/>
+                  </div>
+                )}
+              </div>
+              {!appsUpdated && !updatingAll && (
+                <ActionTarget
+                  id="playstore-update-all" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                  onClick={() => {
+                    setUpdatingAll(true); setUpdateProgress(0);
+                    const iv = setInterval(() => {
+                      setUpdateProgress(p => {
+                        const next = p + Math.floor(Math.random()*12)+8;
+                        if (next >= 100) {
+                          clearInterval(iv);
+                          setTimeout(() => { setUpdatingAll(false); setAppsUpdated(true); }, 400);
+                          return 100;
+                        }
+                        return next;
+                      });
+                    }, 220);
+                  }}
+                >
+                  <button className="bg-[#01875f] hover:bg-[#01704e] text-white font-bold px-6 py-2.5 rounded-full text-sm active:scale-95 transition shadow">모두 업데이트</button>
+                </ActionTarget>
+              )}
+            </div>
+
+            <div className="text-sm font-bold text-gray-700 mb-3">대기 중인 업데이트</div>
+            <div className="space-y-3">
+              {PENDING_UPDATES.map(app => (
+                <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 transition">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-md shrink-0" style={{ background: app.color, color: app.text || '#fff' }}>{app.label}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold truncate">{app.name}</div>
+                    <div className="text-xs text-gray-500 truncate">{app.dev} · {app.size}</div>
+                  </div>
+                  {appsUpdated ? (
+                    <span className="text-xs text-green-600 font-bold flex items-center gap-1"><Check size={14}/> 최신</span>
+                  ) : updatingAll ? (
+                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"/>
+                  ) : (
+                    <button className="px-4 py-1.5 rounded-full border border-[#01875f] text-[#01875f] font-bold text-sm">업데이트</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : isSearched && searchText === '똑똑수학탐험대' ? (
+
           <div className="flex gap-8 max-w-3xl mx-auto mt-4 animate-[fadeIn_0.3s_ease-out]">
             <div className="w-40 h-40 bg-yellow-400 rounded-[2.5rem] flex items-center justify-center text-white font-black text-5xl shadow-lg border border-yellow-300">1+2</div>
             <div className="flex-1 flex flex-col justify-center gap-1">
