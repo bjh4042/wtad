@@ -2461,6 +2461,205 @@ export default function AndroidExplorer() {
         </div>
       )}
 
+      {/* === 미션 목록 팝업 (12번) === */}
+      {missionListOpen && (
+        <div
+          ref={missionListRef}
+          className="fixed md:absolute z-[305] bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border overflow-hidden transition-all duration-300 animate-[fadeIn_0.2s_ease-out]"
+          style={{
+            top: missionListPos.y,
+            left: missionListPos.x,
+            width: missionListCompact ? 280 : 'calc(100vw - 16px)',
+            maxWidth: missionListCompact ? 280 : 420,
+            borderColor: `${themeColor}55`,
+          }}
+        >
+          <div
+            className="text-white p-3 md:p-4 flex justify-between items-center cursor-move"
+            style={{ background: themeColor }}
+            onMouseDown={handleDragStartList}
+            onTouchStart={handleDragStartList}
+          >
+            <div className="flex items-center gap-2 font-bold text-base md:text-lg">
+              <Grid size={18}/> 미션 목록
+              <span className="text-xs font-normal opacity-80">({completedQuests.length}/{QUESTS.length})</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); setMissionListCompact(c => !c); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title={missionListCompact ? '확대' : '축소'}
+              >
+                {missionListCompact ? <ChevronUp size={16}/> : <Minus size={16}/>}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setMissionListOpen(false); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
+                title="닫기"
+              >
+                <X size={18}/>
+              </button>
+            </div>
+          </div>
+          {!missionListCompact ? (
+            <div className="p-3 md:p-4 max-h-[60vh] overflow-y-auto" style={{ background: `${themeColor}08` }}>
+              {/* 카테고리 */}
+              {[
+                { title: '🔓 기본 조작', range: [0, 7] },
+                { title: '⚙️ 설정 · 디스플레이', range: [7, 13] },
+                { title: '📸 카메라 · 갤러리', range: [13, 23] },
+                { title: '🛍 Play 스토어', range: [23, 30] },
+                { title: '🎛 퀵패널 · 블루투스', range: [30, 40] },
+                { title: '📝 노트 · 마무리', range: [40, 49] },
+              ].map((cat) => (
+                <div key={cat.title} className="mb-3">
+                  <div className="text-xs font-bold text-gray-700 mb-1.5 px-1">{cat.title}</div>
+                  <div className="space-y-1">
+                    {QUESTS.slice(cat.range[0], cat.range[1]).map((q, i) => {
+                      const idx = cat.range[0] + i;
+                      const isDone = completedQuests.includes(idx);
+                      const isCurrent = idx === questIdx;
+                      const isLocked = idx > questIdx && !completedQuests.includes(idx);
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => !isLocked && gotoQuest(idx)}
+                          disabled={isLocked}
+                          className={`w-full text-left p-2 rounded-xl flex items-start gap-2 transition-all ${
+                            isCurrent
+                              ? 'bg-white shadow-md ring-2'
+                              : isDone
+                                ? 'bg-green-50 hover:bg-green-100 active:scale-[0.98]'
+                                : isLocked
+                                  ? 'bg-gray-100 opacity-50 cursor-not-allowed'
+                                  : 'bg-white hover:bg-gray-50 active:scale-[0.98]'
+                          }`}
+                          style={isCurrent ? { boxShadow: `0 0 0 2px ${themeColor}` } : {}}
+                        >
+                          <div
+                            className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white`}
+                            style={{ background: isDone ? '#10b981' : isCurrent ? themeColor : '#9ca3af' }}
+                          >
+                            {isDone ? <Check size={14}/> : isLocked ? <Lock size={12}/> : idx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-[12px] leading-snug ${isDone ? 'text-gray-600 line-through' : 'text-gray-800 font-medium'}`}>
+                              {q.text}
+                            </div>
+                            <div className="text-[10px] text-gray-500 mt-0.5">+{q.exp} EXP</div>
+                          </div>
+                          {isCurrent && <div className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white shrink-0" style={{ background: themeColor }}>지금</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-3" style={{ background: `${themeColor}08` }}>
+              <div className="text-xs text-gray-600 mb-2">완료한 미션</div>
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${(completedQuests.length / QUESTS.length) * 100}%`, background: themeColor }}></div>
+              </div>
+              <div className="text-center text-xs font-bold mt-2" style={{ color: themeColor }}>
+                {completedQuests.length} / {QUESTS.length}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* === 미션 목록 플로팅 버튼 (미션 센터가 닫혀 있을 때) === */}
+      {!showExpMenu && !missionListOpen && (
+        <button
+          onClick={() => setMissionListOpen(true)}
+          className="fixed md:absolute bottom-4 right-[5.5rem] md:bottom-8 md:right-28 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-2xl cursor-pointer active:scale-90 transition-all z-[300] text-white"
+          style={{ background: themeColor }}
+          title="미션 목록"
+        >
+          <Grid size={22} />
+        </button>
+      )}
+
+      {/* === Reward Toast (미션 완료 시) === */}
+      {rewardToast && (
+        <div
+          key={rewardToast.key}
+          className="fixed inset-0 pointer-events-none z-[400] flex items-center justify-center"
+        >
+          <div
+            className="px-6 py-4 rounded-3xl font-black text-white text-2xl md:text-4xl shadow-2xl whitespace-nowrap"
+            style={{
+              background: `linear-gradient(135deg, ${themeColor}, #10b981)`,
+              animation: 'rewardPop 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+            }}
+          >
+            ⭐ +{rewardToast.exp} EXP!
+          </div>
+        </div>
+      )}
+
+      {/* === Confetti (미션 완료 시) === */}
+      {confettiKey > 0 && (
+        <div key={confettiKey} className="fixed inset-0 pointer-events-none z-[399] overflow-hidden">
+          {Array.from({ length: 40 }).map((_, i) => {
+            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#06b6d4', '#ef4444'];
+            const left = Math.random() * 100;
+            const cx = (Math.random() - 0.5) * 200;
+            const delay = Math.random() * 0.3;
+            const duration = 1.4 + Math.random() * 1.0;
+            const size = 6 + Math.random() * 8;
+            const color = colors[i % colors.length];
+            const shape = i % 3 === 0 ? '50%' : i % 3 === 1 ? '2px' : '0';
+            return (
+              <span
+                key={i}
+                style={{
+                  position: 'absolute',
+                  left: `${left}%`,
+                  top: '-5vh',
+                  width: size,
+                  height: size,
+                  background: color,
+                  borderRadius: shape,
+                  animation: `confettiFall ${duration}s ease-out ${delay}s forwards`,
+                  ['--cx' as any]: `${cx}px`,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* === Level-up flash === */}
+      {levelUpFlash > 0 && (
+        <div
+          key={`lvl-${levelUpFlash}`}
+          className="fixed inset-0 pointer-events-none z-[401] flex items-center justify-center"
+        >
+          <div
+            className="px-8 py-6 rounded-3xl font-black text-white text-3xl md:text-5xl shadow-[0_0_80px_rgba(255,200,0,0.8)] whitespace-nowrap"
+            style={{
+              background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444)',
+              animation: 'levelUpFlash 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              transformOrigin: 'center',
+            }}
+          >
+            🎉 LEVEL UP! 🎉
+          </div>
+        </div>
+      )}
+
+
+
     </div>
   );
 }
