@@ -104,7 +104,14 @@ const QUESTS = [
   { id: 66, text: "우측 상단의 프로필 아바타를 누르세요.", targetId: 'playstore-avatar', exp: 20 },
   { id: 67, text: "메뉴에서 '앱 및 기기 관리'를 선택하세요.", targetId: 'playstore-manage', exp: 20 },
   { id: 68, text: "'모두 업데이트' 버튼을 눌러 앱을 최신으로 만들어보세요.", targetId: 'playstore-update-all', exp: 30 },
-  { id: 69, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  // ===== 계정 전환 / 로그아웃 =====
+  { id: 69, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 70, text: "설정 앱을 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
+  { id: 71, text: "'계정 및 백업' 메뉴로 다시 이동하세요.", targetId: 'settings-menu-account', exp: 10 },
+  { id: 72, text: "Google 계정 카드의 '로그아웃' 버튼을 누르세요.", targetId: 'google-logout-btn', exp: 20 },
+  { id: 73, text: "확인 창에서 '로그아웃'을 눌러 정말로 로그아웃하세요.", targetId: 'google-logout-confirm', exp: 20 },
+  { id: 74, text: "'계정 추가' 버튼을 눌러 다른 계정으로 다시 로그인해보세요.", targetId: 'account-add-btn', exp: 20 },
+  { id: 75, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 ];
 
 
