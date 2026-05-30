@@ -453,6 +453,16 @@ export default function AndroidExplorer() {
   // 앱 전환 애니메이션 트리거
   useEffect(() => { setAppLaunchKey(k => k + 1); }, [currentApp]);
 
+  // Google 로그인 입력 자동 포커스 (단계 변경/오류 시)
+  useEffect(() => {
+    if (!googleLoginOpen) return;
+    const t = setTimeout(() => {
+      if (googleLoginStep === 'email') googleEmailRef.current?.focus();
+      else if (googleLoginStep === 'password') googlePasswordRef.current?.focus();
+    }, 80);
+    return () => clearTimeout(t);
+  }, [googleLoginOpen, googleLoginStep, googleShake]);
+
   // 진행도 localStorage 저장
   useEffect(() => {
     if (!isStorageReady) return;
