@@ -518,6 +518,10 @@ export default function AndroidExplorer() {
   // 앱 전환 애니메이션 트리거
   useEffect(() => { setAppLaunchKey(k => k + 1); }, [currentApp]);
 
+  // 사진 뷰어 진입 시 줌 리셋
+  useEffect(() => { setPhotoZoom(1); }, [viewPhoto]);
+
+
   // Google 로그인 입력 자동 포커스 (단계 변경/오류 시)
   useEffect(() => {
     if (!googleLoginOpen) return;
