@@ -2720,11 +2720,34 @@ export default function AndroidExplorer() {
                     const bg = psApp?.color || ['#1e3a8a','#7c2d12','#065f46','#581c87','#7f1d1d'][i%5];
                     const label = psApp?.label || app[0];
                     const name = psApp?.name || app;
+                    const isSwiping = recentSwipe?.index === i;
+                    const dy = isSwiping ? Math.min(0, recentSwipe!.dy) : 0;
                     return (
-                      <div key={`${app}-${i}`} className="w-[200px] shrink-0 flex flex-col items-center gap-3">
-                        <div className="w-full h-[300px] rounded-2xl shadow-2xl flex flex-col items-center justify-center text-white" style={{ background: bg }}>
+                      <div
+                        key={`${app}-${i}`}
+                        className="w-[200px] shrink-0 flex flex-col items-center gap-3 transition-transform"
+                        style={{ transform: `translateY(${dy}px)`, opacity: 1 + dy / 400 }}
+                        onPointerDown={(e) => { setRecentSwipe({ index: i, startY: e.clientY, dy: 0 }); }}
+                        onPointerMove={(e) => {
+                          if (recentSwipe?.index !== i) return;
+                          setRecentSwipe({ index: i, startY: recentSwipe.startY, dy: e.clientY - recentSwipe.startY });
+                        }}
+                        onPointerUp={() => {
+                          if (recentSwipe?.index === i && recentSwipe.dy < -120) {
+                            setRecentApps(prev => prev.filter((_, idx) => idx !== i));
+                          }
+                          setRecentSwipe(null);
+                        }}
+                        onPointerCancel={() => setRecentSwipe(null)}
+                      >
+                        <div className="w-full h-[300px] rounded-2xl shadow-2xl flex flex-col items-center justify-center text-white relative" style={{ background: bg }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setRecentApps(prev => prev.filter((_, idx) => idx !== i)); }}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm active:scale-90"
+                          >×</button>
                           <div className="text-7xl font-black mb-3">{label}</div>
                           <div className="text-lg font-bold">{name}</div>
+                          <div className="absolute bottom-3 text-[10px] opacity-60">위로 밀어 닫기</div>
                         </div>
                         <div className="flex gap-2 w-full">
                           <button onClick={() => { setCurrentApp(app); setRecentAppsOpen(false); }} className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold active:scale-95">열기</button>
@@ -2740,6 +2763,7 @@ export default function AndroidExplorer() {
                       </div>
                     );
                   })}
+
                 </div>
               )}
               <div className="flex gap-3 justify-center pb-6">
