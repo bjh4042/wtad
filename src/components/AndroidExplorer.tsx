@@ -2571,7 +2571,7 @@ export default function AndroidExplorer() {
           className="absolute right-[-3px] top-[51%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
         />
 
-        <div className="relative w-full h-full rounded-[14px] md:rounded-[24px] overflow-hidden bg-black flex flex-col" style={{ fontSize: `${fontScale}rem` }}>
+        <div className={`relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[34px]' : 'rounded-[14px] md:rounded-[24px]'}`} style={{ fontSize: `${fontScale}rem` }}>
 
           <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
           {darkMode && <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-[59] mix-blend-multiply"></div>}
