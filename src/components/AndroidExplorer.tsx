@@ -2378,7 +2378,91 @@ export default function AndroidExplorer() {
     );
   };
 
+  const renderCalculator = () => {
+    const apply = (a: number, b: number, op: string) => {
+      if (op === '+') return a + b;
+      if (op === '−') return a - b;
+      if (op === '×') return a * b;
+      if (op === '÷') return b === 0 ? 0 : a / b;
+      return b;
+    };
+    const inputDigit = (d: string) => {
+      if (calcJustEvaluated) { setCalcDisplay(d); setCalcJustEvaluated(false); return; }
+      setCalcDisplay(prev => prev === '0' ? d : prev + d);
+    };
+    const inputDot = () => {
+      if (calcJustEvaluated) { setCalcDisplay('0.'); setCalcJustEvaluated(false); return; }
+      if (!calcDisplay.includes('.')) setCalcDisplay(calcDisplay + '.');
+    };
+    const chooseOp = (op: string) => {
+      const cur = parseFloat(calcDisplay);
+      if (calcPrev !== null && calcOp && !calcJustEvaluated) {
+        const r = apply(calcPrev, cur, calcOp);
+        setCalcPrev(r);
+        setCalcDisplay(String(r));
+      } else {
+        setCalcPrev(cur);
+      }
+      setCalcOp(op);
+      setCalcJustEvaluated(true);
+    };
+    const equals = () => {
+      if (calcPrev === null || !calcOp) return;
+      const cur = parseFloat(calcDisplay);
+      const r = apply(calcPrev, cur, calcOp);
+      setCalcDisplay(String(r));
+      setCalcPrev(null);
+      setCalcOp(null);
+      setCalcJustEvaluated(true);
+      if (Math.abs(r - 96) < 1e-9) advanceQuest('calc-result-96');
+    };
+    const clear = () => { setCalcDisplay('0'); setCalcPrev(null); setCalcOp(null); setCalcJustEvaluated(false); };
+    const Btn = ({ label, onPress, variant = 'num', targetId }: any) => (
+      <ActionTarget id={targetId || `calc-btn-${label}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+        disableClickAdvance={!targetId}
+        onClick={onPress}
+        className={`h-16 rounded-2xl text-2xl font-medium flex items-center justify-center active:scale-95 transition-all cursor-pointer select-none ${
+          variant === 'op' ? 'bg-orange-500 text-white' :
+          variant === 'fn' ? 'bg-[#a6a6a6] text-black' :
+          'bg-[#333333] text-white'
+        }`}
+      >
+        {label}
+      </ActionTarget>
+    );
+    return (
+      <div className="flex-1 bg-black text-white flex flex-col pt-10 px-4 pb-4 animate-[fadeIn_0.3s_ease-out] overflow-hidden min-h-0">
+        <div className="text-right text-7xl md:text-8xl font-extralight px-4 pb-6 truncate tabular-nums" aria-live="polite">{calcDisplay}</div>
+        <div className="grid grid-cols-4 gap-3">
+          <Btn label="AC" variant="fn" onPress={clear}/>
+          <Btn label="±" variant="fn" onPress={() => setCalcDisplay(d => d.startsWith('-') ? d.slice(1) : (d === '0' ? d : '-' + d))}/>
+          <Btn label="%" variant="fn" onPress={() => setCalcDisplay(String(parseFloat(calcDisplay) / 100))}/>
+          <Btn label="÷" variant="op" onPress={() => chooseOp('÷')}/>
+          <Btn label="7" onPress={() => inputDigit('7')}/>
+          <Btn label="8" onPress={() => inputDigit('8')} targetId="calc-key-8"/>
+          <Btn label="9" onPress={() => inputDigit('9')}/>
+          <Btn label="×" variant="op" onPress={() => chooseOp('×')} targetId="calc-key-mul"/>
+          <Btn label="4" onPress={() => inputDigit('4')}/>
+          <Btn label="5" onPress={() => inputDigit('5')}/>
+          <Btn label="6" onPress={() => inputDigit('6')}/>
+          <Btn label="−" variant="op" onPress={() => chooseOp('−')}/>
+          <Btn label="1" onPress={() => inputDigit('1')} targetId="calc-key-1"/>
+          <Btn label="2" onPress={() => inputDigit('2')} targetId="calc-key-2"/>
+          <Btn label="3" onPress={() => inputDigit('3')}/>
+          <Btn label="+" variant="op" onPress={() => chooseOp('+')}/>
+          <ActionTarget id="calc-key-0" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+            onClick={() => inputDigit('0')}
+            className="col-span-2 h-16 rounded-2xl text-2xl font-medium flex items-center justify-start pl-7 active:scale-95 transition-all cursor-pointer select-none bg-[#333333] text-white"
+          >0</ActionTarget>
+          <Btn label="." onPress={inputDot}/>
+          <Btn label="=" variant="op" onPress={equals} targetId="calc-key-eq"/>
+        </div>
+      </div>
+    );
+  };
+
   const renderNotes = () => {
+
     const startDraw = (e: any) => {
       if (!notesEditing) return;
       const svg = e.currentTarget as SVGSVGElement;
