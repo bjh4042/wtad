@@ -403,6 +403,30 @@ export default function AndroidExplorer() {
   const [levelUpFlash, setLevelUpFlash] = useState(0);
   const prevLevelRef = useRef<number>(1);
 
+  // 측면 하드웨어 버튼: 음량 패널 / 전원 메뉴
+  const [volumePanelOpen, setVolumePanelOpen] = useState(false);
+  const [volumePanelType, setVolumePanelType] = useState<'media' | 'ring' | 'notif'>('media');
+  const [mediaVolume, setMediaVolume] = useState(70);
+  const [ringVolume, setRingVolume] = useState(60);
+  const [notifVolume, setNotifVolume] = useState(50);
+  const volumeCloseTimer = useRef<any>(null);
+  const [powerMenuOpen, setPowerMenuOpen] = useState(false);
+  const [powerOff, setPowerOff] = useState(false);
+  const showVolumePanel = (type: 'media' | 'ring' | 'notif', delta: number) => {
+    setVolumePanelType(type);
+    setVolumePanelOpen(true);
+    if (type === 'media') setMediaVolume(v => Math.max(0, Math.min(100, v + delta)));
+    if (type === 'ring') setRingVolume(v => Math.max(0, Math.min(100, v + delta)));
+    if (type === 'notif') setNotifVolume(v => Math.max(0, Math.min(100, v + delta)));
+    if (volumeCloseTimer.current) clearTimeout(volumeCloseTimer.current);
+    volumeCloseTimer.current = setTimeout(() => setVolumePanelOpen(false), 2400);
+  };
+
+  // 최근 앱 카드 스와이프(위로 밀어 닫기)
+  const [recentSwipe, setRecentSwipe] = useState<{ index: number; startY: number; dy: number } | null>(null);
+
+
+
 
 
 
@@ -2520,6 +2544,23 @@ export default function AndroidExplorer() {
       <div className="relative w-full h-full md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] bg-black rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
         {/* front camera dot */}
         <div className="absolute top-1/2 -translate-y-1/2 left-[6px] w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+        {/* 측면 하드웨어 버튼 — 우측 상단 */}
+        <button
+          title="전원"
+          onClick={() => setPowerMenuOpen(true)}
+          className="absolute right-[-3px] top-[18%] w-[6px] h-14 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
+        />
+        <button
+          title="음량 +"
+          onClick={() => showVolumePanel('media', 10)}
+          className="absolute right-[-3px] top-[38%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
+        />
+        <button
+          title="음량 -"
+          onClick={() => showVolumePanel('media', -10)}
+          className="absolute right-[-3px] top-[51%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
+        />
+
         <div className="relative w-full h-full rounded-[14px] md:rounded-[24px] overflow-hidden bg-black flex flex-col" style={{ fontSize: `${fontScale}rem` }}>
 
           <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
@@ -2542,6 +2583,94 @@ export default function AndroidExplorer() {
           <div className="shrink-0 z-40">{renderNavigationBar()}</div>
 
           {renderQuickPanel()}
+
+          {/* 음량 슬라이더 패널 (측면 볼륨 버튼으로 호출) */}
+          {volumePanelOpen && (
+            <div
+              className="absolute right-3 top-12 z-[150] w-[78px] bg-[#1c1c1e]/95 backdrop-blur-md rounded-3xl p-3 shadow-2xl border border-white/10 animate-[fadeIn_0.18s_ease-out] flex flex-col items-center gap-3"
+              onMouseEnter={() => { if (volumeCloseTimer.current) clearTimeout(volumeCloseTimer.current); }}
+              onMouseLeave={() => { volumeCloseTimer.current = setTimeout(() => setVolumePanelOpen(false), 1400); }}
+            >
+              {(() => {
+                const cur = volumePanelType === 'media' ? mediaVolume : volumePanelType === 'ring' ? ringVolume : notifVolume;
+                const setCur = (v: number) => {
+                  if (volumePanelType === 'media') setMediaVolume(v);
+                  else if (volumePanelType === 'ring') setRingVolume(v);
+                  else setNotifVolume(v);
+                };
+                const icon = volumePanelType === 'media' ? '🎵' : volumePanelType === 'ring' ? '🔔' : '📩';
+                return (
+                  <>
+                    <div className="text-white text-lg leading-none">{icon}</div>
+                    <div className="relative w-3 h-40 bg-white/15 rounded-full overflow-hidden">
+                      <div className="absolute bottom-0 left-0 right-0 bg-white transition-all" style={{ height: `${cur}%` }}/>
+                    </div>
+                    <div className="text-white/80 text-[11px] font-medium tabular-nums">{cur}</div>
+                    <div className="flex flex-col gap-1 w-full">
+                      {[
+                        { id: 'media', icon: '🎵', label: '미디어' },
+                        { id: 'ring', icon: '🔔', label: '벨소리' },
+                        { id: 'notif', icon: '📩', label: '알림' },
+                      ].map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => setVolumePanelType(t.id as any)}
+                          className={`w-full py-1.5 rounded-xl text-[10px] flex flex-col items-center gap-0.5 transition ${volumePanelType === t.id ? 'bg-white/20 text-white' : 'text-white/60 hover:bg-white/10'}`}
+                        >
+                          <span className="text-sm leading-none">{t.icon}</span>
+                          <span className="leading-none">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => setCur(cur === 0 ? 70 : 0)} className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-base active:scale-90 transition">
+                      {cur === 0 ? '🔇' : '🔊'}
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* 전원 메뉴 */}
+          {powerMenuOpen && (
+            <div className="absolute inset-0 z-[160] bg-black/70 flex items-center justify-center animate-[fadeIn_0.2s_ease-out]" onClick={() => setPowerMenuOpen(false)}>
+              <div className="bg-[#1c1c1e] rounded-3xl p-6 w-72 text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="text-center font-bold text-lg mb-5">전원</div>
+                <div className="flex justify-around mb-2">
+                  <button
+                    onClick={() => { setPowerMenuOpen(false); setPowerOff(true); setTimeout(() => { setPowerOff(false); setLocked(true); }, 1800); }}
+                    className="flex flex-col items-center gap-2 active:scale-95"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-2xl">⏻</div>
+                    <div className="text-xs">전원 끄기</div>
+                  </button>
+                  <button
+                    onClick={() => { setPowerMenuOpen(false); setPowerOff(true); setTimeout(() => { setPowerOff(false); setLocked(true); }, 1500); }}
+                    className="flex flex-col items-center gap-2 active:scale-95"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center text-2xl">↻</div>
+                    <div className="text-xs">다시 시작</div>
+                  </button>
+                  <button
+                    onClick={() => setPowerMenuOpen(false)}
+                    className="flex flex-col items-center gap-2 active:scale-95"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-gray-600 flex items-center justify-center text-2xl">📞</div>
+                    <div className="text-xs">긴급전화</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 전원 OFF 페이드 */}
+          {powerOff && (
+            <div className="absolute inset-0 z-[200] bg-black flex items-center justify-center animate-[fadeIn_0.3s_ease-out]">
+              <div className="text-white/70 text-sm tracking-widest">SAMSUNG</div>
+            </div>
+          )}
+
+
 
           {mathAppOpen && (
             <div className="absolute left-0 right-0 top-0 bottom-14 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-4">
@@ -2591,11 +2720,34 @@ export default function AndroidExplorer() {
                     const bg = psApp?.color || ['#1e3a8a','#7c2d12','#065f46','#581c87','#7f1d1d'][i%5];
                     const label = psApp?.label || app[0];
                     const name = psApp?.name || app;
+                    const isSwiping = recentSwipe?.index === i;
+                    const dy = isSwiping ? Math.min(0, recentSwipe!.dy) : 0;
                     return (
-                      <div key={`${app}-${i}`} className="w-[200px] shrink-0 flex flex-col items-center gap-3">
-                        <div className="w-full h-[300px] rounded-2xl shadow-2xl flex flex-col items-center justify-center text-white" style={{ background: bg }}>
+                      <div
+                        key={`${app}-${i}`}
+                        className="w-[200px] shrink-0 flex flex-col items-center gap-3 transition-transform"
+                        style={{ transform: `translateY(${dy}px)`, opacity: 1 + dy / 400 }}
+                        onPointerDown={(e) => { setRecentSwipe({ index: i, startY: e.clientY, dy: 0 }); }}
+                        onPointerMove={(e) => {
+                          if (recentSwipe?.index !== i) return;
+                          setRecentSwipe({ index: i, startY: recentSwipe.startY, dy: e.clientY - recentSwipe.startY });
+                        }}
+                        onPointerUp={() => {
+                          if (recentSwipe?.index === i && recentSwipe.dy < -120) {
+                            setRecentApps(prev => prev.filter((_, idx) => idx !== i));
+                          }
+                          setRecentSwipe(null);
+                        }}
+                        onPointerCancel={() => setRecentSwipe(null)}
+                      >
+                        <div className="w-full h-[300px] rounded-2xl shadow-2xl flex flex-col items-center justify-center text-white relative" style={{ background: bg }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setRecentApps(prev => prev.filter((_, idx) => idx !== i)); }}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm active:scale-90"
+                          >×</button>
                           <div className="text-7xl font-black mb-3">{label}</div>
                           <div className="text-lg font-bold">{name}</div>
+                          <div className="absolute bottom-3 text-[10px] opacity-60">위로 밀어 닫기</div>
                         </div>
                         <div className="flex gap-2 w-full">
                           <button onClick={() => { setCurrentApp(app); setRecentAppsOpen(false); }} className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold active:scale-95">열기</button>
@@ -2611,6 +2763,7 @@ export default function AndroidExplorer() {
                       </div>
                     );
                   })}
+
                 </div>
               )}
               <div className="flex gap-3 justify-center pb-6">
