@@ -2544,6 +2544,23 @@ export default function AndroidExplorer() {
       <div className="relative w-full h-full md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] bg-black rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
         {/* front camera dot */}
         <div className="absolute top-1/2 -translate-y-1/2 left-[6px] w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+        {/* 측면 하드웨어 버튼 — 우측 상단 */}
+        <button
+          title="전원"
+          onClick={() => setPowerMenuOpen(true)}
+          className="absolute right-[-3px] top-[18%] w-[6px] h-14 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
+        />
+        <button
+          title="음량 +"
+          onClick={() => showVolumePanel('media', 10)}
+          className="absolute right-[-3px] top-[38%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
+        />
+        <button
+          title="음량 -"
+          onClick={() => showVolumePanel('media', -10)}
+          className="absolute right-[-3px] top-[51%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
+        />
+
         <div className="relative w-full h-full rounded-[14px] md:rounded-[24px] overflow-hidden bg-black flex flex-col" style={{ fontSize: `${fontScale}rem` }}>
 
           <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
