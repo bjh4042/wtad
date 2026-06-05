@@ -403,6 +403,30 @@ export default function AndroidExplorer() {
   const [levelUpFlash, setLevelUpFlash] = useState(0);
   const prevLevelRef = useRef<number>(1);
 
+  // 측면 하드웨어 버튼: 음량 패널 / 전원 메뉴
+  const [volumePanelOpen, setVolumePanelOpen] = useState(false);
+  const [volumePanelType, setVolumePanelType] = useState<'media' | 'ring' | 'notif'>('media');
+  const [mediaVolume, setMediaVolume] = useState(70);
+  const [ringVolume, setRingVolume] = useState(60);
+  const [notifVolume, setNotifVolume] = useState(50);
+  const volumeCloseTimer = useRef<any>(null);
+  const [powerMenuOpen, setPowerMenuOpen] = useState(false);
+  const [powerOff, setPowerOff] = useState(false);
+  const showVolumePanel = (type: 'media' | 'ring' | 'notif', delta: number) => {
+    setVolumePanelType(type);
+    setVolumePanelOpen(true);
+    if (type === 'media') setMediaVolume(v => Math.max(0, Math.min(100, v + delta)));
+    if (type === 'ring') setRingVolume(v => Math.max(0, Math.min(100, v + delta)));
+    if (type === 'notif') setNotifVolume(v => Math.max(0, Math.min(100, v + delta)));
+    if (volumeCloseTimer.current) clearTimeout(volumeCloseTimer.current);
+    volumeCloseTimer.current = setTimeout(() => setVolumePanelOpen(false), 2400);
+  };
+
+  // 최근 앱 카드 스와이프(위로 밀어 닫기)
+  const [recentSwipe, setRecentSwipe] = useState<{ index: number; startY: number; dy: number } | null>(null);
+
+
+
 
 
 
