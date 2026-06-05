@@ -382,9 +382,21 @@ export default function AndroidExplorer() {
   // 신규: 블루투스 기기 / 노트
   const [bluetoothModalOpen, setBluetoothModalOpen] = useState(false);
   const [connectedBtDevice, setConnectedBtDevice] = useState<string | null>(null);
+  const [btPairingDevice, setBtPairingDevice] = useState<{ id: string; name: string; icon: string } | null>(null);
+  const [btPairingPin, setBtPairingPin] = useState<string>('');
   const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+
+  // Calculator
+  const [calcDisplay, setCalcDisplay] = useState('0');
+  const [calcPrev, setCalcPrev] = useState<number | null>(null);
+  const [calcOp, setCalcOp] = useState<string | null>(null);
+  const [calcJustEvaluated, setCalcJustEvaluated] = useState(false);
+
+  // Photo viewer zoom
+  const [photoZoom, setPhotoZoom] = useState(1);
+
   const [questIdx, setQuestIdx] = useState<number>(0);
   const [exp, setExp] = useState<number>(0);
   const [completedQuests, setCompletedQuests] = useState<number[]>([]);
