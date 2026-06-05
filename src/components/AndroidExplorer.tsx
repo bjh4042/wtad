@@ -111,7 +111,24 @@ const QUESTS = [
   { id: 72, text: "Google 계정 카드의 '로그아웃' 버튼을 누르세요.", targetId: 'google-logout-btn', exp: 20 },
   { id: 73, text: "확인 창에서 '로그아웃'을 눌러 정말로 로그아웃하세요.", targetId: 'google-logout-confirm', exp: 20 },
   { id: 74, text: "'계정 추가' 버튼을 눌러 다른 계정으로 다시 로그인해보세요.", targetId: 'account-add-btn', exp: 20 },
-  { id: 75, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  // ===== 블루투스 페어링 PIN =====
+  { id: 75, text: "페어링 코드를 확인하고 '페어링' 버튼을 눌러 연결을 완료하세요.", targetId: 'bt-pair-confirm', exp: 20 },
+  // ===== 계산기로 12 × 8 = 96 =====
+  { id: 76, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 77, text: "'계산기' 앱을 실행하세요.", targetId: 'app-icon-Calculator', exp: 10 },
+  { id: 78, text: "숫자 '1' 을 누르세요.", targetId: 'calc-key-1', exp: 10 },
+  { id: 79, text: "숫자 '2' 를 누르세요.", targetId: 'calc-key-2', exp: 10 },
+  { id: 80, text: "곱하기(×) 버튼을 누르세요.", targetId: 'calc-key-mul', exp: 10 },
+  { id: 81, text: "숫자 '8' 을 누르세요.", targetId: 'calc-key-8', exp: 10 },
+  { id: 82, text: "'=' 버튼을 눌러 결과(96)를 확인하세요.", targetId: 'calc-result-96', exp: 30 },
+  // ===== 갤러리 사진 확대/축소 =====
+  { id: 83, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 84, text: "갤러리 앱을 실행하세요.", targetId: 'app-icon-Gallery', exp: 10 },
+  { id: 85, text: "사진 한 장을 선택해 크게 보세요.", targetId: 'gallery-photo-0', exp: 10 },
+  { id: 86, text: "'+' 버튼을 눌러 사진을 확대하세요.", targetId: 'photo-zoom-in', exp: 20 },
+  { id: 87, text: "'−' 버튼을 눌러 사진을 다시 축소하세요.", targetId: 'photo-zoom-out', exp: 20 },
+  { id: 88, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+
 ];
 
 
