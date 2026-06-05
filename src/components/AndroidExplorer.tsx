@@ -981,7 +981,7 @@ export default function AndroidExplorer() {
 
 
       <div className="flex-1 flex flex-col justify-end pb-8">
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-y-10 gap-x-4 md:gap-x-6 px-4 md:px-8 w-full max-w-[1200px] justify-items-center self-center">
+        <div className={`grid gap-y-6 md:gap-y-10 gap-x-3 md:gap-x-6 px-3 md:px-8 w-full max-w-[1200px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}>
           {(() => {
             // 설치된 앱(math + 플레이스토어 앱)을 빈 슬롯에 채워 그리드가 어긋나지 않게 표시
             const slots: any[] = [...homeApps];
