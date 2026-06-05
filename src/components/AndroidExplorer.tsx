@@ -111,7 +111,24 @@ const QUESTS = [
   { id: 72, text: "Google 계정 카드의 '로그아웃' 버튼을 누르세요.", targetId: 'google-logout-btn', exp: 20 },
   { id: 73, text: "확인 창에서 '로그아웃'을 눌러 정말로 로그아웃하세요.", targetId: 'google-logout-confirm', exp: 20 },
   { id: 74, text: "'계정 추가' 버튼을 눌러 다른 계정으로 다시 로그인해보세요.", targetId: 'account-add-btn', exp: 20 },
-  { id: 75, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  // ===== 블루투스 페어링 PIN =====
+  { id: 75, text: "페어링 코드를 확인하고 '페어링' 버튼을 눌러 연결을 완료하세요.", targetId: 'bt-pair-confirm', exp: 20 },
+  // ===== 계산기로 12 × 8 = 96 =====
+  { id: 76, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 77, text: "'계산기' 앱을 실행하세요.", targetId: 'app-icon-Calculator', exp: 10 },
+  { id: 78, text: "숫자 '1' 을 누르세요.", targetId: 'calc-key-1', exp: 10 },
+  { id: 79, text: "숫자 '2' 를 누르세요.", targetId: 'calc-key-2', exp: 10 },
+  { id: 80, text: "곱하기(×) 버튼을 누르세요.", targetId: 'calc-key-mul', exp: 10 },
+  { id: 81, text: "숫자 '8' 을 누르세요.", targetId: 'calc-key-8', exp: 10 },
+  { id: 82, text: "'=' 버튼을 눌러 결과(96)를 확인하세요.", targetId: 'calc-result-96', exp: 30 },
+  // ===== 갤러리 사진 확대/축소 =====
+  { id: 83, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 84, text: "갤러리 앱을 실행하세요.", targetId: 'app-icon-Gallery', exp: 10 },
+  { id: 85, text: "사진 한 장을 선택해 크게 보세요.", targetId: 'gallery-photo-0', exp: 10 },
+  { id: 86, text: "'+' 버튼을 눌러 사진을 확대하세요.", targetId: 'photo-zoom-in', exp: 20 },
+  { id: 87, text: "'−' 버튼을 눌러 사진을 다시 축소하세요.", targetId: 'photo-zoom-out', exp: 20 },
+  { id: 88, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+
 ];
 
 
@@ -260,8 +277,10 @@ const DEFAULT_HOME_APPS = (() => {
   a[16] = 'Folder'; a[17] = 'Notes'; a[18] = 'Messages'; a[19] = 'Internet';
   a[20] = 'PlayStore'; a[21] = 'YouTube'; a[22] = 'KakaoTalk'; a[23] = 'Naver';
   a[7] = 'Settings';
+  a[6] = 'Calculator';
   return a;
 })();
+
 
 export default function AndroidExplorer() {
   const [time, setTime] = useState<Date | null>(null);
@@ -382,9 +401,21 @@ export default function AndroidExplorer() {
   // 신규: 블루투스 기기 / 노트
   const [bluetoothModalOpen, setBluetoothModalOpen] = useState(false);
   const [connectedBtDevice, setConnectedBtDevice] = useState<string | null>(null);
+  const [btPairingDevice, setBtPairingDevice] = useState<{ id: string; name: string; icon: string } | null>(null);
+  const [btPairingPin, setBtPairingPin] = useState<string>('');
   const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+
+  // Calculator
+  const [calcDisplay, setCalcDisplay] = useState('0');
+  const [calcPrev, setCalcPrev] = useState<number | null>(null);
+  const [calcOp, setCalcOp] = useState<string | null>(null);
+  const [calcJustEvaluated, setCalcJustEvaluated] = useState(false);
+
+  // Photo viewer zoom
+  const [photoZoom, setPhotoZoom] = useState(1);
+
   const [questIdx, setQuestIdx] = useState<number>(0);
   const [exp, setExp] = useState<number>(0);
   const [completedQuests, setCompletedQuests] = useState<number[]>([]);
@@ -486,6 +517,10 @@ export default function AndroidExplorer() {
 
   // 앱 전환 애니메이션 트리거
   useEffect(() => { setAppLaunchKey(k => k + 1); }, [currentApp]);
+
+  // 사진 뷰어 진입 시 줌 리셋
+  useEffect(() => { setPhotoZoom(1); }, [viewPhoto]);
+
 
   // Google 로그인 입력 자동 포커스 (단계 변경/오류 시)
   useEffect(() => {
@@ -704,6 +739,18 @@ export default function AndroidExplorer() {
     // One UI 7 / Android 15 풍 squircle (스쿼클) 공통 클래스
     const sq = "w-full h-full rounded-[22%] flex items-center justify-center shadow-[0_6px_14px_rgba(0,0,0,0.25)] overflow-hidden";
     switch(appName) {
+      case 'Calculator': name = '계산기';
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#1f2937 0%,#0f172a 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-[68%] h-[68%]">
+            <rect x="18" y="10" width="64" height="80" rx="10" fill="#f8fafc"/>
+            <rect x="24" y="16" width="52" height="18" rx="3" fill="#0f172a"/>
+            <text x="71" y="29" textAnchor="end" fill="#fbbf24" fontSize="13" fontFamily="monospace" fontWeight="700">96</text>
+            {[0,1,2,3].map(r => [0,1,2,3].map(c => {
+              const isOp = c === 3;
+              return <rect key={`${r}-${c}`} x={24+c*14} y={40+r*12} width="11" height="9" rx="2" fill={isOp ? '#f97316' : '#e2e8f0'}/>;
+            }))}
+          </svg></div>); break;
+
       case 'GameLauncher': name = 'Game Launcher';
         content = (<div className={`${sq}`} style={{ background: 'linear-gradient(135deg,#7c3aed 0%,#4f46e5 100%)' }}>
           <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
@@ -1935,9 +1982,11 @@ export default function AndroidExplorer() {
             <span className="font-medium text-lg">오늘</span>
             <MoreHorizontal size={28} className="cursor-pointer text-gray-300 active:scale-90 transition-transform"/>
           </div>
-          <div className="flex-1 flex items-center justify-center p-8 overflow-hidden min-h-0">
+          <div className="flex-1 flex items-center justify-center p-8 overflow-hidden min-h-0 relative">
             <div className="w-96 h-96 bg-[#1a1a1a] rounded-3xl flex items-center justify-center relative shadow-2xl overflow-hidden border border-gray-800">
-              <CuteStudent seed={viewPhoto.seed} />
+              <div className="w-full h-full transition-transform duration-200" style={{ transform: `scale(${photoZoom})`, transformOrigin: 'center' }}>
+                <CuteStudent seed={viewPhoto.seed} />
+              </div>
               {deleteConfirm && (
                 <div className="absolute inset-0 bg-black/95 flex items-center justify-center flex-col p-6 text-center z-50 animate-[fadeIn_0.2s_ease-out]">
                   <p className="mb-8 text-xl font-medium">휴지통으로 이동할까요?</p>
@@ -1954,7 +2003,24 @@ export default function AndroidExplorer() {
                 </div>
               )}
             </div>
+            {/* 줌 컨트롤 */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 bg-black/50 rounded-2xl p-2 backdrop-blur-md">
+              <ActionTarget id="photo-zoom-in" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                onClick={() => setPhotoZoom(z => Math.min(3, +(z + 0.5).toFixed(2)))}
+                tooltipPosition="left" tooltipText="확대하세요"
+              >
+                <button aria-label="확대" className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-90 transition flex items-center justify-center text-xl text-white font-bold">+</button>
+              </ActionTarget>
+              <div className="text-[10px] text-white/70 text-center tabular-nums">{Math.round(photoZoom * 100)}%</div>
+              <ActionTarget id="photo-zoom-out" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                onClick={() => setPhotoZoom(z => Math.max(1, +(z - 0.5).toFixed(2)))}
+                tooltipPosition="left" tooltipText="축소하세요"
+              >
+                <button aria-label="축소" className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-90 transition flex items-center justify-center text-xl text-white font-bold">−</button>
+              </ActionTarget>
+            </div>
           </div>
+
           <div className="h-24 flex justify-around items-center px-4 md:px-12 bg-[#111] pb-4 shrink-0 text-gray-300">
             <button className="flex flex-col items-center gap-1 active:scale-90 transition-transform hover:text-white">
               <Share2 size={24}/>
@@ -2352,7 +2418,91 @@ export default function AndroidExplorer() {
     );
   };
 
+  const renderCalculator = () => {
+    const apply = (a: number, b: number, op: string) => {
+      if (op === '+') return a + b;
+      if (op === '−') return a - b;
+      if (op === '×') return a * b;
+      if (op === '÷') return b === 0 ? 0 : a / b;
+      return b;
+    };
+    const inputDigit = (d: string) => {
+      if (calcJustEvaluated) { setCalcDisplay(d); setCalcJustEvaluated(false); return; }
+      setCalcDisplay(prev => prev === '0' ? d : prev + d);
+    };
+    const inputDot = () => {
+      if (calcJustEvaluated) { setCalcDisplay('0.'); setCalcJustEvaluated(false); return; }
+      if (!calcDisplay.includes('.')) setCalcDisplay(calcDisplay + '.');
+    };
+    const chooseOp = (op: string) => {
+      const cur = parseFloat(calcDisplay);
+      if (calcPrev !== null && calcOp && !calcJustEvaluated) {
+        const r = apply(calcPrev, cur, calcOp);
+        setCalcPrev(r);
+        setCalcDisplay(String(r));
+      } else {
+        setCalcPrev(cur);
+      }
+      setCalcOp(op);
+      setCalcJustEvaluated(true);
+    };
+    const equals = () => {
+      if (calcPrev === null || !calcOp) return;
+      const cur = parseFloat(calcDisplay);
+      const r = apply(calcPrev, cur, calcOp);
+      setCalcDisplay(String(r));
+      setCalcPrev(null);
+      setCalcOp(null);
+      setCalcJustEvaluated(true);
+      if (Math.abs(r - 96) < 1e-9) advanceQuest('calc-result-96');
+    };
+    const clear = () => { setCalcDisplay('0'); setCalcPrev(null); setCalcOp(null); setCalcJustEvaluated(false); };
+    const Btn = ({ label, onPress, variant = 'num', targetId }: any) => (
+      <ActionTarget id={targetId || `calc-btn-${label}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+        disableClickAdvance={!targetId}
+        onClick={onPress}
+        className={`h-16 rounded-2xl text-2xl font-medium flex items-center justify-center active:scale-95 transition-all cursor-pointer select-none ${
+          variant === 'op' ? 'bg-orange-500 text-white' :
+          variant === 'fn' ? 'bg-[#a6a6a6] text-black' :
+          'bg-[#333333] text-white'
+        }`}
+      >
+        {label}
+      </ActionTarget>
+    );
+    return (
+      <div className="flex-1 bg-black text-white flex flex-col pt-10 px-4 pb-4 animate-[fadeIn_0.3s_ease-out] overflow-hidden min-h-0">
+        <div className="text-right text-7xl md:text-8xl font-extralight px-4 pb-6 truncate tabular-nums" aria-live="polite">{calcDisplay}</div>
+        <div className="grid grid-cols-4 gap-3">
+          <Btn label="AC" variant="fn" onPress={clear}/>
+          <Btn label="±" variant="fn" onPress={() => setCalcDisplay(d => d.startsWith('-') ? d.slice(1) : (d === '0' ? d : '-' + d))}/>
+          <Btn label="%" variant="fn" onPress={() => setCalcDisplay(String(parseFloat(calcDisplay) / 100))}/>
+          <Btn label="÷" variant="op" onPress={() => chooseOp('÷')}/>
+          <Btn label="7" onPress={() => inputDigit('7')}/>
+          <Btn label="8" onPress={() => inputDigit('8')} targetId="calc-key-8"/>
+          <Btn label="9" onPress={() => inputDigit('9')}/>
+          <Btn label="×" variant="op" onPress={() => chooseOp('×')} targetId="calc-key-mul"/>
+          <Btn label="4" onPress={() => inputDigit('4')}/>
+          <Btn label="5" onPress={() => inputDigit('5')}/>
+          <Btn label="6" onPress={() => inputDigit('6')}/>
+          <Btn label="−" variant="op" onPress={() => chooseOp('−')}/>
+          <Btn label="1" onPress={() => inputDigit('1')} targetId="calc-key-1"/>
+          <Btn label="2" onPress={() => inputDigit('2')} targetId="calc-key-2"/>
+          <Btn label="3" onPress={() => inputDigit('3')}/>
+          <Btn label="+" variant="op" onPress={() => chooseOp('+')}/>
+          <ActionTarget id="calc-key-0" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+            onClick={() => inputDigit('0')}
+            className="col-span-2 h-16 rounded-2xl text-2xl font-medium flex items-center justify-start pl-7 active:scale-95 transition-all cursor-pointer select-none bg-[#333333] text-white"
+          >0</ActionTarget>
+          <Btn label="." onPress={inputDot}/>
+          <Btn label="=" variant="op" onPress={equals} targetId="calc-key-eq"/>
+        </div>
+      </div>
+    );
+  };
+
   const renderNotes = () => {
+
     const startDraw = (e: any) => {
       if (!notesEditing) return;
       const svg = e.currentTarget as SVGSVGElement;
@@ -2591,6 +2741,8 @@ export default function AndroidExplorer() {
               {currentApp === 'Gallery' && renderGallery()}
               {currentApp === 'PlayStore' && renderPlayStore()}
               {currentApp === 'Notes' && renderNotes()}
+              {currentApp === 'Calculator' && renderCalculator()}
+
             </div>
           </div>
 
@@ -2857,7 +3009,13 @@ export default function AndroidExplorer() {
                     const connected = connectedBtDevice === dev.name;
                     return (
                       <ActionTarget key={dev.id} id={dev.id} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                        onClick={() => { setConnectedBtDevice(dev.name); setTimeout(() => setBluetoothModalOpen(false), 700); }}
+                        onClick={() => {
+                          if (connected) return;
+                          // PIN 페어링 단계로 진입
+                          const pin = String(Math.floor(1000 + Math.random() * 9000));
+                          setBtPairingDevice(dev);
+                          setBtPairingPin(pin);
+                        }}
                         className={`p-4 rounded-2xl flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${connected ? 'bg-blue-600' : 'bg-[#2c2c2e] hover:bg-[#3a3a3c]'}`}
                       >
                         <div className="text-3xl">{dev.icon}</div>
@@ -2874,6 +3032,49 @@ export default function AndroidExplorer() {
               </div>
             </div>
           )}
+
+          {/* Bluetooth pairing PIN dialog */}
+          {btPairingDevice && (
+            <div className="absolute inset-0 z-[120] bg-black/80 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setBtPairingDevice(null)}>
+              <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-4xl">{btPairingDevice.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-lg truncate">{btPairingDevice.name}</div>
+                    <div className="text-xs text-gray-400">Bluetooth 페어링 요청</div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-300 mb-4 leading-relaxed">
+                  상대 기기에 표시된 코드가 아래와 같은지 확인하세요. 같다면 <span className="text-blue-400 font-semibold">페어링</span> 을 누르세요.
+                </div>
+                <div className="bg-black/40 rounded-2xl py-5 mb-5 flex items-center justify-center">
+                  <div className="text-5xl font-bold tracking-[0.4em] tabular-nums text-white">{btPairingPin}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setBtPairingDevice(null)}
+                    className="flex-1 py-3 rounded-2xl bg-[#2c2c2e] hover:bg-[#3a3a3c] active:scale-95 font-bold text-sm transition"
+                  >취소</button>
+                  <ActionTarget id="bt-pair-confirm" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                    onClick={() => {
+                      const dev = btPairingDevice;
+                      setBtPairingDevice(null);
+                      if (dev) {
+                        setConnectedBtDevice(dev.name);
+                        advanceQuest(dev.id);
+                        setTimeout(() => setBluetoothModalOpen(false), 700);
+                      }
+                    }}
+                    className="flex-1"
+                  >
+                    <button className="w-full py-3 rounded-2xl bg-blue-500 hover:bg-blue-600 active:scale-95 font-bold text-sm transition">페어링</button>
+                  </ActionTarget>
+                </div>
+              </div>
+            </div>
+          )}
+
+
 
           {/* Google 로그인 (실제와 유사한 풀스크린) */}
           {googleLoginOpen && (
