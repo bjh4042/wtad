@@ -2567,6 +2567,94 @@ export default function AndroidExplorer() {
 
           {renderQuickPanel()}
 
+          {/* 음량 슬라이더 패널 (측면 볼륨 버튼으로 호출) */}
+          {volumePanelOpen && (
+            <div
+              className="absolute right-3 top-12 z-[150] w-[78px] bg-[#1c1c1e]/95 backdrop-blur-md rounded-3xl p-3 shadow-2xl border border-white/10 animate-[fadeIn_0.18s_ease-out] flex flex-col items-center gap-3"
+              onMouseEnter={() => { if (volumeCloseTimer.current) clearTimeout(volumeCloseTimer.current); }}
+              onMouseLeave={() => { volumeCloseTimer.current = setTimeout(() => setVolumePanelOpen(false), 1400); }}
+            >
+              {(() => {
+                const cur = volumePanelType === 'media' ? mediaVolume : volumePanelType === 'ring' ? ringVolume : notifVolume;
+                const setCur = (v: number) => {
+                  if (volumePanelType === 'media') setMediaVolume(v);
+                  else if (volumePanelType === 'ring') setRingVolume(v);
+                  else setNotifVolume(v);
+                };
+                const icon = volumePanelType === 'media' ? '🎵' : volumePanelType === 'ring' ? '🔔' : '📩';
+                return (
+                  <>
+                    <div className="text-white text-lg leading-none">{icon}</div>
+                    <div className="relative w-3 h-40 bg-white/15 rounded-full overflow-hidden">
+                      <div className="absolute bottom-0 left-0 right-0 bg-white transition-all" style={{ height: `${cur}%` }}/>
+                    </div>
+                    <div className="text-white/80 text-[11px] font-medium tabular-nums">{cur}</div>
+                    <div className="flex flex-col gap-1 w-full">
+                      {[
+                        { id: 'media', icon: '🎵', label: '미디어' },
+                        { id: 'ring', icon: '🔔', label: '벨소리' },
+                        { id: 'notif', icon: '📩', label: '알림' },
+                      ].map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => setVolumePanelType(t.id as any)}
+                          className={`w-full py-1.5 rounded-xl text-[10px] flex flex-col items-center gap-0.5 transition ${volumePanelType === t.id ? 'bg-white/20 text-white' : 'text-white/60 hover:bg-white/10'}`}
+                        >
+                          <span className="text-sm leading-none">{t.icon}</span>
+                          <span className="leading-none">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => setCur(cur === 0 ? 70 : 0)} className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-base active:scale-90 transition">
+                      {cur === 0 ? '🔇' : '🔊'}
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* 전원 메뉴 */}
+          {powerMenuOpen && (
+            <div className="absolute inset-0 z-[160] bg-black/70 flex items-center justify-center animate-[fadeIn_0.2s_ease-out]" onClick={() => setPowerMenuOpen(false)}>
+              <div className="bg-[#1c1c1e] rounded-3xl p-6 w-72 text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="text-center font-bold text-lg mb-5">전원</div>
+                <div className="flex justify-around mb-2">
+                  <button
+                    onClick={() => { setPowerMenuOpen(false); setPowerOff(true); setTimeout(() => { setPowerOff(false); setLocked(true); }, 1800); }}
+                    className="flex flex-col items-center gap-2 active:scale-95"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-2xl">⏻</div>
+                    <div className="text-xs">전원 끄기</div>
+                  </button>
+                  <button
+                    onClick={() => { setPowerMenuOpen(false); setPowerOff(true); setTimeout(() => { setPowerOff(false); setLocked(true); }, 1500); }}
+                    className="flex flex-col items-center gap-2 active:scale-95"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center text-2xl">↻</div>
+                    <div className="text-xs">다시 시작</div>
+                  </button>
+                  <button
+                    onClick={() => setPowerMenuOpen(false)}
+                    className="flex flex-col items-center gap-2 active:scale-95"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-gray-600 flex items-center justify-center text-2xl">📞</div>
+                    <div className="text-xs">긴급전화</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 전원 OFF 페이드 */}
+          {powerOff && (
+            <div className="absolute inset-0 z-[200] bg-black flex items-center justify-center animate-[fadeIn_0.3s_ease-out]">
+              <div className="text-white/70 text-sm tracking-widest">SAMSUNG</div>
+            </div>
+          )}
+
+
+
           {mathAppOpen && (
             <div className="absolute left-0 right-0 top-0 bottom-14 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-4">
               <div className="text-white text-7xl font-black drop-shadow-lg mb-4">1 + 2 = ?</div>
