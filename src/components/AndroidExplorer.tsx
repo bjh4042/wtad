@@ -718,6 +718,18 @@ export default function AndroidExplorer() {
     // One UI 7 / Android 15 풍 squircle (스쿼클) 공통 클래스
     const sq = "w-full h-full rounded-[22%] flex items-center justify-center shadow-[0_6px_14px_rgba(0,0,0,0.25)] overflow-hidden";
     switch(appName) {
+      case 'Calculator': name = '계산기';
+        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#1f2937 0%,#0f172a 100%)' }}>
+          <svg viewBox="0 0 100 100" className="w-[68%] h-[68%]">
+            <rect x="18" y="10" width="64" height="80" rx="10" fill="#f8fafc"/>
+            <rect x="24" y="16" width="52" height="18" rx="3" fill="#0f172a"/>
+            <text x="71" y="29" textAnchor="end" fill="#fbbf24" fontSize="13" fontFamily="monospace" fontWeight="700">96</text>
+            {[0,1,2,3].map(r => [0,1,2,3].map(c => {
+              const isOp = c === 3;
+              return <rect key={`${r}-${c}`} x={24+c*14} y={40+r*12} width="11" height="9" rx="2" fill={isOp ? '#f97316' : '#e2e8f0'}/>;
+            }))}
+          </svg></div>); break;
+
       case 'GameLauncher': name = 'Game Launcher';
         content = (<div className={`${sq}`} style={{ background: 'linear-gradient(135deg,#7c3aed 0%,#4f46e5 100%)' }}>
           <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
