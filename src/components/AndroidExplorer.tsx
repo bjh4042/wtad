@@ -2969,7 +2969,13 @@ export default function AndroidExplorer() {
                     const connected = connectedBtDevice === dev.name;
                     return (
                       <ActionTarget key={dev.id} id={dev.id} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                        onClick={() => { setConnectedBtDevice(dev.name); setTimeout(() => setBluetoothModalOpen(false), 700); }}
+                        onClick={() => {
+                          if (connected) return;
+                          // PIN 페어링 단계로 진입
+                          const pin = String(Math.floor(1000 + Math.random() * 9000));
+                          setBtPairingDevice(dev);
+                          setBtPairingPin(pin);
+                        }}
                         className={`p-4 rounded-2xl flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${connected ? 'bg-blue-600' : 'bg-[#2c2c2e] hover:bg-[#3a3a3c]'}`}
                       >
                         <div className="text-3xl">{dev.icon}</div>
@@ -2986,6 +2992,49 @@ export default function AndroidExplorer() {
               </div>
             </div>
           )}
+
+          {/* Bluetooth pairing PIN dialog */}
+          {btPairingDevice && (
+            <div className="absolute inset-0 z-[120] bg-black/80 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setBtPairingDevice(null)}>
+              <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-4xl">{btPairingDevice.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-lg truncate">{btPairingDevice.name}</div>
+                    <div className="text-xs text-gray-400">Bluetooth 페어링 요청</div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-300 mb-4 leading-relaxed">
+                  상대 기기에 표시된 코드가 아래와 같은지 확인하세요. 같다면 <span className="text-blue-400 font-semibold">페어링</span> 을 누르세요.
+                </div>
+                <div className="bg-black/40 rounded-2xl py-5 mb-5 flex items-center justify-center">
+                  <div className="text-5xl font-bold tracking-[0.4em] tabular-nums text-white">{btPairingPin}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setBtPairingDevice(null)}
+                    className="flex-1 py-3 rounded-2xl bg-[#2c2c2e] hover:bg-[#3a3a3c] active:scale-95 font-bold text-sm transition"
+                  >취소</button>
+                  <ActionTarget id="bt-pair-confirm" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                    onClick={() => {
+                      const dev = btPairingDevice;
+                      setBtPairingDevice(null);
+                      if (dev) {
+                        setConnectedBtDevice(dev.name);
+                        advanceQuest(dev.id);
+                        setTimeout(() => setBluetoothModalOpen(false), 700);
+                      }
+                    }}
+                    className="flex-1"
+                  >
+                    <button className="w-full py-3 rounded-2xl bg-blue-500 hover:bg-blue-600 active:scale-95 font-bold text-sm transition">페어링</button>
+                  </ActionTarget>
+                </div>
+              </div>
+            </div>
+          )}
+
+
 
           {/* Google 로그인 (실제와 유사한 풀스크린) */}
           {googleLoginOpen && (
