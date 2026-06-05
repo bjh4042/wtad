@@ -2701,6 +2701,8 @@ export default function AndroidExplorer() {
               {currentApp === 'Gallery' && renderGallery()}
               {currentApp === 'PlayStore' && renderPlayStore()}
               {currentApp === 'Notes' && renderNotes()}
+              {currentApp === 'Calculator' && renderCalculator()}
+
             </div>
           </div>
 
