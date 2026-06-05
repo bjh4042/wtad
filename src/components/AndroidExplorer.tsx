@@ -1978,9 +1978,11 @@ export default function AndroidExplorer() {
             <span className="font-medium text-lg">오늘</span>
             <MoreHorizontal size={28} className="cursor-pointer text-gray-300 active:scale-90 transition-transform"/>
           </div>
-          <div className="flex-1 flex items-center justify-center p-8 overflow-hidden min-h-0">
+          <div className="flex-1 flex items-center justify-center p-8 overflow-hidden min-h-0 relative">
             <div className="w-96 h-96 bg-[#1a1a1a] rounded-3xl flex items-center justify-center relative shadow-2xl overflow-hidden border border-gray-800">
-              <CuteStudent seed={viewPhoto.seed} />
+              <div className="w-full h-full transition-transform duration-200" style={{ transform: `scale(${photoZoom})`, transformOrigin: 'center' }}>
+                <CuteStudent seed={viewPhoto.seed} />
+              </div>
               {deleteConfirm && (
                 <div className="absolute inset-0 bg-black/95 flex items-center justify-center flex-col p-6 text-center z-50 animate-[fadeIn_0.2s_ease-out]">
                   <p className="mb-8 text-xl font-medium">휴지통으로 이동할까요?</p>
@@ -1997,7 +1999,24 @@ export default function AndroidExplorer() {
                 </div>
               )}
             </div>
+            {/* 줌 컨트롤 */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 bg-black/50 rounded-2xl p-2 backdrop-blur-md">
+              <ActionTarget id="photo-zoom-in" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                onClick={() => setPhotoZoom(z => Math.min(3, +(z + 0.5).toFixed(2)))}
+                tooltipPosition="left" tooltipText="확대하세요"
+              >
+                <button aria-label="확대" className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-90 transition flex items-center justify-center text-xl text-white font-bold">+</button>
+              </ActionTarget>
+              <div className="text-[10px] text-white/70 text-center tabular-nums">{Math.round(photoZoom * 100)}%</div>
+              <ActionTarget id="photo-zoom-out" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                onClick={() => setPhotoZoom(z => Math.max(1, +(z - 0.5).toFixed(2)))}
+                tooltipPosition="left" tooltipText="축소하세요"
+              >
+                <button aria-label="축소" className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-90 transition flex items-center justify-center text-xl text-white font-bold">−</button>
+              </ActionTarget>
+            </div>
           </div>
+
           <div className="h-24 flex justify-around items-center px-4 md:px-12 bg-[#111] pb-4 shrink-0 text-gray-300">
             <button className="flex flex-col items-center gap-1 active:scale-90 transition-transform hover:text-white">
               <Share2 size={24}/>
