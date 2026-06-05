@@ -265,6 +265,16 @@ const DEFAULT_HOME_APPS = (() => {
 
 export default function AndroidExplorer() {
   const [time, setTime] = useState<Date | null>(null);
+  const [isPhone, setIsPhone] = useState<boolean>(false);
+  useEffect(() => {
+    const mql = typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)') : null;
+    if (!mql) return;
+    const apply = () => setIsPhone(mql.matches);
+    apply();
+    mql.addEventListener?.('change', apply);
+    return () => mql.removeEventListener?.('change', apply);
+  }, []);
+
 
   const [wifi, setWifi] = useState(false);
   const [wifiConnected, setWifiConnected] = useState(null);
