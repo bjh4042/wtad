@@ -260,8 +260,10 @@ const DEFAULT_HOME_APPS = (() => {
   a[16] = 'Folder'; a[17] = 'Notes'; a[18] = 'Messages'; a[19] = 'Internet';
   a[20] = 'PlayStore'; a[21] = 'YouTube'; a[22] = 'KakaoTalk'; a[23] = 'Naver';
   a[7] = 'Settings';
+  a[6] = 'Calculator';
   return a;
 })();
+
 
 export default function AndroidExplorer() {
   const [time, setTime] = useState<Date | null>(null);
