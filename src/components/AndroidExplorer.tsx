@@ -265,6 +265,16 @@ const DEFAULT_HOME_APPS = (() => {
 
 export default function AndroidExplorer() {
   const [time, setTime] = useState<Date | null>(null);
+  const [isPhone, setIsPhone] = useState<boolean>(false);
+  useEffect(() => {
+    const mql = typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)') : null;
+    if (!mql) return;
+    const apply = () => setIsPhone(mql.matches);
+    apply();
+    mql.addEventListener?.('change', apply);
+    return () => mql.removeEventListener?.('change', apply);
+  }, []);
+
 
   const [wifi, setWifi] = useState(false);
   const [wifiConnected, setWifiConnected] = useState(null);
@@ -971,7 +981,7 @@ export default function AndroidExplorer() {
 
 
       <div className="flex-1 flex flex-col justify-end pb-8">
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-y-10 gap-x-4 md:gap-x-6 px-4 md:px-8 w-full max-w-[1200px] justify-items-center self-center">
+        <div className={`grid gap-y-6 md:gap-y-10 gap-x-3 md:gap-x-6 px-3 md:px-8 w-full max-w-[1200px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}>
           {(() => {
             // 설치된 앱(math + 플레이스토어 앱)을 빈 슬롯에 채워 그리드가 어긋나지 않게 표시
             const slots: any[] = [...homeApps];
@@ -2541,9 +2551,14 @@ export default function AndroidExplorer() {
 
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
-      <div className="relative w-full h-full md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] bg-black rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px] shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937]">
+      <div className={`relative w-full h-full bg-black shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] ${isPhone ? 'max-w-[420px] max-h-[860px] aspect-[9/19.5] rounded-[44px] p-[10px] mx-auto' : 'md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px]'}`}>
         {/* front camera dot */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-[6px] w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+        {isPhone ? (
+          <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-700 rounded-full z-[180]"></div>
+        ) : (
+          <div className="absolute top-1/2 -translate-y-1/2 left-[6px] w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
+        )}
+
         {/* 측면 하드웨어 버튼 — 우측 상단 */}
         <button
           title="전원"
@@ -2561,7 +2576,7 @@ export default function AndroidExplorer() {
           className="absolute right-[-3px] top-[51%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
         />
 
-        <div className="relative w-full h-full rounded-[14px] md:rounded-[24px] overflow-hidden bg-black flex flex-col" style={{ fontSize: `${fontScale}rem` }}>
+        <div className={`relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[34px]' : 'rounded-[14px] md:rounded-[24px]'}`} style={{ fontSize: `${fontScale}rem` }}>
 
           <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
           {darkMode && <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-[59] mix-blend-multiply"></div>}
