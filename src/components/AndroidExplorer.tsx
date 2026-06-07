@@ -54,7 +54,7 @@ const QUESTS = [
   { id: 20, text: "하단 휴지통 아이콘을 눌러 사진을 삭제하세요.", targetId: 'gallery-delete', exp: 20 },
   { id: 21, text: "삭제 확인(이동) 버튼을 누르세요.", targetId: 'gallery-delete-confirm', exp: 10 },
   { id: 22, text: "하단의 홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
-  { id: 23, text: "Play 스토어 앱을 실행하세요.", targetId: 'app-icon-PlayStore', exp: 20 },
+  { id: 23, text: "앱 마켓 앱을 실행하세요.", targetId: 'app-icon-PlayStore', exp: 20 },
   { id: 24, text: "상단 검색창을 클릭하세요.", targetId: 'playstore-search-bar', exp: 10 },
   { id: 25, text: "가상 키보드에서 파란색 자판을 순서대로 눌러 '똑똑수학탐험대'를 완성하세요.", targetId: 'playstore-search-input', exp: 20 },
   { id: 26, text: "키보드의 파란색 '검색' 버튼을 누르세요.", targetId: 'playstore-search-submit', exp: 10 },
@@ -82,25 +82,25 @@ const QUESTS = [
   // ===== 알림 확인 및 지우기 =====
   { id: 48, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 49, text: "상단 표시줄을 다시 드래그하여 퀵패널(알림)을 여세요.", targetId: 'swipe-trigger', exp: 10 },
-  { id: 50, text: "카카오톡 알림을 탭하여 메시지를 확인하세요.", targetId: 'notif-tap-1', exp: 20 },
+  { id: 50, text: "톡톡 알림을 탭하여 메시지를 확인하세요.", targetId: 'notif-tap-1', exp: 20 },
   { id: 51, text: "메시지 알림을 옆으로 스와이프(드래그)해서 지우세요.", targetId: 'notif-dismiss-2', exp: 20 },
   { id: 52, text: "'모두 지우기' 버튼을 눌러 남은 알림을 정리하세요.", targetId: 'notif-clear-all', exp: 20 },
   // ===== 앱 권한 관리 =====
   { id: 53, text: "설정 앱을 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
   { id: 54, text: "좌측 메뉴에서 '개인정보 보호'를 선택하세요.", targetId: 'settings-menu-privacy', exp: 20 },
-  { id: 55, text: "KakaoTalk 카드의 '위치' 권한 스위치를 켜주세요.", targetId: 'perm-KakaoTalk-위치', exp: 30 },
+  { id: 55, text: "톡톡 카드의 '위치' 권한 스위치를 켜주세요.", targetId: 'perm-KakaoTalk-위치', exp: 30 },
   // ===== 구글 계정 추가 및 동기화 =====
   { id: 56, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 57, text: "설정 앱을 다시 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
   { id: 58, text: "'계정 및 백업' 메뉴를 선택하세요.", targetId: 'settings-menu-account', exp: 20 },
   { id: 59, text: "'계정 추가' 버튼을 누르세요.", targetId: 'account-add-btn', exp: 20 },
-  { id: 60, text: "계정 종류에서 'Google'을 선택하세요.", targetId: 'account-google', exp: 20 },
-  { id: 61, text: "이메일 입력칸에 'wttest@gmail.com' 을 입력 후 '다음'을 누르세요.", targetId: 'google-email-next', exp: 30 },
+  { id: 60, text: "계정 종류에서 '탐험대'를 선택하세요.", targetId: 'account-google', exp: 20 },
+  { id: 61, text: "이메일 입력칸에 'wttest@tamhem.com' 을 입력 후 '다음'을 누르세요.", targetId: 'google-email-next', exp: 30 },
   { id: 62, text: "비밀번호에 'Ghkdlxld1!' 을 입력 후 '다음'을 누르세요.", targetId: 'google-password-next', exp: 30 },
   { id: 63, text: "약관에 동의(체크) 후 '동의함'을 누르세요.", targetId: 'google-consent-agree', exp: 20 },
   { id: 64, text: "동기화 완료 화면에서 '확인'을 누르세요.", targetId: 'google-done', exp: 30 },
   // ===== 앱 업데이트 =====
-  { id: 65, text: "Play 스토어 앱을 실행하세요.", targetId: 'app-icon-PlayStore', exp: 10 },
+  { id: 65, text: "앱 마켓 앱을 실행하세요.", targetId: 'app-icon-PlayStore', exp: 10 },
   { id: 66, text: "우측 상단의 프로필 아바타를 누르세요.", targetId: 'playstore-avatar', exp: 20 },
   { id: 67, text: "메뉴에서 '앱 및 기기 관리'를 선택하세요.", targetId: 'playstore-manage', exp: 20 },
   { id: 68, text: "'모두 업데이트' 버튼을 눌러 앱을 최신으로 만들어보세요.", targetId: 'playstore-update-all', exp: 30 },
@@ -108,7 +108,7 @@ const QUESTS = [
   { id: 69, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 70, text: "설정 앱을 실행하세요.", targetId: 'app-icon-Settings', exp: 10 },
   { id: 71, text: "'계정 및 백업' 메뉴로 다시 이동하세요.", targetId: 'settings-menu-account', exp: 10 },
-  { id: 72, text: "Google 계정 카드의 '로그아웃' 버튼을 누르세요.", targetId: 'google-logout-btn', exp: 20 },
+  { id: 72, text: "탐험대 계정 카드의 '로그아웃' 버튼을 누르세요.", targetId: 'google-logout-btn', exp: 20 },
   { id: 73, text: "확인 창에서 '로그아웃'을 눌러 정말로 로그아웃하세요.", targetId: 'google-logout-confirm', exp: 20 },
   { id: 74, text: "'계정 추가' 버튼을 눌러 다른 계정으로 다시 로그인해보세요.", targetId: 'account-add-btn', exp: 20 },
   // ===== 블루투스 페어링 PIN =====
@@ -351,13 +351,13 @@ export default function AndroidExplorer() {
   const [appDrawerOpen, setAppDrawerOpen] = useState(false);
   const [drawerSwipeStart, setDrawerSwipeStart] = useState<number | null>(null);
   const [notifications, setNotifications] = useState([
-    { id: 1, app: 'KakaoTalk', appName: '카카오톡', title: '엄마', body: '학교 끝나면 바로 와~', color: 'bg-yellow-400' },
+    { id: 1, app: 'KakaoTalk', appName: '톡톡', title: '엄마', body: '학교 끝나면 바로 와~', color: 'bg-yellow-400' },
     { id: 2, app: 'Messages', appName: '메시지', title: '010-1234-5678', body: '[Web발신] 택배가 도착했습니다.', color: 'bg-blue-500' },
-    { id: 3, app: 'Gmail', appName: 'Gmail', title: 'Google', body: '새로운 기기에서 로그인되었습니다.', color: 'bg-red-500' },
+    { id: 3, app: 'Gmail', appName: '메일', title: '탐험대', body: '새로운 기기에서 로그인되었습니다.', color: 'bg-red-500' },
   ]);
   const [notifDrag, setNotifDrag] = useState<{ id: number; startX: number; dx: number } | null>(null);
   const [readNotifIds, setReadNotifIds] = useState<number[]>([]);
-  // Google 계정 로그인
+  // 탐험대 계정 로그인
   const [googleLoginOpen, setGoogleLoginOpen] = useState(false);
   const [googleLoginStep, setGoogleLoginStep] = useState<'email' | 'password' | 'consent' | 'syncing' | 'done'>('email');
   const [googleEmail, setGoogleEmail] = useState('');
@@ -817,7 +817,7 @@ export default function AndroidExplorer() {
             <path d="M 50 82 C 18 60, 18 30, 38 28 C 46 28, 50 34, 50 38 C 50 34, 54 28, 62 28 C 82 30, 82 60, 50 82 Z" fill="#f97316"/>
             <path d="M 25 55 L 38 55 L 44 42 L 52 68 L 58 50 L 75 50" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg></div>); break;
-      case 'Folder': name = 'Google';
+      case 'Folder': name = '탐험대';
         content = (<div className={`${sq} grid grid-cols-2 grid-rows-2 gap-1.5 p-3.5`} style={{ background: '#fff' }}>
           <div className="rounded-full" style={{ background: '#4285F4' }}></div>
           <div className="rounded-full" style={{ background: '#EA4335' }}></div>
@@ -844,7 +844,7 @@ export default function AndroidExplorer() {
             <ellipse cx="50" cy="50" rx="12" ry="30" fill="none" stroke="#3b82f6" strokeWidth="3"/>
             <circle cx="50" cy="50" r="30" fill="none" stroke="#3b82f6" strokeWidth="3"/>
           </svg></div>); break;
-      case 'PlayStore': name = 'Play 스토어';
+      case 'PlayStore': name = '앱 마켓';
         content = (<div className={sq} style={{ background: '#fff' }}>
           <svg viewBox="0 0 100 100" className="w-[60%] h-[60%]">
             <defs>
@@ -866,18 +866,18 @@ export default function AndroidExplorer() {
             <path d="M 20 90 L 85 50 L 70 42 Z" fill="url(#ps-y)"/>
             <path d="M 55 50 L 70 42 L 85 50 L 70 58 Z" fill="url(#ps-g)"/>
           </svg></div>); break;
-      case 'YouTube': name = 'YouTube';
+      case 'YouTube': name = '튜브';
         content = (<div className={sq} style={{ background: '#fff' }}>
           <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
             <rect x="8" y="26" width="84" height="48" rx="14" fill="#FF0000"/>
             <path d="M 42 38 L 66 50 L 42 62 Z" fill="#fff"/>
           </svg></div>); break;
-      case 'KakaoTalk': name = '카카오톡';
+      case 'KakaoTalk': name = '톡톡';
         content = (<div className={sq} style={{ background: '#FAE100' }}>
           <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
             <path d="M 50 18 C 26 18, 12 32, 12 48 C 12 60, 20 70, 32 75 L 28 88 L 44 80 C 46 80, 48 80, 50 80 C 74 80, 88 66, 88 50 C 88 32, 74 18, 50 18 Z" fill="#3A1D1D"/>
           </svg></div>); break;
-      case 'Naver': name = 'NAVER';
+      case 'Naver': name = '검색';
         content = (<div className={sq} style={{ background: '#03C75A' }}>
           <svg viewBox="0 0 100 100" className="w-[60%] h-[60%]">
             <path d="M 22 22 L 42 22 L 60 56 L 60 22 L 78 22 L 78 78 L 58 78 L 40 44 L 40 78 L 22 78 Z" fill="#fff"/>
@@ -1440,7 +1440,7 @@ export default function AndroidExplorer() {
                 <div className="text-lg font-medium">로그인되지 않음</div>
               </div>
               <div className="p-6">
-                <div className="text-sm text-gray-400 mb-3">Google 계정</div>
+                <div className="text-sm text-gray-400 mb-3">탐험대 계정</div>
                 {googleAccount ? (
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">{googleAccount[0].toUpperCase()}</div>
@@ -1456,7 +1456,7 @@ export default function AndroidExplorer() {
                     </ActionTarget>
                   </div>
                 ) : (
-                  <div className="text-gray-500 text-sm">등록된 Google 계정이 없습니다.</div>
+                  <div className="text-gray-500 text-sm">등록된 탐험대 계정이 없습니다.</div>
                 )}
               </div>
             </div>
@@ -1465,7 +1465,7 @@ export default function AndroidExplorer() {
               <div className="fixed inset-0 z-[210] bg-black/70 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setLogoutConfirmOpen(false)}>
                 <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
                   <div className="text-xl font-bold mb-2">로그아웃 하시겠어요?</div>
-                  <div className="text-sm text-gray-400 mb-6">로그아웃하면 이 기기에서 Gmail, YouTube 등 Google 서비스 동기화가 중지됩니다. 언제든 다시 로그인할 수 있어요.</div>
+                  <div className="text-sm text-gray-400 mb-6">로그아웃하면 이 기기에서 메일, 튜브 등 탐험대 서비스 동기화가 중지됩니다. 언제든 다시 로그인할 수 있어요.</div>
                   <div className="flex gap-2">
                     <button onClick={() => setLogoutConfirmOpen(false)} className="flex-1 py-3 rounded-2xl bg-[#2c2c2e] hover:bg-[#3a3a3c] active:scale-95 font-bold text-sm transition">취소</button>
                     <ActionTarget
@@ -1492,7 +1492,7 @@ export default function AndroidExplorer() {
               <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-light">+</div>
               <div>
                 <div className="font-medium text-lg">계정 추가</div>
-                <div className="text-xs text-gray-400">Google · Samsung · Microsoft 등</div>
+                <div className="text-xs text-gray-400">탐험대 · 삼성 · MS 등</div>
               </div>
             </ActionTarget>
 
@@ -1520,9 +1520,9 @@ export default function AndroidExplorer() {
                         <path fill="#4CAF50" d="M24 44c5.4 0 10.3-2.1 14-5.4l-6.5-5.5c-2 1.5-4.6 2.4-7.5 2.4-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.4 39.6 16.1 44 24 44z"/>
                         <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.5 5.5C41.4 35.4 44 30 44 24c0-1.3-.1-2.4-.4-3.5z"/>
                       </svg>
-                      <div className="flex-1"><div className="font-semibold">Google</div><div className="text-xs text-gray-400">Gmail · YouTube · Drive</div></div>
+                      <div className="flex-1"><div className="font-semibold">탐험대</div><div className="text-xs text-gray-400">메일 · 튜브 · 드라이브</div></div>
                     </ActionTarget>
-                    {['Samsung', 'Microsoft', 'Outlook'].map(s => (
+                    {['삼성', 'MS', '아웃룩'].map(s => (
                       <div key={s} className="p-4 rounded-2xl bg-[#2c2c2e] flex items-center gap-4 opacity-60">
                         <div className="w-7 h-7 rounded-lg bg-gray-600 flex items-center justify-center text-xs font-bold">{s[0]}</div>
                         <div className="flex-1"><div className="font-semibold">{s}</div></div>
@@ -2171,9 +2171,9 @@ export default function AndroidExplorer() {
 
   const renderPlayStore = () => {
     const PENDING_UPDATES = [
-      { id: 'youtube', name: 'YouTube', dev: 'Google LLC', color: '#FF0000', label: '▶', size: '128 MB' },
-      { id: 'kakao', name: '카카오톡', dev: 'Kakao Corp.', color: '#FAE100', text: '#3A1D1D', label: '💬', size: '96 MB' },
-      { id: 'chrome', name: 'Chrome', dev: 'Google LLC', color: '#1A73E8', label: 'C', size: '210 MB' },
+      { id: 'youtube', name: '튜브', dev: '탐험대', color: '#FF0000', label: '▶', size: '128 MB' },
+      { id: 'kakao', name: '톡톡', dev: '톡톡', color: '#FAE100', text: '#3A1D1D', label: '💬', size: '96 MB' },
+      { id: 'chrome', name: '웹브라우저', dev: '탐험대', color: '#1A73E8', label: 'C', size: '210 MB' },
     ];
     return (
     <div className="flex-1 bg-white flex flex-col pt-8 text-[#202124] overflow-hidden min-h-0 relative animate-[fadeIn_0.3s_ease-out]">
@@ -3131,7 +3131,7 @@ export default function AndroidExplorer() {
                 {googleLoginStep === 'email' && (
                   <div>
                     <h1 className="text-[28px] leading-tight font-normal mb-2">로그인</h1>
-                    <p className="text-base text-gray-700 mb-8">Google 계정 사용</p>
+                    <p className="text-base text-gray-700 mb-8">탐험대 계정 사용</p>
                     <div className="mb-2" key={`email-${googleShake}`} style={googleError ? { animation: 'shake 0.4s ease-in-out' } : undefined}>
                       <input
                         ref={googleEmailRef}
@@ -3156,11 +3156,11 @@ export default function AndroidExplorer() {
                         id="google-email-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                         disableClickAdvance={true}
                         onClick={() => {
-                          if (googleEmail.trim().toLowerCase() === 'wttest@gmail.com') {
+                          if (googleEmail.trim().toLowerCase() === 'wttest@tamhem.com') {
                             setGoogleError(''); setGoogleLoginStep('password');
                             advanceQuest('google-email-next');
                           } else {
-                            setGoogleError('Google 계정을 찾을 수 없습니다. 이메일을 다시 확인하세요.');
+                            setGoogleError('탐험대 계정을 찾을 수 없습니다. 이메일을 다시 확인하세요.');
                             setGoogleShake(s => s + 1);
                             setTimeout(() => googleEmailRef.current?.focus(), 50);
                           }
@@ -3224,12 +3224,12 @@ export default function AndroidExplorer() {
 
                 {googleLoginStep === 'consent' && (
                   <div>
-                    <h1 className="text-[26px] leading-tight font-normal mb-3">Google 서비스 약관</h1>
+                    <h1 className="text-[26px] leading-tight font-normal mb-3">탐험대 서비스 약관</h1>
                     <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                      Google 계정을 추가하면 Gmail, YouTube, Drive 등 Google 서비스의 데이터가 이 기기와 동기화됩니다.
+                      탐험대 계정을 추가하면 메일, 튜브, Drive 등 탐험대 서비스의 데이터가 이 기기와 동기화됩니다.
                     </p>
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5 max-h-40 overflow-y-auto text-xs text-gray-600 leading-relaxed">
-                      Google 서비스를 사용함으로써 귀하는 본 약관을 따르고 Google 개인정보처리방침에 따라 데이터가 처리되는 데 동의합니다. 동기화 가능한 항목: 연락처 · 캘린더 · Gmail · Drive · 사진 · 앱 데이터. 언제든지 설정에서 동기화를 해제할 수 있습니다.
+                      탐험대 서비스를 사용함으로써 귀하는 본 약관을 따르고 탐험대 개인정보처리방침에 따라 데이터가 처리되는 데 동의합니다. 동기화 가능한 항목: 연락처 · 캘린더 · 메일 · 드라이브 · 사진 · 앱 데이터. 언제든지 설정에서 동기화를 해제할 수 있습니다.
                     </div>
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input type="checkbox" checked={googleConsent} onChange={(e) => { setGoogleConsent(e.target.checked); setGoogleError(''); }} className="w-5 h-5 mt-0.5"/>
@@ -3261,10 +3261,10 @@ export default function AndroidExplorer() {
                 {googleLoginStep === 'syncing' && (
                   <div className="flex flex-col items-center justify-center text-center py-16">
                     <div className="w-14 h-14 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
-                    <div className="text-lg font-medium">Google 계정 동기화 중…</div>
-                    <div className="text-sm text-gray-500 mt-2">Gmail · 연락처 · 캘린더 · Drive</div>
+                    <div className="text-lg font-medium">탐험대 계정 동기화 중…</div>
+                    <div className="text-sm text-gray-500 mt-2">메일 · 연락처 · 캘린더 · 드라이브</div>
                     <div className="mt-6 space-y-1.5 text-xs text-gray-600">
-                      {['연락처','캘린더','Gmail','Drive'].map(s => (
+                      {['연락처','캘린더','메일','드라이브'].map(s => (
                         <div key={s} className="flex items-center gap-2"><Check size={12} className="text-green-600"/> {s} 동기화 완료</div>
                       ))}
                     </div>
@@ -3277,7 +3277,7 @@ export default function AndroidExplorer() {
                       <Check size={42} className="text-green-600" strokeWidth={3}/>
                     </div>
                     <h1 className="text-2xl font-normal mb-2">환영합니다, {googleEmail}</h1>
-                    <p className="text-sm text-gray-600 mb-8 max-w-xs">Google 계정이 이 기기에 추가되었어요. Gmail, YouTube 등에 자동으로 로그인됩니다.</p>
+                    <p className="text-sm text-gray-600 mb-8 max-w-xs">탐험대 계정이 이 기기에 추가되었어요. 메일, 튜브 등에 자동으로 로그인됩니다.</p>
                     <ActionTarget
                       id="google-done" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                       onClick={() => {
@@ -3293,7 +3293,7 @@ export default function AndroidExplorer() {
                 {(googleLoginStep === 'email' || googleLoginStep === 'password') && (
                   <div className="mt-8 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed">
                     <div className="font-bold mb-1">💡 학습용 안내</div>
-                    아이디: <span className="font-mono font-bold">wttest@gmail.com</span><br/>
+                    아이디: <span className="font-mono font-bold">wttest@tamhem.com</span><br/>
                     비밀번호: <span className="font-mono font-bold">Ghkdlxld1!</span>
                   </div>
                 )}
@@ -3592,7 +3592,7 @@ export default function AndroidExplorer() {
                 { title: '🔓 기본 조작', range: [0, 7] },
                 { title: '⚙️ 설정 · 디스플레이', range: [7, 13] },
                 { title: '📸 카메라 · 갤러리', range: [13, 23] },
-                { title: '🛍 Play 스토어', range: [23, 30] },
+                { title: '🛍 앱 마켓', range: [23, 30] },
                 { title: '🎛 퀵패널 · 블루투스', range: [30, 40] },
                 { title: '📝 노트 · 마무리', range: [40, 49] },
               ].map((cat) => (
