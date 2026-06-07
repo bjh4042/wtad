@@ -1429,7 +1429,8 @@ export default function AndroidExplorer() {
                     })}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
