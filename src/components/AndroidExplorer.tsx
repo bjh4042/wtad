@@ -1393,11 +1393,14 @@ export default function AndroidExplorer() {
             <h2 className="text-3xl font-medium mb-8 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400"/> 권한 관리자</h2>
             <div className="text-sm text-gray-400 mb-6">앱별로 카메라·위치·마이크 등 권한을 켜거나 끌 수 있어요.</div>
             <div className="space-y-3">
-              {Object.entries(appPermissions).map(([appName, perms]) => (
+              {Object.entries(appPermissions).map(([appName, perms]) => {
+                const APP_DISPLAY: Record<string, string> = { KakaoTalk: '톡톡', PlayStore: '앱 마켓', YouTube: '튜브', Chrome: '웹브라우저', Gmail: '메일' };
+                const display = APP_DISPLAY[appName] || appName;
+                return (
                 <div key={appName} className="bg-[#1c1c1e] rounded-3xl p-5">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-gray-700 flex items-center justify-center font-bold">{appName[0]}</div>
-                    <div className="font-bold text-lg">{appName}</div>
+                    <div className="w-10 h-10 rounded-2xl bg-gray-700 flex items-center justify-center font-bold">{display[0]}</div>
+                    <div className="font-bold text-lg">{display}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(perms).map(([pname, enabled]) => {
