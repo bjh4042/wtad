@@ -71,7 +71,7 @@ const QUESTS = [
   { id: 37, text: "'블루투스' 버튼을 눌러 켜고 기기 목록을 여세요.", targetId: 'quick-bluetooth', exp: 20 },
   { id: 38, text: "'갤럭시 버즈3'를 선택해 페어링하세요.", targetId: 'bt-device-buds', exp: 30 },
   { id: 39, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
-  { id: 40, text: "'Samsung Notes' (빨간 메모) 앱을 실행하세요.", targetId: 'app-icon-Notes', exp: 20 },
+  { id: 40, text: "'메모' (빨간 메모) 앱을 실행하세요.", targetId: 'app-icon-Notes', exp: 20 },
   { id: 41, text: "오른쪽 아래 '+' 버튼을 눌러 새 메모를 만드세요.", targetId: 'notes-new', exp: 20 },
   { id: 42, text: "흰 캔버스 위에 손가락이나 마우스로 자유롭게 그려보세요.", targetId: 'notes-draw', exp: 30 },
   { id: 43, text: "오른쪽 위 '저장' 버튼을 눌러 메모를 보관하세요.", targetId: 'notes-save', exp: 20 },
@@ -811,7 +811,7 @@ export default function AndroidExplorer() {
             <line x1="50" y1="50" x2="72" y2="62" stroke="#111" strokeWidth="3.5" strokeLinecap="round"/>
             <line x1="50" y1="50" x2="34" y2="68" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
             <circle cx="50" cy="50" r="3.5" fill="#ef4444"/></svg></div>); break;
-      case 'Health': name = 'Samsung Health';
+      case 'Health': name = '건강';
         content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#fff 0%,#f1f5f9 100%)' }}>
           <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
             <path d="M 50 82 C 18 60, 18 30, 38 28 C 46 28, 50 34, 50 38 C 50 34, 54 28, 62 28 C 82 30, 82 60, 50 82 Z" fill="#f97316"/>
@@ -823,7 +823,7 @@ export default function AndroidExplorer() {
           <div className="rounded-full" style={{ background: '#EA4335' }}></div>
           <div className="rounded-full" style={{ background: '#FBBC05' }}></div>
           <div className="rounded-full" style={{ background: '#34A853' }}></div></div>); break;
-      case 'Notes': name = 'Samsung Notes';
+      case 'Notes': name = '메모';
         content = (<div className={sq} style={{ background: 'linear-gradient(160deg,#fde68a 0%,#fbbf24 100%)' }}>
           <svg viewBox="0 0 100 100" className="w-[62%] h-[62%]">
             <path d="M 22 12 L 62 12 L 82 32 L 82 88 L 22 88 Z" fill="#fff"/>
@@ -836,7 +836,7 @@ export default function AndroidExplorer() {
             <path d="M 14 36 Q 14 14 50 14 Q 86 14 86 36 L 86 58 Q 86 78 50 78 L 32 88 L 36 76 Q 14 70 14 36 Z" fill="#ffffff"/>
             <circle cx="34" cy="46" r="5.5" fill="#22c55e"/><circle cx="50" cy="46" r="5.5" fill="#22c55e"/><circle cx="66" cy="46" r="5.5" fill="#22c55e"/>
           </svg></div>); break;
-      case 'Internet': name = '삼성 인터넷';
+      case 'Internet': name = '웹브라우저';
         content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#3b82f6 0%,#6366f1 100%)' }}>
           <svg viewBox="0 0 100 100" className="w-[72%] h-[72%]">
             <circle cx="50" cy="50" r="30" fill="#fff"/>
@@ -1229,7 +1229,7 @@ export default function AndroidExplorer() {
         <div className="flex flex-col gap-1 px-2 pb-10">
           <div className="px-3 py-2.5 flex items-center gap-3 bg-[#1c1c1e] rounded-2xl mb-2 cursor-pointer active:scale-[0.98] transition-transform">
             <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center shrink-0"><User size={18} className="text-white"/></div>
-            <div className="flex flex-col min-w-0"><span className="font-semibold text-sm truncate">내 계정</span><span className="text-[11px] text-gray-400 truncate">삼성 계정</span></div>
+            <div className="flex flex-col min-w-0"><span className="font-semibold text-sm truncate">내 계정</span><span className="text-[11px] text-gray-400 truncate">탐험대 계정</span></div>
           </div>
           {SETTINGS_MENUS.filter(m => !settingsSearch || m.title.includes(settingsSearch) || m.sub.includes(settingsSearch)).map((menu) => (
             <ActionTarget
@@ -1440,7 +1440,7 @@ export default function AndroidExplorer() {
             <h2 className="text-3xl font-medium mb-8 text-gray-100 flex items-center gap-4"><ChevronLeft size={28} className="text-gray-400"/> 계정 및 백업</h2>
             <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden mb-4">
               <div className="p-6 border-b border-gray-800">
-                <div className="text-sm text-gray-400 mb-1">Samsung 계정</div>
+                <div className="text-sm text-gray-400 mb-1">탐험대 계정</div>
                 <div className="text-lg font-medium">로그인되지 않음</div>
               </div>
               <div className="p-6">
@@ -2587,7 +2587,7 @@ export default function AndroidExplorer() {
     return (
       <div className="flex-1 bg-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out] relative">
         <div className="px-6 py-4 border-b border-gray-200 shrink-0">
-          <div className="text-3xl font-bold text-gray-900">Samsung Notes</div>
+          <div className="text-3xl font-bold text-gray-900">메모</div>
           <div className="text-sm text-gray-500 mt-1">{notes.length}개의 메모</div>
         </div>
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
