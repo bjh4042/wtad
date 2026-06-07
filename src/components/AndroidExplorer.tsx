@@ -69,7 +69,7 @@ const QUESTS = [
   { id: 35, text: "'스크린샷' 버튼을 눌러 화면을 캡처해보세요.", targetId: 'quick-screenshot', exp: 20 },
   { id: 36, text: "'다크 모드' 버튼을 눌러 어두운 화면으로 바꿔보세요.", targetId: 'quick-darkmode', exp: 20 },
   { id: 37, text: "'블루투스' 버튼을 눌러 켜고 기기 목록을 여세요.", targetId: 'quick-bluetooth', exp: 20 },
-  { id: 38, text: "'갤럭시 버즈3'를 선택해 페어링하세요.", targetId: 'bt-device-buds', exp: 30 },
+  { id: 38, text: "'무선 이어버드'를 선택해 페어링하세요.", targetId: 'bt-device-buds', exp: 30 },
   { id: 39, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 40, text: "'메모' (빨간 아이콘) 앱을 실행하세요.", targetId: 'app-icon-Notes', exp: 20 },
   { id: 41, text: "오른쪽 아래 '+' 버튼을 눌러 새 메모를 만드세요.", targetId: 'notes-new', exp: 20 },
@@ -163,11 +163,11 @@ const WIFI_NETWORKS = [
 ];
 
 const PLAYSTORE_APPS = [
-  { id: 'duolingo', name: '듀오링고', dev: 'Duolingo', color: '#22c55e', label: '🦉' },
-  { id: 'minecraft', name: '마인크래프트', dev: 'Mojang', color: '#15803d', label: '⛏️' },
-  { id: 'classting', name: '클래스팅', dev: 'Classting Inc', color: '#f97316', label: 'C' },
-  { id: 'toss', name: '토스', dev: 'Viva Republica', color: '#2563eb', label: 'T' },
-  { id: 'melon', name: '멜론', dev: 'Kakao', color: '#10b981', label: '♪' },
+  { id: 'duolingo', name: '링고학습', dev: '링고', color: '#22c55e', label: '🦉' },
+  { id: 'minecraft', name: '블록월드', dev: '블록스튜디오', color: '#15803d', label: '⛏️' },
+  { id: 'classting', name: '학교톡', dev: '교실연구소', color: '#f97316', label: 'C' },
+  { id: 'toss', name: '간편페이', dev: '페이랩', color: '#2563eb', label: 'T' },
+  { id: 'melon', name: '뮤직박스', dev: '톡톡뮤직', color: '#10b981', label: '♪' },
 ];
 
 const WIDGET_CATALOG = [
@@ -3005,10 +3005,10 @@ export default function AndroidExplorer() {
                 <div className="text-sm text-gray-400 mb-4">사용 가능한 기기를 검색했어요. 연결할 기기를 선택하세요.</div>
                 <div className="space-y-2">
                   {[
-                    { id: 'bt-device-buds', name: '갤럭시 버즈3', sub: '오디오 · 미연결', icon: '🎧' },
+                    { id: 'bt-device-buds', name: '무선 이어버드', sub: '오디오 · 미연결', icon: '🎧' },
                     { id: 'bt-device-keyboard', name: '무선 키보드', sub: '키보드 · 미연결', icon: '⌨️' },
-                    { id: 'bt-device-watch', name: '갤럭시 워치6', sub: '웨어러블 · 미연결', icon: '⌚' },
-                    { id: 'bt-device-speaker', name: 'JBL 스피커', sub: '오디오 · 미연결', icon: '🔈' },
+                    { id: 'bt-device-watch', name: '스마트워치', sub: '웨어러블 · 미연결', icon: '⌚' },
+                    { id: 'bt-device-speaker', name: '블루투스 스피커', sub: '오디오 · 미연결', icon: '🔈' },
                   ].map(dev => {
                     const connected = connectedBtDevice === dev.name;
                     return (
