@@ -271,13 +271,16 @@ const loadLS = (): any => {
 const DEFAULT_WALLPAPER = 'radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a';
 
 const DEFAULT_HOME_APPS = (() => {
-  const a = Array(24).fill(null);
-  a[8] = 'GameLauncher'; a[9] = 'Store'; a[10] = 'Camera'; a[11] = 'Gallery';
-  a[12] = 'Wearable'; a[13] = 'Calendar'; a[14] = 'Clock'; a[15] = 'Health';
-  a[16] = 'Folder'; a[17] = 'Notes'; a[18] = 'Messages'; a[19] = 'Internet';
-  a[20] = 'PlayStore'; a[21] = 'YouTube'; a[22] = 'KakaoTalk'; a[23] = 'Naver';
-  a[7] = 'Settings';
-  a[6] = 'Calculator';
+  // 8 columns × 5 rows tablet layout
+  const a = Array(40).fill(null);
+  // Row 1
+  a[0] = 'PlayStore'; a[1] = 'Store'; a[2] = 'Notes'; a[3] = 'Folder';
+  a[4] = 'Internet'; a[5] = 'GameLauncher'; a[6] = 'Camera'; a[7] = 'Gallery';
+  // Row 2
+  a[8] = 'Messages'; a[9] = 'KakaoTalk'; a[10] = 'YouTube'; a[11] = 'Naver';
+  a[12] = 'Calculator'; a[13] = 'Calendar'; a[14] = 'Clock'; a[15] = 'Settings';
+  // Row 3
+  a[16] = 'Health'; a[17] = 'Wearable'; a[18] = 'Gmail';
   return a;
 })();
 
