@@ -948,7 +948,7 @@ export default function AndroidExplorer() {
 
   const renderHome = () => (
     <div
-      className="flex-1 pt-16 p-6 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0"
+      className="flex-1 pt-10 md:pt-12 px-2 md:px-4 pb-2 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0"
       style={{ background: wallpaper, backgroundSize: 'cover' }}
       onContextMenu={(e) => { e.preventDefault(); setHomeMenuOpen(true); }}
       onMouseDown={(e) => {
