@@ -971,69 +971,31 @@ export default function AndroidExplorer() {
       }}
       onTouchEnd={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
     >
-      <div className="w-full max-w-xl mx-auto mb-16 bg-white rounded-full h-12 flex items-center px-4 shadow-lg opacity-95 shrink-0 transition-transform active:scale-[0.98]">
-        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 flex items-center justify-center"><div className="w-4 h-4 bg-white rounded-full font-bold text-blue-600 text-[10px] flex items-center justify-center">G</div></div>
-        <div className="flex-1"></div>
-        <Mic size={20} className="text-gray-500" />
-      </div>
-
-      {/* Home widgets row */}
-      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5]">
+      {/* Home widgets row (top, behind status area) */}
+      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5] pointer-events-none">
         {widgets.includes('clock') && (
-          <div className="group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-3 md:py-4 shadow-xl border border-white/20 flex flex-col text-white flex-1 min-w-[150px]">
-            <div className="text-4xl md:text-[64px] font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
-            <div className="text-xs md:text-sm mt-1 md:mt-2 opacity-90 font-medium truncate">{dateStr}</div>
+          <div className="group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-2 md:py-3 shadow-xl border border-white/20 flex flex-col text-white pointer-events-auto">
+            <div className="text-2xl md:text-4xl font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
+            <div className="text-[10px] md:text-xs mt-1 opacity-90 font-medium truncate">{dateStr}</div>
             <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'clock')); }}>×</button>
           </div>
         )}
         {widgets.includes('weather') && (
-          <div className="group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-3 md:py-4 shadow-xl border border-white/20 flex items-center gap-2 md:gap-4 text-white">
-            <Sun size={36} className="md:hidden text-yellow-300 drop-shadow-md"/>
-            <Sun size={56} className="hidden md:block text-yellow-300 drop-shadow-md"/>
+          <div className="group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-2 md:py-3 shadow-xl border border-white/20 flex items-center gap-2 md:gap-3 text-white pointer-events-auto">
+            <Sun size={28} className="text-yellow-300 drop-shadow-md"/>
             <div>
-              <div className="text-xl md:text-3xl font-bold leading-none">21°</div>
-              <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1">서울 · 맑음</div>
-              <div className="hidden md:block text-[11px] opacity-75 mt-0.5">최고 25° / 최저 14°</div>
+              <div className="text-lg md:text-2xl font-bold leading-none">21°</div>
+              <div className="text-[10px] opacity-90 mt-0.5">서울 · 맑음</div>
             </div>
             <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'weather')); }}>×</button>
           </div>
         )}
-        {widgets.includes('calendar') && (
-          <div className="group relative hidden md:flex bg-white/15 backdrop-blur-md rounded-3xl px-5 py-4 shadow-xl border border-white/20 flex-col items-center text-white min-w-[100px]">
-            <div className="text-[11px] uppercase tracking-widest text-red-300 font-bold">{time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }) : ''}</div>
-            <div className="text-5xl font-bold leading-none mt-1">{time ? time.getDate() : ''}</div>
-            <div className="text-[11px] opacity-80 mt-1">{time ? `${time.getMonth() + 1}월` : ''}</div>
-            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'calendar')); }}>×</button>
-          </div>
-        )}
-        {widgets.includes('music') && (
-          <div className="group relative bg-purple-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 py-3 shadow-xl border border-white/20 flex items-center gap-3 text-white min-w-[180px]">
-            <div className="w-10 h-10 rounded-lg bg-white/30 flex items-center justify-center text-2xl">🎵</div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold truncate">동요 메들리</div>
-              <div className="text-[11px] opacity-80 truncate">아이유 · 좋은 날</div>
-            </div>
-            <Play size={20} className="text-white"/>
-            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'music')); }}>×</button>
-          </div>
-        )}
-        {widgets.includes('fitness') && (
-          <div className="group relative bg-emerald-500/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 py-3 shadow-xl border border-white/20 flex items-center gap-3 text-white min-w-[160px]">
-            <div className="text-3xl">👟</div>
-            <div>
-              <div className="text-2xl font-bold leading-none">3,248</div>
-              <div className="text-[10px] opacity-90 mt-1">걸음 / 오늘</div>
-            </div>
-            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'fitness')); }}>×</button>
-          </div>
-        )}
       </div>
 
-
-      <div className="flex-1 flex flex-col justify-end pb-8">
-        <div className={`grid gap-y-6 md:gap-y-10 gap-x-3 md:gap-x-6 px-3 md:px-8 w-full max-w-[1200px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}>
+      {/* App grid — fills the screen like real tablet */}
+      <div className="flex-1 flex flex-col justify-center pt-8 md:pt-20 pb-4 min-h-0">
+        <div className={`grid gap-y-3 md:gap-y-5 gap-x-1 md:gap-x-2 px-2 md:px-6 w-full max-w-[1200px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}>
           {(() => {
-            // 설치된 앱(math + 플레이스토어 앱)을 빈 슬롯에 채워 그리드가 어긋나지 않게 표시
             const slots: any[] = [...homeApps];
             const extras: string[] = [];
             if (installedApps.includes('math') && !isEditMode) extras.push('__math');
@@ -1048,10 +1010,10 @@ export default function AndroidExplorer() {
                   <ActionTarget
                     key={`math-${index}`} id="app-icon-math" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                     onClick={() => setMathAppOpen(true)}
-                    className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20"
+                    className="flex flex-col items-center gap-1.5 cursor-pointer group w-[64px] md:w-[88px]"
                   >
-                    <div className="w-[72px] h-[72px] md:w-20 md:h-20 bg-yellow-400 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl transition-transform group-hover:scale-105 active:scale-95">1+2</div>
-                    <span className="text-white text-sm font-medium drop-shadow-md truncate w-full text-center">수학탐험대</span>
+                    <div className="w-[56px] h-[56px] md:w-[64px] md:h-[64px] bg-yellow-400 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-2xl transition-transform group-hover:scale-105 active:scale-95">1+2</div>
+                    <span className="text-white text-[11px] md:text-[12px] font-medium drop-shadow-md truncate w-full text-center">수학탐험대</span>
                   </ActionTarget>
                 );
               }
@@ -1060,9 +1022,9 @@ export default function AndroidExplorer() {
                 const app = PLAYSTORE_APPS.find(a => a.id === id);
                 if (!app) return null;
                 return (
-                  <div key={`ps-${index}`} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} className="flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 active:scale-95 transition-transform">
-                    <div className="w-[72px] h-[72px] md:w-20 md:h-20 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl group-hover:scale-105 transition-transform" style={{ background: app.color }}>{app.label}</div>
-                    <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{app.name}</span>
+                  <div key={`ps-${index}`} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} className="flex flex-col items-center gap-1.5 cursor-pointer group w-[64px] md:w-[88px] active:scale-95 transition-transform">
+                    <div className="w-[56px] h-[56px] md:w-[64px] md:h-[64px] rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-2xl group-hover:scale-105 transition-transform" style={{ background: app.color }}>{app.label}</div>
+                    <span className="text-white text-[11px] md:text-[12px] font-medium drop-shadow-md truncate w-full text-center">{app.name}</span>
                   </div>
                 );
               }
@@ -1070,7 +1032,7 @@ export default function AndroidExplorer() {
               return (
                 <ActionTarget
                   key={index} id={`empty-slot-${index}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  className={`w-[72px] h-[72px] md:w-20 md:h-20 ${isEditMode ? 'border-2 border-dashed border-white/50 rounded-[1.25rem] bg-white/10 transition-colors' : ''}`}
+                  className={`w-[56px] h-[56px] md:w-[64px] md:h-[64px] ${isEditMode ? 'border-2 border-dashed border-white/50 rounded-[1.25rem] bg-white/10 transition-colors' : ''}`}
                 ><div data-slot-idx={index} className="w-full h-full"></div></ActionTarget>
               );
             });
@@ -1078,11 +1040,17 @@ export default function AndroidExplorer() {
         </div>
       </div>
 
+      {/* Bottom search bar (Samsung Finder style) */}
+      <div className="w-full max-w-xl mx-auto mb-3 bg-white/90 rounded-full h-11 md:h-12 flex items-center px-5 shadow-lg shrink-0 transition-transform active:scale-[0.98]">
+        <span className="text-gray-500 text-sm flex-1">검색</span>
+        <Mic size={18} className="text-gray-500" />
+      </div>
 
-      <div className="absolute bottom-6 w-full flex justify-center gap-2 left-0">
+      <div className="absolute bottom-14 w-full flex justify-center gap-2 left-0">
         <div className="w-2 h-2 bg-white rounded-full"></div>
         <div className="w-2 h-2 bg-white/40 rounded-full"></div>
       </div>
+
 
       {/* App drawer pull-up handle */}
       <div
