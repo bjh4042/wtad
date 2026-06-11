@@ -567,11 +567,11 @@ export default function AndroidExplorer() {
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
-        questIdx, exp, completedQuests, installedApps, homeApps,
-        wallpaper, darkMode, fontScale, widgets, themeColor,
+        questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes,
+        wallpaper, darkMode, fontScale, themeColor,
       }));
     } catch {}
-  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
+  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes, wallpaper, darkMode, fontScale, themeColor]);
 
 
 
