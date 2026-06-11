@@ -127,7 +127,16 @@ const QUESTS = [
   { id: 85, text: "사진 한 장을 선택해 크게 보세요.", targetId: 'gallery-photo-0', exp: 10 },
   { id: 86, text: "'+' 버튼을 눌러 사진을 확대하세요.", targetId: 'photo-zoom-in', exp: 20 },
   { id: 87, text: "'−' 버튼을 눌러 사진을 다시 축소하세요.", targetId: 'photo-zoom-out', exp: 20 },
-  { id: 88, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  // ===== 인터넷 & 검색 (삼성 인터넷) =====
+  { id: 88, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
+  { id: 89, text: "바탕화면에서 '인터넷' 앱을 실행하세요.", targetId: 'app-icon-Internet', exp: 20 },
+  { id: 90, text: "상단 주소창을 눌러 검색을 시작하세요.", targetId: 'internet-address-bar', exp: 20 },
+  { id: 91, text: "추천 검색어 '초등학교'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
+  { id: 92, text: "주소창 옆 별(☆) 아이콘을 눌러 이 페이지를 즐겨찾기에 추가하세요.", targetId: 'internet-bookmark-add', exp: 30 },
+  { id: 93, text: "하단의 탭(□) 버튼을 눌러 탭 목록을 여세요.", targetId: 'internet-tabs-button', exp: 20 },
+  { id: 94, text: "'+ 새 탭' 버튼을 눌러 새로운 탭을 여세요.", targetId: 'internet-newtab', exp: 20 },
+  { id: 95, text: "첫 번째 탭의 'X' 버튼을 눌러 탭을 닫으세요.", targetId: 'internet-tab-close-1', exp: 20 },
+  { id: 96, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 
 ];
 
