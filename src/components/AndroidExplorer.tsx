@@ -312,7 +312,20 @@ export default function AndroidExplorer() {
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
-  const [homeApps, setHomeApps] = useState<any[]>(DEFAULT_HOME_APPS);
+  const [homePages, setHomePages] = useState<any[][]>([DEFAULT_HOME_APPS, Array(40).fill(null)]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const homeApps = homePages[currentPage] ?? Array(40).fill(null);
+  const setHomeApps: any = (updater: any) => {
+    setHomePages(prev => {
+      const next = prev.map(p => [...p]);
+      const idx = Math.min(currentPage, next.length - 1);
+      next[idx] = typeof updater === 'function' ? updater(prev[idx]) : updater;
+      return next;
+    });
+  };
+  const [pageSwipeStart, setPageSwipeStart] = useState<{ x: number; y: number } | null>(null);
+  const [pageSwipeDX, setPageSwipeDX] = useState(0);
+  const [homeFlashKey, setHomeFlashKey] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [appContextMenu, setAppContextMenu] = useState<{ appName: string; index: number } | null>(null);
   const pressTimer = useRef<any>(null);
