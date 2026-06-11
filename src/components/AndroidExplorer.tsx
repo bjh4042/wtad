@@ -357,6 +357,15 @@ export default function AndroidExplorer() {
   const [keyboardShift, setKeyboardShift] = useState(false);
   const [typingIndex, setTypingIndex] = useState(0);
 
+  // 삼성 인터넷 앱
+  type InternetTab = { id: number; title: string; url: string; view: 'newtab' | 'results' };
+  const [internetTabs, setInternetTabs] = useState<InternetTab[]>([{ id: 1, title: '새 탭', url: '', view: 'newtab' }]);
+  const [internetActiveTabId, setInternetActiveTabId] = useState<number>(1);
+  const [internetUrlPanelOpen, setInternetUrlPanelOpen] = useState(false);
+  const [internetTabSwitcherOpen, setInternetTabSwitcherOpen] = useState(false);
+  const [internetBookmarks, setInternetBookmarks] = useState<{ title: string; url: string }[]>([]);
+  const [internetMenuOpen, setInternetMenuOpen] = useState(false);
+
   const [viewPhoto, setViewPhoto] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
