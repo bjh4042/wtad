@@ -509,10 +509,13 @@ export default function AndroidExplorer() {
     const saved = loadLS();
     setInstalledApps(saved.installedApps ?? []);
     setWallpaper(saved.wallpaper ?? DEFAULT_WALLPAPER);
-    setHomeApps(saved.homeApps ?? DEFAULT_HOME_APPS);
+    const loadedPages = saved.homePages ?? (saved.homeApps ? [saved.homeApps, Array(40).fill(null)] : [DEFAULT_HOME_APPS, Array(40).fill(null)]);
+    setHomePages(loadedPages);
     setDarkMode(saved.darkMode ?? false);
     setFontScale(saved.fontScale ?? 1);
-    setWidgets(saved.widgets ?? ['clock', 'weather', 'calendar']);
+    const loadedWPages = saved.widgetPages ?? (saved.widgets ? [saved.widgets, []] : [['clock', 'weather', 'calendar'], []]);
+    setWidgetPages(loadedWPages);
+    setWidgetSizes(saved.widgetSizes ?? {});
     setThemeColor(saved.themeColor ?? '#3b82f6');
     setQuestIdx(saved.questIdx ?? 0);
     setExp(saved.exp ?? 0);
