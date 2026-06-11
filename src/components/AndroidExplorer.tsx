@@ -312,7 +312,20 @@ export default function AndroidExplorer() {
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
-  const [homeApps, setHomeApps] = useState<any[]>(DEFAULT_HOME_APPS);
+  const [homePages, setHomePages] = useState<any[][]>([DEFAULT_HOME_APPS, Array(40).fill(null)]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const homeApps = homePages[currentPage] ?? Array(40).fill(null);
+  const setHomeApps: any = (updater: any) => {
+    setHomePages(prev => {
+      const next = prev.map(p => [...p]);
+      const idx = Math.min(currentPage, next.length - 1);
+      next[idx] = typeof updater === 'function' ? updater(prev[idx]) : updater;
+      return next;
+    });
+  };
+  const [pageSwipeStart, setPageSwipeStart] = useState<{ x: number; y: number } | null>(null);
+  const [pageSwipeDX, setPageSwipeDX] = useState(0);
+  const [homeFlashKey, setHomeFlashKey] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [appContextMenu, setAppContextMenu] = useState<{ appName: string; index: number } | null>(null);
   const pressTimer = useRef<any>(null);
@@ -346,7 +359,17 @@ export default function AndroidExplorer() {
   const [lockOffset, setLockOffset] = useState(0);
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [widgets, setWidgets] = useState<string[]>(['clock', 'weather', 'calendar']);
+  const [widgetPages, setWidgetPages] = useState<string[][]>([['clock', 'weather', 'calendar'], []]);
+  const widgets = widgetPages[currentPage] ?? [];
+  const setWidgets: any = (updater: any) => {
+    setWidgetPages(prev => {
+      const next = prev.map(p => [...p]);
+      const idx = Math.min(currentPage, next.length - 1);
+      next[idx] = typeof updater === 'function' ? updater(prev[idx]) : updater;
+      return next;
+    });
+  };
+  const [widgetSizes, setWidgetSizes] = useState<Record<string, 'sm' | 'md' | 'lg'>>({});
 
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [homeMenuOpen, setHomeMenuOpen] = useState(false);
@@ -486,10 +509,13 @@ export default function AndroidExplorer() {
     const saved = loadLS();
     setInstalledApps(saved.installedApps ?? []);
     setWallpaper(saved.wallpaper ?? DEFAULT_WALLPAPER);
-    setHomeApps(saved.homeApps ?? DEFAULT_HOME_APPS);
+    const loadedPages = saved.homePages ?? (saved.homeApps ? [saved.homeApps, Array(40).fill(null)] : [DEFAULT_HOME_APPS, Array(40).fill(null)]);
+    setHomePages(loadedPages);
     setDarkMode(saved.darkMode ?? false);
     setFontScale(saved.fontScale ?? 1);
-    setWidgets(saved.widgets ?? ['clock', 'weather', 'calendar']);
+    const loadedWPages = saved.widgetPages ?? (saved.widgets ? [saved.widgets, []] : [['clock', 'weather', 'calendar'], []]);
+    setWidgetPages(loadedWPages);
+    setWidgetSizes(saved.widgetSizes ?? {});
     setThemeColor(saved.themeColor ?? '#3b82f6');
     setQuestIdx(saved.questIdx ?? 0);
     setExp(saved.exp ?? 0);
@@ -541,11 +567,11 @@ export default function AndroidExplorer() {
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({
-        questIdx, exp, completedQuests, installedApps, homeApps,
-        wallpaper, darkMode, fontScale, widgets, themeColor,
+        questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes,
+        wallpaper, darkMode, fontScale, themeColor,
       }));
     } catch {}
-  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homeApps, wallpaper, darkMode, fontScale, widgets, themeColor]);
+  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes, wallpaper, darkMode, fontScale, themeColor]);
 
 
 
@@ -580,8 +606,8 @@ export default function AndroidExplorer() {
       try { localStorage.removeItem(LS_KEY); } catch {}
     }
     setQuestIdx(0); setExp(0); setCompletedQuests([]);
-    setInstalledApps([]); setHomeApps(DEFAULT_HOME_APPS); setWallpaper(DEFAULT_WALLPAPER);
-    setDarkMode(false); setFontScale(1); setWidgets(['clock', 'weather', 'calendar']);
+    setInstalledApps([]); setHomePages([DEFAULT_HOME_APPS, Array(40).fill(null)]); setCurrentPage(0); setWallpaper(DEFAULT_WALLPAPER);
+    setDarkMode(false); setFontScale(1); setWidgetPages([['clock', 'weather', 'calendar'], []]); setWidgetSizes({});
     setThemeColor('#3b82f6'); setLocked(true);
   };
   const gotoQuest = (idx: number) => {
@@ -689,13 +715,11 @@ export default function AndroidExplorer() {
   const handleAppPressStart = (appName, index?: number) => {
     if (isEditMode) return;
     pressTimer.current = setTimeout(() => {
+      setIsEditMode(true);
       if (appName === 'Camera' && currentTargetId === 'app-icon-Camera-long-press') {
-        setIsEditMode(true);
         advanceQuest('app-icon-Camera-long-press');
-      } else {
-        setAppContextMenu({ appName, index: index ?? -1 });
       }
-    }, 600);
+    }, 550);
   };
 
   const handleAppPressEnd = () => { if (pressTimer.current) clearTimeout(pressTimer.current); };
@@ -946,60 +970,149 @@ export default function AndroidExplorer() {
   };
 
 
+  const cycleWidgetSize = (id: string) => {
+    setWidgetSizes(prev => {
+      const cur = prev[id] ?? 'sm';
+      const next = cur === 'sm' ? 'md' : cur === 'md' ? 'lg' : 'sm';
+      return { ...prev, [id]: next };
+    });
+  };
+  const widgetSizeClass = (id: string) => {
+    const s = widgetSizes[id] ?? 'sm';
+    if (s === 'lg') return 'scale-125 origin-top-left';
+    if (s === 'md') return 'scale-110 origin-top-left';
+    return '';
+  };
+
   const renderHome = () => (
     <div
-      className="flex-1 pt-10 md:pt-12 px-2 md:px-4 pb-2 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0"
+      key={`home-flash-${homeFlashKey}`}
+      className="flex-1 pt-10 md:pt-12 px-2 md:px-4 pb-2 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0 animate-app-enter"
       style={{ background: wallpaper, backgroundSize: 'cover' }}
       onContextMenu={(e) => { e.preventDefault(); setHomeMenuOpen(true); }}
       onMouseDown={(e) => {
         if (isEditMode) return;
         const target = e.target as HTMLElement;
         if (target.closest('[data-slot-idx]') || target.closest('button')) return;
+        setPageSwipeStart({ x: e.clientX, y: e.clientY });
         if (homeLongPressTimer) clearTimeout(homeLongPressTimer);
         const t = setTimeout(() => setHomeMenuOpen(true), 700);
         setHomeLongPressTimer(t);
       }}
-      onMouseUp={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
-      onMouseLeave={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+      onMouseMove={(e) => {
+        if (pageSwipeStart) setPageSwipeDX(e.clientX - pageSwipeStart.x);
+      }}
+      onMouseUp={() => {
+        if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); }
+        if (pageSwipeStart && Math.abs(pageSwipeDX) > 90) {
+          if (pageSwipeDX < 0 && currentPage < homePages.length - 1) setCurrentPage(currentPage + 1);
+          else if (pageSwipeDX > 0 && currentPage > 0) setCurrentPage(currentPage - 1);
+        }
+        setPageSwipeStart(null); setPageSwipeDX(0);
+      }}
+      onMouseLeave={() => {
+        if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); }
+        setPageSwipeStart(null); setPageSwipeDX(0);
+      }}
       onTouchStart={(e) => {
-        if (isEditMode) return;
         const target = e.target as HTMLElement;
-        if (target.closest('[data-slot-idx]') || target.closest('button')) return;
+        if (target.closest('button')) return;
+        setPageSwipeStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+        if (isEditMode) return;
+        if (target.closest('[data-slot-idx]')) return;
         if (homeLongPressTimer) clearTimeout(homeLongPressTimer);
         const t = setTimeout(() => setHomeMenuOpen(true), 700);
         setHomeLongPressTimer(t);
       }}
-      onTouchEnd={() => { if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); } }}
+      onTouchMove={(e) => {
+        if (pageSwipeStart) {
+          const dx = e.touches[0].clientX - pageSwipeStart.x;
+          const dy = e.touches[0].clientY - pageSwipeStart.y;
+          if (Math.abs(dx) > Math.abs(dy)) setPageSwipeDX(dx);
+        }
+      }}
+      onTouchEnd={() => {
+        if (homeLongPressTimer) { clearTimeout(homeLongPressTimer); setHomeLongPressTimer(null); }
+        if (pageSwipeStart && Math.abs(pageSwipeDX) > 60) {
+          if (pageSwipeDX < 0 && currentPage < homePages.length - 1) setCurrentPage(currentPage + 1);
+          else if (pageSwipeDX > 0 && currentPage > 0) setCurrentPage(currentPage - 1);
+        }
+        setPageSwipeStart(null); setPageSwipeDX(0);
+      }}
     >
-      {/* Home widgets row (top, behind status area) */}
-      <div className="absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5] pointer-events-none">
+      {/* Edit mode top bar */}
+      {isEditMode && (
+        <div className="absolute top-2 left-0 right-0 z-[20] flex items-center justify-center gap-2 px-3 animate-[fadeIn_0.2s_ease-out]">
+          <button onClick={() => setWidgetPickerOpen(true)} className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur text-white text-xs font-medium active:scale-95">＋ 위젯</button>
+          <button onClick={() => { setHomePages(p => [...p, Array(40).fill(null)]); setWidgetPages(p => [...p, []]); setCurrentPage(homePages.length); }} className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur text-white text-xs font-medium active:scale-95">＋ 페이지</button>
+          {homePages.length > 1 && (
+            <button onClick={() => {
+              const idx = currentPage;
+              setHomePages(p => p.filter((_, i) => i !== idx));
+              setWidgetPages(p => p.filter((_, i) => i !== idx));
+              setCurrentPage(Math.max(0, idx - 1));
+            }} className="px-3 py-1.5 rounded-full bg-red-500/80 text-white text-xs font-medium active:scale-95">페이지 삭제</button>
+          )}
+          <button onClick={() => setIsEditMode(false)} className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-xs font-bold active:scale-95">완료</button>
+        </div>
+      )}
+
+      {/* Page slider wrapper — animates between pages */}
+      <div
+        className="absolute inset-0 flex flex-col transition-transform"
+        style={{
+          transform: `translateX(${pageSwipeStart ? pageSwipeDX * 0.4 : 0}px)`,
+          transitionDuration: pageSwipeStart ? '0ms' : '250ms',
+        }}
+      >
+      {/* Home widgets row */}
+      <div className={`absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5] ${isEditMode ? '' : 'pointer-events-none'}`}>
         {widgets.includes('clock') && (
-          <div className="group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-2 md:py-3 shadow-xl border border-white/20 flex flex-col text-white pointer-events-auto">
+          <div onClick={() => isEditMode && cycleWidgetSize('clock')} className={`group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-2 md:py-3 shadow-xl border border-white/20 flex flex-col text-white pointer-events-auto transition-transform ${widgetSizeClass('clock')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <div className="text-2xl md:text-4xl font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
             <div className="text-[10px] md:text-xs mt-1 opacity-90 font-medium truncate">{dateStr}</div>
-            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'clock')); }}>×</button>
+            {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'clock')); }}>×</button>}
           </div>
         )}
         {widgets.includes('weather') && (
-          <div className="group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-2 md:py-3 shadow-xl border border-white/20 flex items-center gap-2 md:gap-3 text-white pointer-events-auto">
+          <div onClick={() => isEditMode && cycleWidgetSize('weather')} className={`group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-2 md:py-3 shadow-xl border border-white/20 flex items-center gap-2 md:gap-3 text-white pointer-events-auto transition-transform ${widgetSizeClass('weather')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <Sun size={28} className="text-yellow-300 drop-shadow-md"/>
             <div>
               <div className="text-lg md:text-2xl font-bold leading-none">21°</div>
               <div className="text-[10px] opacity-90 mt-0.5">서울 · 맑음</div>
             </div>
-            <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs hidden group-hover:flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'weather')); }}>×</button>
+            {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'weather')); }}>×</button>}
+          </div>
+        )}
+        {widgets.includes('calendar') && (
+          <div onClick={() => isEditMode && cycleWidgetSize('calendar')} className={`group relative bg-white/15 backdrop-blur-md rounded-2xl px-3 py-2 shadow-xl border border-white/20 text-white pointer-events-auto transition-transform ${widgetSizeClass('calendar')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+            <div className="text-[10px] opacity-80">{time ? time.toLocaleDateString('ko-KR', { weekday: 'long' }) : ''}</div>
+            <div className="text-2xl font-bold leading-none">{time ? time.getDate() : ''}</div>
+            {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'calendar')); }}>×</button>}
+          </div>
+        )}
+        {widgets.includes('music') && (
+          <div onClick={() => isEditMode && cycleWidgetSize('music')} className={`group relative bg-gradient-to-br from-pink-500/40 to-purple-600/40 backdrop-blur-md rounded-2xl px-3 py-2 shadow-xl border border-white/20 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('music')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+            <div className="text-2xl">🎵</div><div className="text-xs">재생 중</div>
+            {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'music')); }}>×</button>}
+          </div>
+        )}
+        {widgets.includes('fitness') && (
+          <div onClick={() => isEditMode && cycleWidgetSize('fitness')} className={`group relative bg-gradient-to-br from-green-500/40 to-emerald-600/40 backdrop-blur-md rounded-2xl px-3 py-2 shadow-xl border border-white/20 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('fitness')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+            <div className="text-2xl">👟</div><div className="text-xs">5,280 걸음</div>
+            {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'fitness')); }}>×</button>}
           </div>
         )}
       </div>
 
       {/* App grid — fills the screen like real tablet */}
-      <div className="flex-1 flex flex-col justify-center pt-8 md:pt-20 pb-4 min-h-0">
+      <div key={`page-${currentPage}`} className="flex-1 flex flex-col justify-center pt-8 md:pt-20 pb-4 min-h-0 animate-[fadeIn_0.25s_ease-out]">
         <div className={`grid gap-y-3 md:gap-y-5 gap-x-1 md:gap-x-2 px-2 md:px-6 w-full max-w-[1200px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}>
           {(() => {
             const slots: any[] = [...homeApps];
             const extras: string[] = [];
-            if (installedApps.includes('math') && !isEditMode) extras.push('__math');
-            PLAYSTORE_APPS.forEach(a => { if (installedApps.includes(a.id)) extras.push(`__ps:${a.id}`); });
+            if (currentPage === 0 && installedApps.includes('math') && !isEditMode) extras.push('__math');
+            if (currentPage === 0) PLAYSTORE_APPS.forEach(a => { if (installedApps.includes(a.id)) extras.push(`__ps:${a.id}`); });
             for (const ex of extras) {
               const i = slots.indexOf(null);
               if (i >= 0) slots[i] = ex; else slots.push(ex);
@@ -1047,9 +1160,16 @@ export default function AndroidExplorer() {
       </div>
 
       <div className="absolute bottom-14 w-full flex justify-center gap-2 left-0">
-        <div className="w-2 h-2 bg-white rounded-full"></div>
-        <div className="w-2 h-2 bg-white/40 rounded-full"></div>
+        {homePages.map((_, i) => (
+          <button
+            key={i}
+            onClick={(e) => { e.stopPropagation(); setCurrentPage(i); }}
+            className={`h-2 rounded-full transition-all ${i === currentPage ? 'w-6 bg-white' : 'w-2 bg-white/40'}`}
+          />
+        ))}
       </div>
+      </div>
+
 
 
       {/* App drawer pull-up handle */}
@@ -2605,6 +2725,7 @@ export default function AndroidExplorer() {
           setCurrentApp(null); setQuickPanelOpen(false); setIsEditMode(false); setKeyboardOpen(false);
           setSearchText(''); setIsSearched(false); setTypingIndex(0); setKeyboardShift(false); setMathAppOpen(false);
           setPlayStoreView('home'); setPlayStoreProfileOpen(false);
+          setCurrentPage(0); setHomeFlashKey(k => k + 1); setAppLaunchKey(k => k + 1);
         }}
         className="w-24 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all"
       >
