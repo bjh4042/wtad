@@ -3957,7 +3957,12 @@ export default function AndroidExplorer() {
                 { title: '📸 카메라 · 갤러리', range: [13, 23] },
                 { title: '🛍 앱 마켓', range: [23, 30] },
                 { title: '🎛 퀵패널 · 블루투스', range: [30, 40] },
-                { title: '📝 노트 · 마무리', range: [40, 49] },
+                { title: '📝 노트 · 글자크기', range: [40, 48] },
+                { title: '🔔 알림 · 권한', range: [48, 56] },
+                { title: '👤 계정 · 업데이트', range: [56, 75] },
+                { title: '🧮 계산기 · 갤러리', range: [75, 88] },
+                { title: '🌐 인터넷 · 검색', range: [88, 96] },
+                { title: '🎉 마무리', range: [96, 97] },
               ].map((cat) => (
                 <div key={cat.title} className="mb-3">
                   <div className="text-xs font-bold text-gray-700 mb-1.5 px-1">{cat.title}</div>
