@@ -359,7 +359,17 @@ export default function AndroidExplorer() {
   const [lockOffset, setLockOffset] = useState(0);
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [widgets, setWidgets] = useState<string[]>(['clock', 'weather', 'calendar']);
+  const [widgetPages, setWidgetPages] = useState<string[][]>([['clock', 'weather', 'calendar'], []]);
+  const widgets = widgetPages[currentPage] ?? [];
+  const setWidgets: any = (updater: any) => {
+    setWidgetPages(prev => {
+      const next = prev.map(p => [...p]);
+      const idx = Math.min(currentPage, next.length - 1);
+      next[idx] = typeof updater === 'function' ? updater(prev[idx]) : updater;
+      return next;
+    });
+  };
+  const [widgetSizes, setWidgetSizes] = useState<Record<string, 'sm' | 'md' | 'lg'>>({});
 
   const [widgetPickerOpen, setWidgetPickerOpen] = useState(false);
   const [homeMenuOpen, setHomeMenuOpen] = useState(false);
