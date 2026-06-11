@@ -881,7 +881,7 @@ export default function AndroidExplorer() {
             <path d="M 14 36 Q 14 14 50 14 Q 86 14 86 36 L 86 58 Q 86 78 50 78 L 32 88 L 36 76 Q 14 70 14 36 Z" fill="#ffffff"/>
             <circle cx="34" cy="46" r="5.5" fill="#22c55e"/><circle cx="50" cy="46" r="5.5" fill="#22c55e"/><circle cx="66" cy="46" r="5.5" fill="#22c55e"/>
           </svg></div>); break;
-      case 'Internet': name = '웹브라우저';
+      case 'Internet': name = '인터넷';
         content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#3b82f6 0%,#6366f1 100%)' }}>
           <svg viewBox="0 0 100 100" className="w-[72%] h-[72%]">
             <circle cx="50" cy="50" r="30" fill="#fff"/>
