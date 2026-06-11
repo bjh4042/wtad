@@ -715,13 +715,11 @@ export default function AndroidExplorer() {
   const handleAppPressStart = (appName, index?: number) => {
     if (isEditMode) return;
     pressTimer.current = setTimeout(() => {
+      setIsEditMode(true);
       if (appName === 'Camera' && currentTargetId === 'app-icon-Camera-long-press') {
-        setIsEditMode(true);
         advanceQuest('app-icon-Camera-long-press');
-      } else {
-        setAppContextMenu({ appName, index: index ?? -1 });
       }
-    }, 600);
+    }, 550);
   };
 
   const handleAppPressEnd = () => { if (pressTimer.current) clearTimeout(pressTimer.current); };
