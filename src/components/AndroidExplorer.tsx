@@ -2725,6 +2725,7 @@ export default function AndroidExplorer() {
           setCurrentApp(null); setQuickPanelOpen(false); setIsEditMode(false); setKeyboardOpen(false);
           setSearchText(''); setIsSearched(false); setTypingIndex(0); setKeyboardShift(false); setMathAppOpen(false);
           setPlayStoreView('home'); setPlayStoreProfileOpen(false);
+          setCurrentPage(0); setHomeFlashKey(k => k + 1); setAppLaunchKey(k => k + 1);
         }}
         className="w-24 h-full flex justify-center items-center cursor-pointer opacity-70 hover:opacity-100 active:scale-90 transition-all"
       >
