@@ -606,8 +606,8 @@ export default function AndroidExplorer() {
       try { localStorage.removeItem(LS_KEY); } catch {}
     }
     setQuestIdx(0); setExp(0); setCompletedQuests([]);
-    setInstalledApps([]); setHomeApps(DEFAULT_HOME_APPS); setWallpaper(DEFAULT_WALLPAPER);
-    setDarkMode(false); setFontScale(1); setWidgets(['clock', 'weather', 'calendar']);
+    setInstalledApps([]); setHomePages([DEFAULT_HOME_APPS, Array(40).fill(null)]); setCurrentPage(0); setWallpaper(DEFAULT_WALLPAPER);
+    setDarkMode(false); setFontScale(1); setWidgetPages([['clock', 'weather', 'calendar'], []]); setWidgetSizes({});
     setThemeColor('#3b82f6'); setLocked(true);
   };
   const gotoQuest = (idx: number) => {
