@@ -2823,9 +2823,15 @@ export default function AndroidExplorer() {
       <div className="flex-1 bg-[#f1f3f4] flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out] relative">
         {/* 상단 주소창 */}
         <div className="shrink-0 bg-white border-b border-gray-200 px-3 py-2 flex items-center gap-2 shadow-sm">
-          <button className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700" title="뒤로">
-            <ChevronLeft size={22}/>
-          </button>
+          <ActionTarget id="internet-back" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={goBack}>
+            <button
+              disabled={!canGoBack}
+              className={`w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center ${canGoBack ? 'text-gray-700' : 'text-gray-300'}`}
+              title="뒤로"
+            >
+              <ChevronLeft size={22}/>
+            </button>
+          </ActionTarget>
           <ActionTarget
             id="internet-address-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
             onClick={() => setInternetUrlPanelOpen(true)}
