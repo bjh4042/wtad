@@ -3039,8 +3039,8 @@ export default function AndroidExplorer() {
         }
         @keyframes rewardPop {
           0% { transform: translate(-50%, -10%) scale(0.5); opacity: 0; }
-          25% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
-          75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+          12% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+          88% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
           100% { transform: translate(-50%, -90%) scale(0.95); opacity: 0; }
         }
         @keyframes levelUpFlash {
