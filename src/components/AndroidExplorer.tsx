@@ -2996,40 +2996,80 @@ export default function AndroidExplorer() {
           </button>
         </div>
 
-        {/* 주소창 패널 (검색 제안) */}
-        {internetUrlPanelOpen && (
-          <div className="absolute inset-0 z-[90] bg-white animate-[fadeIn_0.18s_ease-out] flex flex-col pt-8">
-            <div className="shrink-0 bg-white border-b border-gray-200 px-3 py-2 flex items-center gap-2">
-              <button onClick={() => setInternetUrlPanelOpen(false)} className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700">
-                <ChevronLeft size={22}/>
-              </button>
-              <div className="flex-1 h-10 bg-[#f1f3f4] rounded-full flex items-center gap-2 px-4">
-                <Search size={16} className="text-gray-500 shrink-0"/>
-                <div className="flex-1 text-[14px] text-gray-400">검색어 또는 웹 주소 입력</div>
+        {/* 주소창 패널 (가상 키보드 + 검색 제안) */}
+        {internetUrlPanelOpen && (() => {
+          const rows = internetKbShift
+            ? [['Q','W','E','R','T','Y','U','I','O','P'], ['A','S','D','F','G','H','J','K','L'], ['Z','X','C','V','B','N','M']]
+            : [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l'], ['z','x','c','v','b','n','m']];
+          const appendKb = (ch: string) => setInternetKbInput(v => v + ch);
+          const backspaceKb = () => setInternetKbInput(v => v.slice(0, -1));
+          return (
+            <div className="absolute inset-0 z-[90] bg-white animate-[fadeIn_0.18s_ease-out] flex flex-col pt-8">
+              <div className="shrink-0 bg-white border-b border-gray-200 px-3 py-2 flex items-center gap-2">
+                <button onClick={() => { setInternetUrlPanelOpen(false); setInternetKbInput(''); }} className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700">
+                  <ChevronLeft size={22}/>
+                </button>
+                <div className="flex-1 h-10 bg-[#f1f3f4] rounded-full flex items-center gap-2 px-4">
+                  <Search size={16} className="text-gray-500 shrink-0"/>
+                  <div className="flex-1 text-[14px] text-gray-800 truncate">
+                    {internetKbInput || <span className="text-gray-400">검색어 또는 웹 주소 입력</span>}
+                    <span className="inline-block w-[1px] h-4 bg-gray-700 align-middle ml-0.5 animate-pulse"/>
+                  </div>
+                  {internetKbInput && (
+                    <button onClick={() => setInternetKbInput('')} className="text-gray-400 hover:text-gray-700 text-sm">✕</button>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-2">
-              <div className="text-[11px] font-bold text-gray-500 px-3 pt-2 pb-1">추천 검색어</div>
-              {['초등학교', '날씨', '튜브', '동요 모음'].map((s, i) => (
-                i === 0 ? (
-                  <ActionTarget key={s} id="internet-search-suggest" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                    onClick={() => performSearch(s)} className="block">
-                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
+
+              <div className="flex-1 overflow-y-auto p-2 min-h-0">
+                <div className="text-[11px] font-bold text-gray-500 px-3 pt-2 pb-1">추천 검색어</div>
+                {['초등학교', '날씨', '튜브', '동요 모음'].map((s) => (
+                  s === '초등학교' ? (
+                    <ActionTarget key={s} id="internet-search-suggest" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => performSearch(s)} className="block">
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
+                        <Search size={18} className="text-gray-500"/>
+                        <div className="text-[15px] text-gray-800 flex-1">{s}</div>
+                        <div className="text-[11px] text-blue-600">검색</div>
+                      </div>
+                    </ActionTarget>
+                  ) : (
+                    <div key={s} onClick={() => performSearch(s)} className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
                       <Search size={18} className="text-gray-500"/>
                       <div className="text-[15px] text-gray-800 flex-1">{s}</div>
-                      <div className="text-[11px] text-blue-600">검색</div>
                     </div>
-                  </ActionTarget>
-                ) : (
-                  <div key={s} onClick={() => performSearch(s)} className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
-                    <Search size={18} className="text-gray-500"/>
-                    <div className="text-[15px] text-gray-800 flex-1">{s}</div>
+                  )
+                ))}
+              </div>
+
+              {/* 가상 키보드 */}
+              <div className="shrink-0 bg-[#d1d5db] px-1.5 pt-2 pb-2 select-none">
+                {rows.map((row, ri) => (
+                  <div key={ri} className={`flex gap-1 mb-1 ${ri === 1 ? 'px-3' : ri === 2 ? 'px-1' : ''}`}>
+                    {ri === 2 && (
+                      <button onClick={() => setInternetKbShift(s => !s)} className={`flex-[1.4] h-9 rounded-md text-xs font-bold active:scale-95 ${internetKbShift ? 'bg-blue-500 text-white' : 'bg-gray-400 text-white'}`}>⇧</button>
+                    )}
+                    {row.map(ch => (
+                      <button key={ch} onClick={() => { appendKb(ch); if (internetKbShift) setInternetKbShift(false); }} className="flex-1 h-9 rounded-md bg-white text-gray-800 text-sm font-medium active:bg-gray-200 shadow-sm">{ch}</button>
+                    ))}
+                    {ri === 2 && (
+                      <button onClick={backspaceKb} className="flex-[1.4] h-9 rounded-md bg-gray-400 text-white text-sm font-bold active:scale-95">⌫</button>
+                    )}
                   </div>
-                )
-              ))}
+                ))}
+                <div className="flex gap-1">
+                  <button onClick={() => appendKb('.')} className="w-10 h-10 rounded-md bg-gray-400 text-white text-sm font-bold active:scale-95">.</button>
+                  <button onClick={() => appendKb('/')} className="w-10 h-10 rounded-md bg-gray-400 text-white text-sm font-bold active:scale-95">/</button>
+                  <button onClick={() => appendKb(' ')} className="flex-1 h-10 rounded-md bg-white text-gray-700 text-xs active:bg-gray-200 shadow-sm">스페이스</button>
+                  <button onClick={() => appendKb('.com')} className="w-14 h-10 rounded-md bg-gray-400 text-white text-xs font-bold active:scale-95">.com</button>
+                  <ActionTarget id="internet-url-go" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={performUrlGo}>
+                    <button disabled={!internetKbInput.trim()} className={`w-14 h-10 rounded-md text-white text-sm font-bold active:scale-95 ${internetKbInput.trim() ? 'bg-blue-500' : 'bg-blue-300'}`}>이동</button>
+                  </ActionTarget>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* 탭 스위처 */}
         {internetTabSwitcherOpen && (
