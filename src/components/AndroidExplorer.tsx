@@ -2920,6 +2920,21 @@ export default function AndroidExplorer() {
                 ))}
               </div>
             </div>
+          ) : activeTab?.view === 'site' ? (
+            <div className="max-w-2xl mx-auto px-5 py-10 text-center animate-[fadeIn_0.25s_ease-out]">
+              <div className="text-6xl mb-4">🌐</div>
+              <div className="text-2xl font-bold text-gray-800">{activeTab.title}</div>
+              <div className="text-xs text-gray-500 mt-1 truncate">{activeTab.url}</div>
+              <div className="mt-8 grid grid-cols-2 gap-3 text-left">
+                {['공지사항', '인기 뉴스', '오늘의 날씨', '인기 영상'].map((s, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100">
+                    <div className="text-xs text-gray-500">{s}</div>
+                    <div className="text-sm font-medium text-gray-800 mt-1">샘플 콘텐츠 {i + 1}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 text-xs text-gray-400">탐험 브라우저 · {activeTab.url}</div>
+            </div>
           ) : (
             <div className="max-w-2xl mx-auto px-5 py-8 text-center">
               <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 mb-2">탐험 검색</div>
@@ -2946,7 +2961,7 @@ export default function AndroidExplorer() {
                   <div className="text-xs font-bold text-gray-600 mb-2">즐겨찾기</div>
                   <div className="space-y-1">
                     {internetBookmarks.map((b, i) => (
-                      <div key={i} className="p-2 rounded-lg hover:bg-gray-50 text-sm text-gray-800 truncate">★ {b.title}</div>
+                      <div key={i} onClick={() => openBookmark(b)} className="p-2 rounded-lg hover:bg-gray-50 text-sm text-gray-800 truncate cursor-pointer">★ {b.title}</div>
                     ))}
                   </div>
                 </div>
