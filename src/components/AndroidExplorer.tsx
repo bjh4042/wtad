@@ -606,7 +606,7 @@ export default function AndroidExplorer() {
         // 리워드 효과
         setConfettiKey(k => k + 1);
         setRewardToast({ exp: gained, key: Date.now() });
-        setTimeout(() => setRewardToast(null), 1800);
+        setTimeout(() => setRewardToast(null), 3400);
         // 레벨업 감지
         const newLevel = Math.floor(newExp / 100) + 1;
         if (newLevel > prevLevelRef.current) {
