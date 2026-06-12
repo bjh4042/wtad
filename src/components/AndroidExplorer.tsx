@@ -2817,7 +2817,13 @@ export default function AndroidExplorer() {
       setInternetMenuOpen(false);
     };
 
-    const SEARCH_RESULTS = [
+    const isNaverQuery = !!activeTab && /네이버/.test(activeTab.title);
+    const SEARCH_RESULTS = isNaverQuery ? [
+      { title: 'NAVER - 네이버', url: 'www.naver.com', desc: '대한민국 대표 검색 포털. 뉴스·메일·카페·블로그·지식인·쇼핑·웹툰 등 다양한 서비스를 제공합니다.', naver: true },
+      { title: '네이버 - 위키백과', url: 'wiki.tamhem.com › 네이버', desc: '네이버(NAVER)는 1999년에 설립된 대한민국의 인터넷 기업이다. 국내 최대 규모의 포털 사이트를 운영하고 있다…' },
+      { title: '네이버 뉴스', url: 'news.naver.com', desc: '실시간 주요 뉴스와 분야별 기사를 한눈에 모아보는 뉴스 포털.' },
+      { title: '네이버 지도', url: 'map.naver.com', desc: '길찾기, 대중교통, 거리뷰까지 — 우리 동네부터 전국까지 네이버 지도로 한 번에.' },
+    ] : [
       { title: '초등학교 - 위키백과', url: 'wiki.tamhem.com › 초등학교', desc: '초등학교(初等學校)는 만 6세부터 12세까지의 어린이를 대상으로 기초 교육을 실시하는 학교이다. 한국에서는 6년제로 운영된다…' },
       { title: '우리 동네 초등학교 찾기 | 교육부', url: 'school.moe.go.kr', desc: '주소를 입력하면 가까운 초등학교를 찾을 수 있습니다. 학구도와 학교 정보를 한눈에 확인하세요.' },
       { title: '초등학교 입학 준비물 BEST 10', url: 'blog.tamhem.com › 초등입학', desc: '예비 초등학생을 위한 입학 준비물과 학습 준비 팁을 정리했습니다. 책가방, 실내화, 학용품…' },
