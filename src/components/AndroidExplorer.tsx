@@ -130,13 +130,19 @@ const QUESTS = [
   // ===== 인터넷 & 검색 (삼성 인터넷) =====
   { id: 88, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 89, text: "바탕화면에서 '인터넷' 앱을 실행하세요.", targetId: 'app-icon-Internet', exp: 20 },
-  { id: 90, text: "상단 주소창을 눌러 검색을 시작하세요.", targetId: 'internet-address-bar', exp: 20 },
-  { id: 91, text: "추천 검색어 '초등학교'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
-  { id: 92, text: "주소창 옆 별(☆) 아이콘을 눌러 이 페이지를 즐겨찾기에 추가하세요.", targetId: 'internet-bookmark-add', exp: 30 },
-  { id: 93, text: "하단의 탭(□) 버튼을 눌러 탭 목록을 여세요.", targetId: 'internet-tabs-button', exp: 20 },
-  { id: 94, text: "'+ 새 탭' 버튼을 눌러 새로운 탭을 여세요.", targetId: 'internet-newtab', exp: 20 },
-  { id: 95, text: "첫 번째 탭의 'X' 버튼을 눌러 탭을 닫으세요.", targetId: 'internet-tab-close-1', exp: 20 },
-  { id: 96, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  { id: 90, text: "상단 주소창을 눌러 입력창을 여세요.", targetId: 'internet-address-bar', exp: 20 },
+  { id: 91, text: "키보드로 'naver.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
+  { id: 92, text: "← 뒤로가기 버튼을 눌러 이전 페이지로 가세요.", targetId: 'internet-back', exp: 20 },
+  { id: 93, text: "주소창을 다시 눌러 검색을 시작하세요.", targetId: 'internet-address-bar', exp: 10 },
+  { id: 94, text: "추천 검색어 '초등학교'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
+  { id: 95, text: "주소창 옆 별(☆) 아이콘을 눌러 이 페이지를 즐겨찾기에 추가하세요.", targetId: 'internet-bookmark-add', exp: 30 },
+  { id: 96, text: "메뉴(☰) 버튼을 눌러 즐겨찾기 목록을 여세요.", targetId: 'internet-menu-open', exp: 20 },
+  { id: 97, text: "즐겨찾기 목록에서 항목을 눌러 페이지를 여세요.", targetId: 'internet-bookmark-open', exp: 30 },
+  { id: 98, text: "메뉴를 다시 열고 🗑 버튼으로 즐겨찾기를 삭제하세요.", targetId: 'internet-bookmark-delete', exp: 30 },
+  { id: 99, text: "하단의 탭(□) 버튼을 눌러 탭 목록을 여세요.", targetId: 'internet-tabs-button', exp: 20 },
+  { id: 100, text: "'+ 새 탭' 버튼을 눌러 새로운 탭을 여세요.", targetId: 'internet-newtab', exp: 20 },
+  { id: 101, text: "첫 번째 탭의 'X' 버튼을 눌러 탭을 닫으세요.", targetId: 'internet-tab-close-1', exp: 20 },
+  { id: 102, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 
 ];
 
