@@ -4044,7 +4044,7 @@ export default function AndroidExplorer() {
             className="px-6 py-4 rounded-3xl font-black text-white text-2xl md:text-4xl shadow-2xl whitespace-nowrap"
             style={{
               background: `linear-gradient(135deg, ${themeColor}, #10b981)`,
-              animation: 'rewardPop 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+              animation: 'rewardPop 3.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
               position: 'absolute',
               left: '50%',
               top: '50%',
