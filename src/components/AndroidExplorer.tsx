@@ -364,13 +364,18 @@ export default function AndroidExplorer() {
   const [typingIndex, setTypingIndex] = useState(0);
 
   // 삼성 인터넷 앱
-  type InternetTab = { id: number; title: string; url: string; view: 'newtab' | 'results' };
-  const [internetTabs, setInternetTabs] = useState<InternetTab[]>([{ id: 1, title: '새 탭', url: '', view: 'newtab' }]);
+  type InternetView = 'newtab' | 'results' | 'site';
+  type InternetHist = { title: string; url: string; view: InternetView };
+  type InternetTab = { id: number; title: string; url: string; view: InternetView; history: InternetHist[]; historyIndex: number };
+  const makeInternetTab = (id: number): InternetTab => ({ id, title: '새 탭', url: '', view: 'newtab', history: [{ title: '새 탭', url: '', view: 'newtab' }], historyIndex: 0 });
+  const [internetTabs, setInternetTabs] = useState<InternetTab[]>([makeInternetTab(1)]);
   const [internetActiveTabId, setInternetActiveTabId] = useState<number>(1);
   const [internetUrlPanelOpen, setInternetUrlPanelOpen] = useState(false);
   const [internetTabSwitcherOpen, setInternetTabSwitcherOpen] = useState(false);
   const [internetBookmarks, setInternetBookmarks] = useState<{ title: string; url: string }[]>([]);
   const [internetMenuOpen, setInternetMenuOpen] = useState(false);
+  const [internetKbInput, setInternetKbInput] = useState('');
+  const [internetKbShift, setInternetKbShift] = useState(false);
 
   const [viewPhoto, setViewPhoto] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
