@@ -2810,18 +2810,39 @@ export default function AndroidExplorer() {
           </button>
         </div>
 
-        {/* 메뉴 드롭다운 */}
+        {/* 메뉴 드롭다운 (즐겨찾기 목록) */}
         {internetMenuOpen && (
-          <div className="absolute right-3 top-[88px] z-[80] w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-[fadeIn_0.15s_ease-out]" onClick={() => setInternetMenuOpen(false)}>
-            <div className="p-3 border-b border-gray-100 text-xs text-gray-500">즐겨찾기 ({internetBookmarks.length})</div>
+          <div className="absolute right-3 top-[88px] z-[80] w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-[fadeIn_0.15s_ease-out]">
+            <div className="p-3 border-b border-gray-100 text-xs text-gray-500 flex items-center justify-between">
+              <span>★ 즐겨찾기 ({internetBookmarks.length})</span>
+              <button onClick={() => setInternetMenuOpen(false)} className="text-gray-400 hover:text-gray-700">✕</button>
+            </div>
             {internetBookmarks.length === 0 ? (
-              <div className="p-3 text-sm text-gray-400">아직 즐겨찾기가 없어요.</div>
+              <div className="p-4 text-sm text-gray-400 text-center">아직 즐겨찾기가 없어요.<br/>주소창 옆 ☆ 를 눌러 추가해 보세요.</div>
             ) : (
-              <div className="max-h-48 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto">
                 {internetBookmarks.map((b, i) => (
-                  <div key={i} className="px-3 py-2 hover:bg-gray-50 cursor-pointer">
-                    <div className="text-sm font-medium text-gray-800 truncate">★ {b.title}</div>
-                    <div className="text-[11px] text-gray-500 truncate">{b.url}</div>
+                  <div key={i} className="px-3 py-2 hover:bg-gray-50 flex items-center gap-2 group">
+                    <button
+                      className="flex-1 text-left min-w-0"
+                      onClick={() => {
+                        setInternetTabs(tabs => tabs.map(t => t.id === internetActiveTabId ? { ...t, title: b.title, url: b.url, view: 'results' } : t));
+                        setInternetMenuOpen(false);
+                      }}
+                    >
+                      <div className="text-sm font-medium text-gray-800 truncate">★ {b.title}</div>
+                      <div className="text-[11px] text-gray-500 truncate">{b.url}</div>
+                    </button>
+                    <button
+                      className="shrink-0 w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center opacity-60 group-hover:opacity-100"
+                      title="삭제"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInternetBookmarks(bm => bm.filter(x => x.url !== b.url));
+                      }}
+                    >
+                      🗑
+                    </button>
                   </div>
                 ))}
               </div>
