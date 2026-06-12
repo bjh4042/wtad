@@ -131,18 +131,19 @@ const QUESTS = [
   { id: 88, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 89, text: "바탕화면에서 '인터넷' 앱을 실행하세요.", targetId: 'app-icon-Internet', exp: 20 },
   { id: 90, text: "상단 주소창을 눌러 입력창을 여세요.", targetId: 'internet-address-bar', exp: 20 },
-  { id: 91, text: "키보드로 'naver.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
-  { id: 92, text: "← 뒤로가기 버튼을 눌러 이전 페이지로 가세요.", targetId: 'internet-back', exp: 20 },
-  { id: 93, text: "주소창을 다시 눌러 검색을 시작하세요.", targetId: 'internet-address-bar', exp: 10 },
-  { id: 94, text: "추천 검색어 '초등학교'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
-  { id: 95, text: "주소창 옆 별(☆) 아이콘을 눌러 이 페이지를 즐겨찾기에 추가하세요.", targetId: 'internet-bookmark-add', exp: 30 },
-  { id: 96, text: "메뉴(☰) 버튼을 눌러 즐겨찾기 목록을 여세요.", targetId: 'internet-menu-open', exp: 20 },
-  { id: 97, text: "즐겨찾기 목록에서 항목을 눌러 페이지를 여세요.", targetId: 'internet-bookmark-open', exp: 30 },
-  { id: 98, text: "메뉴를 다시 열고 🗑 버튼으로 즐겨찾기를 삭제하세요.", targetId: 'internet-bookmark-delete', exp: 30 },
-  { id: 99, text: "하단의 탭(□) 버튼을 눌러 탭 목록을 여세요.", targetId: 'internet-tabs-button', exp: 20 },
-  { id: 100, text: "'+ 새 탭' 버튼을 눌러 새로운 탭을 여세요.", targetId: 'internet-newtab', exp: 20 },
-  { id: 101, text: "첫 번째 탭의 'X' 버튼을 눌러 탭을 닫으세요.", targetId: 'internet-tab-close-1', exp: 20 },
-  { id: 102, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  { id: 91, text: "키보드로 'google.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
+  { id: 92, text: "네이버 메인 화면 중앙의 검색창을 누르세요.", targetId: 'naver-search-bar', exp: 20 },
+  { id: 93, text: "추천 검색어 '네이버'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
+  { id: 94, text: "검색 결과에서 'NAVER - 네이버' 항목을 눌러 사이트에 접속하세요.", targetId: 'internet-result-naver', exp: 30 },
+  { id: 95, text: "주소창 옆 별(☆) 아이콘을 눌러 즐겨찾기에 추가하세요.", targetId: 'internet-bookmark-add', exp: 30 },
+  { id: 96, text: "← 뒤로가기 버튼을 눌러 이전 페이지로 가세요.", targetId: 'internet-back', exp: 20 },
+  { id: 97, text: "메뉴(☰) 버튼을 눌러 즐겨찾기 목록을 여세요.", targetId: 'internet-menu-open', exp: 20 },
+  { id: 98, text: "즐겨찾기 목록에서 'NAVER' 항목을 눌러 다시 여세요.", targetId: 'internet-bookmark-open', exp: 30 },
+  { id: 99, text: "메뉴를 다시 열고 🗑 버튼으로 즐겨찾기를 삭제하세요.", targetId: 'internet-bookmark-delete', exp: 30 },
+  { id: 100, text: "하단의 탭(□) 버튼을 눌러 탭 목록을 여세요.", targetId: 'internet-tabs-button', exp: 20 },
+  { id: 101, text: "'+ 새 탭' 버튼을 눌러 새로운 탭을 여세요.", targetId: 'internet-newtab', exp: 20 },
+  { id: 102, text: "첫 번째 탭의 'X' 버튼을 눌러 탭을 닫으세요.", targetId: 'internet-tab-close-1', exp: 20 },
+  { id: 103, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 
 ];
 
@@ -364,7 +365,7 @@ export default function AndroidExplorer() {
   const [typingIndex, setTypingIndex] = useState(0);
 
   // 삼성 인터넷 앱
-  type InternetView = 'newtab' | 'results' | 'site';
+  type InternetView = 'newtab' | 'results' | 'site' | 'naver';
   type InternetHist = { title: string; url: string; view: InternetView };
   type InternetTab = { id: number; title: string; url: string; view: InternetView; history: InternetHist[]; historyIndex: number };
   const makeInternetTab = (id: number): InternetTab => ({ id, title: '새 탭', url: '', view: 'newtab', history: [{ title: '새 탭', url: '', view: 'newtab' }], historyIndex: 0 });
@@ -2777,9 +2778,13 @@ export default function AndroidExplorer() {
       const text = internetKbInput.trim();
       if (!text) return;
       if (text.includes('.') && !text.includes(' ')) {
-        const url = text.startsWith('http') ? text : `https://${text}`;
-        const host = text.replace(/^https?:\/\//, '').split('/')[0];
-        navigateActive({ title: host, url, view: 'site' });
+        const host = text.replace(/^https?:\/\//, '').split('/')[0].toLowerCase();
+        if (host === 'google.com' || host === 'naver.com' || host === 'www.naver.com' || host === 'www.google.com') {
+          navigateActive({ title: 'NAVER', url: 'www.naver.com', view: 'naver' });
+        } else {
+          const url = text.startsWith('http') ? text : `https://${text}`;
+          navigateActive({ title: host, url, view: 'site' });
+        }
       } else {
         performSearch(text);
         return;
@@ -2812,7 +2817,13 @@ export default function AndroidExplorer() {
       setInternetMenuOpen(false);
     };
 
-    const SEARCH_RESULTS = [
+    const isNaverQuery = !!activeTab && /네이버/.test(activeTab.title);
+    const SEARCH_RESULTS = isNaverQuery ? [
+      { title: 'NAVER - 네이버', url: 'www.naver.com', desc: '대한민국 대표 검색 포털. 뉴스·메일·카페·블로그·지식인·쇼핑·웹툰 등 다양한 서비스를 제공합니다.', naver: true },
+      { title: '네이버 - 위키백과', url: 'wiki.tamhem.com › 네이버', desc: '네이버(NAVER)는 1999년에 설립된 대한민국의 인터넷 기업이다. 국내 최대 규모의 포털 사이트를 운영하고 있다…' },
+      { title: '네이버 뉴스', url: 'news.naver.com', desc: '실시간 주요 뉴스와 분야별 기사를 한눈에 모아보는 뉴스 포털.' },
+      { title: '네이버 지도', url: 'map.naver.com', desc: '길찾기, 대중교통, 거리뷰까지 — 우리 동네부터 전국까지 네이버 지도로 한 번에.' },
+    ] : [
       { title: '초등학교 - 위키백과', url: 'wiki.tamhem.com › 초등학교', desc: '초등학교(初等學校)는 만 6세부터 12세까지의 어린이를 대상으로 기초 교육을 실시하는 학교이다. 한국에서는 6년제로 운영된다…' },
       { title: '우리 동네 초등학교 찾기 | 교육부', url: 'school.moe.go.kr', desc: '주소를 입력하면 가까운 초등학교를 찾을 수 있습니다. 학구도와 학교 정보를 한눈에 확인하세요.' },
       { title: '초등학교 입학 준비물 BEST 10', url: 'blog.tamhem.com › 초등입학', desc: '예비 초등학생을 위한 입학 준비물과 학습 준비 팁을 정리했습니다. 책가방, 실내화, 학용품…' },
@@ -2911,12 +2922,60 @@ export default function AndroidExplorer() {
             <div className="max-w-3xl mx-auto px-5 py-4 animate-[fadeIn_0.25s_ease-out]">
               <div className="text-xs text-gray-500 mb-3">검색결과 약 1,240,000개 (0.42초)</div>
               <div className="space-y-5">
-                {SEARCH_RESULTS.map((r, i) => (
-                  <div key={i} className="cursor-pointer group">
-                    <div className="text-[12px] text-gray-600 truncate">{r.url}</div>
-                    <div className="text-[18px] text-[#1a0dab] font-medium group-hover:underline truncate">{r.title}</div>
-                    <div className="text-[13px] text-gray-700 mt-0.5 line-clamp-2">{r.desc}</div>
+                {SEARCH_RESULTS.map((r: any, i) => {
+                  const inner = (
+                    <div className="cursor-pointer group">
+                      <div className="text-[12px] text-gray-600 truncate">{r.url}</div>
+                      <div className="text-[18px] text-[#1a0dab] font-medium group-hover:underline truncate">{r.title}</div>
+                      <div className="text-[13px] text-gray-700 mt-0.5 line-clamp-2">{r.desc}</div>
+                    </div>
+                  );
+                  if (r.naver) {
+                    return (
+                      <ActionTarget key={i} id="internet-result-naver" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        onClick={() => navigateActive({ title: 'NAVER', url: 'www.naver.com', view: 'site' })} className="block">
+                        {inner}
+                      </ActionTarget>
+                    );
+                  }
+                  return <div key={i} onClick={() => navigateActive({ title: r.title, url: r.url, view: 'site' })}>{inner}</div>;
+                })}
+              </div>
+            </div>
+          ) : activeTab?.view === 'naver' ? (
+            <div className="max-w-2xl mx-auto px-5 py-10 animate-[fadeIn_0.25s_ease-out]">
+              <div className="text-center text-5xl font-black tracking-tight mb-6">
+                <span className="text-[#03C75A]">N</span><span className="text-gray-800">AVER</span>
+              </div>
+              <ActionTarget id="naver-search-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                onClick={() => setInternetUrlPanelOpen(true)} className="block">
+                <div className="w-full h-12 rounded-xl border-2 border-[#03C75A] bg-white flex items-center gap-2 px-4 cursor-text shadow-sm">
+                  <Search size={18} className="text-[#03C75A]"/>
+                  <div className="flex-1 text-[14px] text-gray-400">검색어를 입력하세요</div>
+                  <div className="text-xs text-white bg-[#03C75A] rounded-md px-2 py-1 font-bold">검색</div>
+                </div>
+              </ActionTarget>
+              <div className="mt-6 grid grid-cols-4 gap-3 text-center">
+                {[
+                  { icon: '📧', label: '메일' },
+                  { icon: '📰', label: '뉴스' },
+                  { icon: '🗺', label: '지도' },
+                  { icon: '🛒', label: '쇼핑' },
+                  { icon: '💬', label: '카페' },
+                  { icon: '📚', label: '블로그' },
+                  { icon: '🎬', label: 'TV' },
+                  { icon: '☁️', label: '날씨' },
+                ].map((q) => (
+                  <div key={q.label} className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-gray-50">
+                    <div className="text-2xl">{q.icon}</div>
+                    <div className="text-[11px] text-gray-700">{q.label}</div>
                   </div>
+                ))}
+              </div>
+              <div className="mt-6 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                <div className="text-[11px] font-bold text-gray-500 mb-2">실시간 급상승</div>
+                {['1. 오늘의 날씨', '2. 학교 알리미', '3. 어린이 동요', '4. 방학 숙제'].map((t) => (
+                  <div key={t} className="text-sm text-gray-700 py-1">{t}</div>
                 ))}
               </div>
             </div>
@@ -3023,8 +3082,8 @@ export default function AndroidExplorer() {
 
               <div className="flex-1 overflow-y-auto p-2 min-h-0">
                 <div className="text-[11px] font-bold text-gray-500 px-3 pt-2 pb-1">추천 검색어</div>
-                {['초등학교', '날씨', '튜브', '동요 모음'].map((s) => (
-                  s === '초등학교' ? (
+                {['네이버', '초등학교', '날씨', '동요 모음'].map((s) => (
+                  s === '네이버' ? (
                     <ActionTarget key={s} id="internet-search-suggest" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                       onClick={() => performSearch(s)} className="block">
                       <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
