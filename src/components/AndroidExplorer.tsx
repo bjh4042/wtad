@@ -3045,8 +3045,8 @@ export default function AndroidExplorer() {
 
               <div className="flex-1 overflow-y-auto p-2 min-h-0">
                 <div className="text-[11px] font-bold text-gray-500 px-3 pt-2 pb-1">추천 검색어</div>
-                {['초등학교', '날씨', '튜브', '동요 모음'].map((s) => (
-                  s === '초등학교' ? (
+                {['네이버', '초등학교', '날씨', '동요 모음'].map((s) => (
+                  s === '네이버' ? (
                     <ActionTarget key={s} id="internet-search-suggest" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                       onClick={() => performSearch(s)} className="block">
                       <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
