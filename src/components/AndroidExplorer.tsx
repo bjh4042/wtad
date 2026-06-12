@@ -2877,30 +2877,29 @@ export default function AndroidExplorer() {
               <div className="p-4 text-sm text-gray-400 text-center">아직 즐겨찾기가 없어요.<br/>주소창 옆 ☆ 를 눌러 추가해 보세요.</div>
             ) : (
               <div className="max-h-64 overflow-y-auto">
-                {internetBookmarks.map((b, i) => (
-                  <div key={i} className="px-3 py-2 hover:bg-gray-50 flex items-center gap-2 group">
-                    <button
-                      className="flex-1 text-left min-w-0"
-                      onClick={() => {
-                        setInternetTabs(tabs => tabs.map(t => t.id === internetActiveTabId ? { ...t, title: b.title, url: b.url, view: 'results' } : t));
-                        setInternetMenuOpen(false);
-                      }}
-                    >
-                      <div className="text-sm font-medium text-gray-800 truncate">★ {b.title}</div>
-                      <div className="text-[11px] text-gray-500 truncate">{b.url}</div>
-                    </button>
-                    <button
-                      className="shrink-0 w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center opacity-60 group-hover:opacity-100"
-                      title="삭제"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setInternetBookmarks(bm => bm.filter(x => x.url !== b.url));
-                      }}
-                    >
-                      🗑
-                    </button>
-                  </div>
-                ))}
+                {internetBookmarks.map((b, i) => {
+                  const openTarget = i === 0 ? 'internet-bookmark-open' : `internet-bookmark-open-${i}`;
+                  const delTarget = i === 0 ? 'internet-bookmark-delete' : `internet-bookmark-delete-${i}`;
+                  return (
+                    <div key={i} className="px-3 py-2 hover:bg-gray-50 flex items-center gap-2 group">
+                      <ActionTarget id={openTarget} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => openBookmark(b)} className="flex-1 min-w-0">
+                        <button className="w-full text-left min-w-0">
+                          <div className="text-sm font-medium text-gray-800 truncate">★ {b.title}</div>
+                          <div className="text-[11px] text-gray-500 truncate">{b.url}</div>
+                        </button>
+                      </ActionTarget>
+                      <ActionTarget id={delTarget} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        onClick={(e: any) => { e.stopPropagation?.(); setInternetBookmarks(bm => bm.filter(x => x.url !== b.url)); }}>
+                        <button
+                          className="shrink-0 w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center opacity-60 group-hover:opacity-100"
+                          title="삭제"
+                        >
+                          🗑
+                        </button>
+                      </ActionTarget>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
