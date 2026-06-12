@@ -130,13 +130,19 @@ const QUESTS = [
   // ===== 인터넷 & 검색 (삼성 인터넷) =====
   { id: 88, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 89, text: "바탕화면에서 '인터넷' 앱을 실행하세요.", targetId: 'app-icon-Internet', exp: 20 },
-  { id: 90, text: "상단 주소창을 눌러 검색을 시작하세요.", targetId: 'internet-address-bar', exp: 20 },
-  { id: 91, text: "추천 검색어 '초등학교'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
-  { id: 92, text: "주소창 옆 별(☆) 아이콘을 눌러 이 페이지를 즐겨찾기에 추가하세요.", targetId: 'internet-bookmark-add', exp: 30 },
-  { id: 93, text: "하단의 탭(□) 버튼을 눌러 탭 목록을 여세요.", targetId: 'internet-tabs-button', exp: 20 },
-  { id: 94, text: "'+ 새 탭' 버튼을 눌러 새로운 탭을 여세요.", targetId: 'internet-newtab', exp: 20 },
-  { id: 95, text: "첫 번째 탭의 'X' 버튼을 눌러 탭을 닫으세요.", targetId: 'internet-tab-close-1', exp: 20 },
-  { id: 96, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
+  { id: 90, text: "상단 주소창을 눌러 입력창을 여세요.", targetId: 'internet-address-bar', exp: 20 },
+  { id: 91, text: "키보드로 'naver.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
+  { id: 92, text: "← 뒤로가기 버튼을 눌러 이전 페이지로 가세요.", targetId: 'internet-back', exp: 20 },
+  { id: 93, text: "주소창을 다시 눌러 검색을 시작하세요.", targetId: 'internet-address-bar', exp: 10 },
+  { id: 94, text: "추천 검색어 '초등학교'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
+  { id: 95, text: "주소창 옆 별(☆) 아이콘을 눌러 이 페이지를 즐겨찾기에 추가하세요.", targetId: 'internet-bookmark-add', exp: 30 },
+  { id: 96, text: "메뉴(☰) 버튼을 눌러 즐겨찾기 목록을 여세요.", targetId: 'internet-menu-open', exp: 20 },
+  { id: 97, text: "즐겨찾기 목록에서 항목을 눌러 페이지를 여세요.", targetId: 'internet-bookmark-open', exp: 30 },
+  { id: 98, text: "메뉴를 다시 열고 🗑 버튼으로 즐겨찾기를 삭제하세요.", targetId: 'internet-bookmark-delete', exp: 30 },
+  { id: 99, text: "하단의 탭(□) 버튼을 눌러 탭 목록을 여세요.", targetId: 'internet-tabs-button', exp: 20 },
+  { id: 100, text: "'+ 새 탭' 버튼을 눌러 새로운 탭을 여세요.", targetId: 'internet-newtab', exp: 20 },
+  { id: 101, text: "첫 번째 탭의 'X' 버튼을 눌러 탭을 닫으세요.", targetId: 'internet-tab-close-1', exp: 20 },
+  { id: 102, text: "모든 임무 완료! 훌륭한 안드로이드 탐험가입니다 🎉", targetId: null, exp: 50 },
 
 ];
 
@@ -358,13 +364,18 @@ export default function AndroidExplorer() {
   const [typingIndex, setTypingIndex] = useState(0);
 
   // 삼성 인터넷 앱
-  type InternetTab = { id: number; title: string; url: string; view: 'newtab' | 'results' };
-  const [internetTabs, setInternetTabs] = useState<InternetTab[]>([{ id: 1, title: '새 탭', url: '', view: 'newtab' }]);
+  type InternetView = 'newtab' | 'results' | 'site';
+  type InternetHist = { title: string; url: string; view: InternetView };
+  type InternetTab = { id: number; title: string; url: string; view: InternetView; history: InternetHist[]; historyIndex: number };
+  const makeInternetTab = (id: number): InternetTab => ({ id, title: '새 탭', url: '', view: 'newtab', history: [{ title: '새 탭', url: '', view: 'newtab' }], historyIndex: 0 });
+  const [internetTabs, setInternetTabs] = useState<InternetTab[]>([makeInternetTab(1)]);
   const [internetActiveTabId, setInternetActiveTabId] = useState<number>(1);
   const [internetUrlPanelOpen, setInternetUrlPanelOpen] = useState(false);
   const [internetTabSwitcherOpen, setInternetTabSwitcherOpen] = useState(false);
   const [internetBookmarks, setInternetBookmarks] = useState<{ title: string; url: string }[]>([]);
   const [internetMenuOpen, setInternetMenuOpen] = useState(false);
+  const [internetKbInput, setInternetKbInput] = useState('');
+  const [internetKbShift, setInternetKbShift] = useState(false);
 
   const [viewPhoto, setViewPhoto] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -2735,18 +2746,51 @@ export default function AndroidExplorer() {
     const activeTab = internetTabs.find(t => t.id === internetActiveTabId) || internetTabs[0];
     const isBookmarked = activeTab && internetBookmarks.some(b => b.url === activeTab.url);
 
+    const navigateActive = (next: InternetHist) => {
+      setInternetTabs(tabs => tabs.map(t => {
+        if (t.id !== internetActiveTabId) return t;
+        const trimmed = t.history.slice(0, t.historyIndex + 1);
+        const newHist = [...trimmed, next];
+        return { ...t, ...next, history: newHist, historyIndex: newHist.length - 1 };
+      }));
+    };
+
+    const goBack = () => {
+      setInternetTabs(tabs => tabs.map(t => {
+        if (t.id !== internetActiveTabId) return t;
+        if (t.historyIndex <= 0) return t;
+        const idx = t.historyIndex - 1;
+        const h = t.history[idx];
+        return { ...t, ...h, historyIndex: idx };
+      }));
+    };
+
+    const canGoBack = (activeTab?.historyIndex ?? 0) > 0;
+
     const performSearch = (query: string) => {
-      setInternetTabs(tabs => tabs.map(t =>
-        t.id === internetActiveTabId
-          ? { ...t, title: `${query} - 검색`, url: `https://search.tamhem.com/?q=${encodeURIComponent(query)}`, view: 'results' }
-          : t
-      ));
+      navigateActive({ title: `${query} - 검색`, url: `https://search.tamhem.com/?q=${encodeURIComponent(query)}`, view: 'results' });
       setInternetUrlPanelOpen(false);
+      setInternetKbInput('');
+    };
+
+    const performUrlGo = () => {
+      const text = internetKbInput.trim();
+      if (!text) return;
+      if (text.includes('.') && !text.includes(' ')) {
+        const url = text.startsWith('http') ? text : `https://${text}`;
+        const host = text.replace(/^https?:\/\//, '').split('/')[0];
+        navigateActive({ title: host, url, view: 'site' });
+      } else {
+        performSearch(text);
+        return;
+      }
+      setInternetUrlPanelOpen(false);
+      setInternetKbInput('');
     };
 
     const addNewTab = () => {
       const newId = Math.max(0, ...internetTabs.map(t => t.id)) + 1;
-      setInternetTabs(tabs => [...tabs, { id: newId, title: '새 탭', url: '', view: 'newtab' }]);
+      setInternetTabs(tabs => [...tabs, makeInternetTab(newId)]);
       setInternetActiveTabId(newId);
       setInternetTabSwitcherOpen(false);
     };
@@ -2755,13 +2799,17 @@ export default function AndroidExplorer() {
       setInternetTabs(tabs => {
         const next = tabs.filter(t => t.id !== id);
         if (next.length === 0) {
-          const fresh: InternetTab = { id: 1, title: '새 탭', url: '', view: 'newtab' };
           setInternetActiveTabId(1);
-          return [fresh];
+          return [makeInternetTab(1)];
         }
         if (id === internetActiveTabId) setInternetActiveTabId(next[0].id);
         return next;
       });
+    };
+
+    const openBookmark = (b: { title: string; url: string }) => {
+      navigateActive({ title: b.title, url: b.url, view: 'site' });
+      setInternetMenuOpen(false);
     };
 
     const SEARCH_RESULTS = [
@@ -2775,9 +2823,15 @@ export default function AndroidExplorer() {
       <div className="flex-1 bg-[#f1f3f4] flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out] relative">
         {/* 상단 주소창 */}
         <div className="shrink-0 bg-white border-b border-gray-200 px-3 py-2 flex items-center gap-2 shadow-sm">
-          <button className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700" title="뒤로">
-            <ChevronLeft size={22}/>
-          </button>
+          <ActionTarget id="internet-back" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={goBack}>
+            <button
+              disabled={!canGoBack}
+              className={`w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center ${canGoBack ? 'text-gray-700' : 'text-gray-300'}`}
+              title="뒤로"
+            >
+              <ChevronLeft size={22}/>
+            </button>
+          </ActionTarget>
           <ActionTarget
             id="internet-address-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
             onClick={() => setInternetUrlPanelOpen(true)}
@@ -2805,9 +2859,11 @@ export default function AndroidExplorer() {
               {isBookmarked ? '★' : '☆'}
             </button>
           </ActionTarget>
-          <button onClick={() => setInternetMenuOpen(o => !o)} className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700" title="메뉴">
-            <Menu size={20}/>
-          </button>
+          <ActionTarget id="internet-menu-open" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setInternetMenuOpen(o => !o)}>
+            <button className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700" title="메뉴">
+              <Menu size={20}/>
+            </button>
+          </ActionTarget>
         </div>
 
         {/* 메뉴 드롭다운 (즐겨찾기 목록) */}
@@ -2821,30 +2877,29 @@ export default function AndroidExplorer() {
               <div className="p-4 text-sm text-gray-400 text-center">아직 즐겨찾기가 없어요.<br/>주소창 옆 ☆ 를 눌러 추가해 보세요.</div>
             ) : (
               <div className="max-h-64 overflow-y-auto">
-                {internetBookmarks.map((b, i) => (
-                  <div key={i} className="px-3 py-2 hover:bg-gray-50 flex items-center gap-2 group">
-                    <button
-                      className="flex-1 text-left min-w-0"
-                      onClick={() => {
-                        setInternetTabs(tabs => tabs.map(t => t.id === internetActiveTabId ? { ...t, title: b.title, url: b.url, view: 'results' } : t));
-                        setInternetMenuOpen(false);
-                      }}
-                    >
-                      <div className="text-sm font-medium text-gray-800 truncate">★ {b.title}</div>
-                      <div className="text-[11px] text-gray-500 truncate">{b.url}</div>
-                    </button>
-                    <button
-                      className="shrink-0 w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center opacity-60 group-hover:opacity-100"
-                      title="삭제"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setInternetBookmarks(bm => bm.filter(x => x.url !== b.url));
-                      }}
-                    >
-                      🗑
-                    </button>
-                  </div>
-                ))}
+                {internetBookmarks.map((b, i) => {
+                  const openTarget = i === 0 ? 'internet-bookmark-open' : `internet-bookmark-open-${i}`;
+                  const delTarget = i === 0 ? 'internet-bookmark-delete' : `internet-bookmark-delete-${i}`;
+                  return (
+                    <div key={i} className="px-3 py-2 hover:bg-gray-50 flex items-center gap-2 group">
+                      <ActionTarget id={openTarget} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => openBookmark(b)} className="flex-1 min-w-0">
+                        <button className="w-full text-left min-w-0">
+                          <div className="text-sm font-medium text-gray-800 truncate">★ {b.title}</div>
+                          <div className="text-[11px] text-gray-500 truncate">{b.url}</div>
+                        </button>
+                      </ActionTarget>
+                      <ActionTarget id={delTarget} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        onClick={(e: any) => { e.stopPropagation?.(); setInternetBookmarks(bm => bm.filter(x => x.url !== b.url)); }}>
+                        <button
+                          className="shrink-0 w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center opacity-60 group-hover:opacity-100"
+                          title="삭제"
+                        >
+                          🗑
+                        </button>
+                      </ActionTarget>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -2864,6 +2919,21 @@ export default function AndroidExplorer() {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : activeTab?.view === 'site' ? (
+            <div className="max-w-2xl mx-auto px-5 py-10 text-center animate-[fadeIn_0.25s_ease-out]">
+              <div className="text-6xl mb-4">🌐</div>
+              <div className="text-2xl font-bold text-gray-800">{activeTab.title}</div>
+              <div className="text-xs text-gray-500 mt-1 truncate">{activeTab.url}</div>
+              <div className="mt-8 grid grid-cols-2 gap-3 text-left">
+                {['공지사항', '인기 뉴스', '오늘의 날씨', '인기 영상'].map((s, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100">
+                    <div className="text-xs text-gray-500">{s}</div>
+                    <div className="text-sm font-medium text-gray-800 mt-1">샘플 콘텐츠 {i + 1}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 text-xs text-gray-400">탐험 브라우저 · {activeTab.url}</div>
             </div>
           ) : (
             <div className="max-w-2xl mx-auto px-5 py-8 text-center">
@@ -2891,7 +2961,7 @@ export default function AndroidExplorer() {
                   <div className="text-xs font-bold text-gray-600 mb-2">즐겨찾기</div>
                   <div className="space-y-1">
                     {internetBookmarks.map((b, i) => (
-                      <div key={i} className="p-2 rounded-lg hover:bg-gray-50 text-sm text-gray-800 truncate">★ {b.title}</div>
+                      <div key={i} onClick={() => openBookmark(b)} className="p-2 rounded-lg hover:bg-gray-50 text-sm text-gray-800 truncate cursor-pointer">★ {b.title}</div>
                     ))}
                   </div>
                 </div>
@@ -2926,40 +2996,80 @@ export default function AndroidExplorer() {
           </button>
         </div>
 
-        {/* 주소창 패널 (검색 제안) */}
-        {internetUrlPanelOpen && (
-          <div className="absolute inset-0 z-[90] bg-white animate-[fadeIn_0.18s_ease-out] flex flex-col pt-8">
-            <div className="shrink-0 bg-white border-b border-gray-200 px-3 py-2 flex items-center gap-2">
-              <button onClick={() => setInternetUrlPanelOpen(false)} className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700">
-                <ChevronLeft size={22}/>
-              </button>
-              <div className="flex-1 h-10 bg-[#f1f3f4] rounded-full flex items-center gap-2 px-4">
-                <Search size={16} className="text-gray-500 shrink-0"/>
-                <div className="flex-1 text-[14px] text-gray-400">검색어 또는 웹 주소 입력</div>
+        {/* 주소창 패널 (가상 키보드 + 검색 제안) */}
+        {internetUrlPanelOpen && (() => {
+          const rows = internetKbShift
+            ? [['Q','W','E','R','T','Y','U','I','O','P'], ['A','S','D','F','G','H','J','K','L'], ['Z','X','C','V','B','N','M']]
+            : [['q','w','e','r','t','y','u','i','o','p'], ['a','s','d','f','g','h','j','k','l'], ['z','x','c','v','b','n','m']];
+          const appendKb = (ch: string) => setInternetKbInput(v => v + ch);
+          const backspaceKb = () => setInternetKbInput(v => v.slice(0, -1));
+          return (
+            <div className="absolute inset-0 z-[90] bg-white animate-[fadeIn_0.18s_ease-out] flex flex-col pt-8">
+              <div className="shrink-0 bg-white border-b border-gray-200 px-3 py-2 flex items-center gap-2">
+                <button onClick={() => { setInternetUrlPanelOpen(false); setInternetKbInput(''); }} className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700">
+                  <ChevronLeft size={22}/>
+                </button>
+                <div className="flex-1 h-10 bg-[#f1f3f4] rounded-full flex items-center gap-2 px-4">
+                  <Search size={16} className="text-gray-500 shrink-0"/>
+                  <div className="flex-1 text-[14px] text-gray-800 truncate">
+                    {internetKbInput || <span className="text-gray-400">검색어 또는 웹 주소 입력</span>}
+                    <span className="inline-block w-[1px] h-4 bg-gray-700 align-middle ml-0.5 animate-pulse"/>
+                  </div>
+                  {internetKbInput && (
+                    <button onClick={() => setInternetKbInput('')} className="text-gray-400 hover:text-gray-700 text-sm">✕</button>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-2">
-              <div className="text-[11px] font-bold text-gray-500 px-3 pt-2 pb-1">추천 검색어</div>
-              {['초등학교', '날씨', '튜브', '동요 모음'].map((s, i) => (
-                i === 0 ? (
-                  <ActionTarget key={s} id="internet-search-suggest" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                    onClick={() => performSearch(s)} className="block">
-                    <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
+
+              <div className="flex-1 overflow-y-auto p-2 min-h-0">
+                <div className="text-[11px] font-bold text-gray-500 px-3 pt-2 pb-1">추천 검색어</div>
+                {['초등학교', '날씨', '튜브', '동요 모음'].map((s) => (
+                  s === '초등학교' ? (
+                    <ActionTarget key={s} id="internet-search-suggest" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                      onClick={() => performSearch(s)} className="block">
+                      <div className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
+                        <Search size={18} className="text-gray-500"/>
+                        <div className="text-[15px] text-gray-800 flex-1">{s}</div>
+                        <div className="text-[11px] text-blue-600">검색</div>
+                      </div>
+                    </ActionTarget>
+                  ) : (
+                    <div key={s} onClick={() => performSearch(s)} className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
                       <Search size={18} className="text-gray-500"/>
                       <div className="text-[15px] text-gray-800 flex-1">{s}</div>
-                      <div className="text-[11px] text-blue-600">검색</div>
                     </div>
-                  </ActionTarget>
-                ) : (
-                  <div key={s} onClick={() => performSearch(s)} className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 cursor-pointer">
-                    <Search size={18} className="text-gray-500"/>
-                    <div className="text-[15px] text-gray-800 flex-1">{s}</div>
+                  )
+                ))}
+              </div>
+
+              {/* 가상 키보드 */}
+              <div className="shrink-0 bg-[#d1d5db] px-1.5 pt-2 pb-2 select-none">
+                {rows.map((row, ri) => (
+                  <div key={ri} className={`flex gap-1 mb-1 ${ri === 1 ? 'px-3' : ri === 2 ? 'px-1' : ''}`}>
+                    {ri === 2 && (
+                      <button onClick={() => setInternetKbShift(s => !s)} className={`flex-[1.4] h-9 rounded-md text-xs font-bold active:scale-95 ${internetKbShift ? 'bg-blue-500 text-white' : 'bg-gray-400 text-white'}`}>⇧</button>
+                    )}
+                    {row.map(ch => (
+                      <button key={ch} onClick={() => { appendKb(ch); if (internetKbShift) setInternetKbShift(false); }} className="flex-1 h-9 rounded-md bg-white text-gray-800 text-sm font-medium active:bg-gray-200 shadow-sm">{ch}</button>
+                    ))}
+                    {ri === 2 && (
+                      <button onClick={backspaceKb} className="flex-[1.4] h-9 rounded-md bg-gray-400 text-white text-sm font-bold active:scale-95">⌫</button>
+                    )}
                   </div>
-                )
-              ))}
+                ))}
+                <div className="flex gap-1">
+                  <button onClick={() => appendKb('.')} className="w-10 h-10 rounded-md bg-gray-400 text-white text-sm font-bold active:scale-95">.</button>
+                  <button onClick={() => appendKb('/')} className="w-10 h-10 rounded-md bg-gray-400 text-white text-sm font-bold active:scale-95">/</button>
+                  <button onClick={() => appendKb(' ')} className="flex-1 h-10 rounded-md bg-white text-gray-700 text-xs active:bg-gray-200 shadow-sm">스페이스</button>
+                  <button onClick={() => appendKb('.com')} className="w-14 h-10 rounded-md bg-gray-400 text-white text-xs font-bold active:scale-95">.com</button>
+                  <ActionTarget id="internet-url-go" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={performUrlGo}>
+                    <button disabled={!internetKbInput.trim()} className={`w-14 h-10 rounded-md text-white text-sm font-bold active:scale-95 ${internetKbInput.trim() ? 'bg-blue-500' : 'bg-blue-300'}`}>이동</button>
+                  </ActionTarget>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* 탭 스위처 */}
         {internetTabSwitcherOpen && (
