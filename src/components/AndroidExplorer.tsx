@@ -2942,6 +2942,43 @@ export default function AndroidExplorer() {
                 })}
               </div>
             </div>
+          ) : activeTab?.view === 'naver' ? (
+            <div className="max-w-2xl mx-auto px-5 py-10 animate-[fadeIn_0.25s_ease-out]">
+              <div className="text-center text-5xl font-black tracking-tight mb-6">
+                <span className="text-[#03C75A]">N</span><span className="text-gray-800">AVER</span>
+              </div>
+              <ActionTarget id="naver-search-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                onClick={() => setInternetUrlPanelOpen(true)} className="block">
+                <div className="w-full h-12 rounded-xl border-2 border-[#03C75A] bg-white flex items-center gap-2 px-4 cursor-text shadow-sm">
+                  <Search size={18} className="text-[#03C75A]"/>
+                  <div className="flex-1 text-[14px] text-gray-400">검색어를 입력하세요</div>
+                  <div className="text-xs text-white bg-[#03C75A] rounded-md px-2 py-1 font-bold">검색</div>
+                </div>
+              </ActionTarget>
+              <div className="mt-6 grid grid-cols-4 gap-3 text-center">
+                {[
+                  { icon: '📧', label: '메일' },
+                  { icon: '📰', label: '뉴스' },
+                  { icon: '🗺', label: '지도' },
+                  { icon: '🛒', label: '쇼핑' },
+                  { icon: '💬', label: '카페' },
+                  { icon: '📚', label: '블로그' },
+                  { icon: '🎬', label: 'TV' },
+                  { icon: '☁️', label: '날씨' },
+                ].map((q) => (
+                  <div key={q.label} className="flex flex-col items-center gap-1 p-2 rounded-xl hover:bg-gray-50">
+                    <div className="text-2xl">{q.icon}</div>
+                    <div className="text-[11px] text-gray-700">{q.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                <div className="text-[11px] font-bold text-gray-500 mb-2">실시간 급상승</div>
+                {['1. 오늘의 날씨', '2. 학교 알리미', '3. 어린이 동요', '4. 방학 숙제'].map((t) => (
+                  <div key={t} className="text-sm text-gray-700 py-1">{t}</div>
+                ))}
+              </div>
+            </div>
           ) : activeTab?.view === 'site' ? (
             <div className="max-w-2xl mx-auto px-5 py-10 text-center animate-[fadeIn_0.25s_ease-out]">
               <div className="text-6xl mb-4">🌐</div>
