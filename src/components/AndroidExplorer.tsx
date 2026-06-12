@@ -2900,7 +2900,7 @@ export default function AndroidExplorer() {
                         </button>
                       </ActionTarget>
                       <ActionTarget id={delTarget} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                        onClick={(e: any) => { e.stopPropagation?.(); setInternetBookmarks(bm => bm.filter(x => x.url !== b.url)); }}>
+                        onClick={(e: any) => { e.stopPropagation?.(); setInternetBookmarks(bm => bm.filter(x => x.url !== b.url)); setInternetMenuOpen(false); }}>
                         <button
                           className="shrink-0 w-8 h-8 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 flex items-center justify-center opacity-60 group-hover:opacity-100"
                           title="삭제"
