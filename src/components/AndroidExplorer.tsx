@@ -2746,18 +2746,51 @@ export default function AndroidExplorer() {
     const activeTab = internetTabs.find(t => t.id === internetActiveTabId) || internetTabs[0];
     const isBookmarked = activeTab && internetBookmarks.some(b => b.url === activeTab.url);
 
+    const navigateActive = (next: InternetHist) => {
+      setInternetTabs(tabs => tabs.map(t => {
+        if (t.id !== internetActiveTabId) return t;
+        const trimmed = t.history.slice(0, t.historyIndex + 1);
+        const newHist = [...trimmed, next];
+        return { ...t, ...next, history: newHist, historyIndex: newHist.length - 1 };
+      }));
+    };
+
+    const goBack = () => {
+      setInternetTabs(tabs => tabs.map(t => {
+        if (t.id !== internetActiveTabId) return t;
+        if (t.historyIndex <= 0) return t;
+        const idx = t.historyIndex - 1;
+        const h = t.history[idx];
+        return { ...t, ...h, historyIndex: idx };
+      }));
+    };
+
+    const canGoBack = (activeTab?.historyIndex ?? 0) > 0;
+
     const performSearch = (query: string) => {
-      setInternetTabs(tabs => tabs.map(t =>
-        t.id === internetActiveTabId
-          ? { ...t, title: `${query} - 검색`, url: `https://search.tamhem.com/?q=${encodeURIComponent(query)}`, view: 'results' }
-          : t
-      ));
+      navigateActive({ title: `${query} - 검색`, url: `https://search.tamhem.com/?q=${encodeURIComponent(query)}`, view: 'results' });
       setInternetUrlPanelOpen(false);
+      setInternetKbInput('');
+    };
+
+    const performUrlGo = () => {
+      const text = internetKbInput.trim();
+      if (!text) return;
+      if (text.includes('.') && !text.includes(' ')) {
+        const url = text.startsWith('http') ? text : `https://${text}`;
+        const host = text.replace(/^https?:\/\//, '').split('/')[0];
+        navigateActive({ title: host, url, view: 'site' });
+      } else {
+        performSearch(text);
+        return;
+      }
+      setInternetUrlPanelOpen(false);
+      setInternetKbInput('');
     };
 
     const addNewTab = () => {
       const newId = Math.max(0, ...internetTabs.map(t => t.id)) + 1;
-      setInternetTabs(tabs => [...tabs, { id: newId, title: '새 탭', url: '', view: 'newtab' }]);
+      setInternetTabs(tabs => [...tabs, makeInternetTab(newId)]);
       setInternetActiveTabId(newId);
       setInternetTabSwitcherOpen(false);
     };
@@ -2766,13 +2799,17 @@ export default function AndroidExplorer() {
       setInternetTabs(tabs => {
         const next = tabs.filter(t => t.id !== id);
         if (next.length === 0) {
-          const fresh: InternetTab = { id: 1, title: '새 탭', url: '', view: 'newtab' };
           setInternetActiveTabId(1);
-          return [fresh];
+          return [makeInternetTab(1)];
         }
         if (id === internetActiveTabId) setInternetActiveTabId(next[0].id);
         return next;
       });
+    };
+
+    const openBookmark = (b: { title: string; url: string }) => {
+      navigateActive({ title: b.title, url: b.url, view: 'site' });
+      setInternetMenuOpen(false);
     };
 
     const SEARCH_RESULTS = [
