@@ -2778,9 +2778,13 @@ export default function AndroidExplorer() {
       const text = internetKbInput.trim();
       if (!text) return;
       if (text.includes('.') && !text.includes(' ')) {
-        const url = text.startsWith('http') ? text : `https://${text}`;
-        const host = text.replace(/^https?:\/\//, '').split('/')[0];
-        navigateActive({ title: host, url, view: 'site' });
+        const host = text.replace(/^https?:\/\//, '').split('/')[0].toLowerCase();
+        if (host === 'google.com' || host === 'naver.com' || host === 'www.naver.com' || host === 'www.google.com') {
+          navigateActive({ title: 'NAVER', url: 'www.naver.com', view: 'naver' });
+        } else {
+          const url = text.startsWith('http') ? text : `https://${text}`;
+          navigateActive({ title: host, url, view: 'site' });
+        }
       } else {
         performSearch(text);
         return;
