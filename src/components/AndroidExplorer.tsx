@@ -2859,9 +2859,11 @@ export default function AndroidExplorer() {
               {isBookmarked ? '★' : '☆'}
             </button>
           </ActionTarget>
-          <button onClick={() => setInternetMenuOpen(o => !o)} className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700" title="메뉴">
-            <Menu size={20}/>
-          </button>
+          <ActionTarget id="internet-menu-open" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setInternetMenuOpen(o => !o)}>
+            <button className="w-9 h-9 rounded-full hover:bg-gray-100 active:scale-90 flex items-center justify-center text-gray-700" title="메뉴">
+              <Menu size={20}/>
+            </button>
+          </ActionTarget>
         </div>
 
         {/* 메뉴 드롭다운 (즐겨찾기 목록) */}
