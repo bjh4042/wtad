@@ -2814,7 +2814,6 @@ export default function AndroidExplorer() {
 
     const openBookmark = (b: { title: string; url: string }) => {
       navigateActive({ title: b.title, url: b.url, view: 'site' });
-      setInternetMenuOpen(false);
     };
 
     const isNaverQuery = !!activeTab && /네이버/.test(activeTab.title);
