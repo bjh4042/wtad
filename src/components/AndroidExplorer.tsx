@@ -2922,13 +2922,24 @@ export default function AndroidExplorer() {
             <div className="max-w-3xl mx-auto px-5 py-4 animate-[fadeIn_0.25s_ease-out]">
               <div className="text-xs text-gray-500 mb-3">검색결과 약 1,240,000개 (0.42초)</div>
               <div className="space-y-5">
-                {SEARCH_RESULTS.map((r, i) => (
-                  <div key={i} className="cursor-pointer group">
-                    <div className="text-[12px] text-gray-600 truncate">{r.url}</div>
-                    <div className="text-[18px] text-[#1a0dab] font-medium group-hover:underline truncate">{r.title}</div>
-                    <div className="text-[13px] text-gray-700 mt-0.5 line-clamp-2">{r.desc}</div>
-                  </div>
-                ))}
+                {SEARCH_RESULTS.map((r: any, i) => {
+                  const inner = (
+                    <div className="cursor-pointer group">
+                      <div className="text-[12px] text-gray-600 truncate">{r.url}</div>
+                      <div className="text-[18px] text-[#1a0dab] font-medium group-hover:underline truncate">{r.title}</div>
+                      <div className="text-[13px] text-gray-700 mt-0.5 line-clamp-2">{r.desc}</div>
+                    </div>
+                  );
+                  if (r.naver) {
+                    return (
+                      <ActionTarget key={i} id="internet-result-naver" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+                        onClick={() => navigateActive({ title: 'NAVER', url: 'www.naver.com', view: 'site' })} className="block">
+                        {inner}
+                      </ActionTarget>
+                    );
+                  }
+                  return <div key={i} onClick={() => navigateActive({ title: r.title, url: r.url, view: 'site' })}>{inner}</div>;
+                })}
               </div>
             </div>
           ) : activeTab?.view === 'site' ? (
