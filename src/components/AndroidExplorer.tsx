@@ -609,25 +609,48 @@ export default function AndroidExplorer() {
 
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
-      if (!completedQuests.includes(questIdx)) {
-        const gained = QUESTS[questIdx].exp;
-        const newExp = exp + gained;
-        setExp(newExp);
-        setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
-        // 리워드 효과
-        setConfettiKey(k => k + 1);
-        setRewardToast({ exp: gained, key: Date.now() });
-        setTimeout(() => setRewardToast(null), 3400);
-        // 레벨업 감지
-        const newLevel = Math.floor(newExp / 100) + 1;
-        if (newLevel > prevLevelRef.current) {
-          prevLevelRef.current = newLevel;
-          setLevelUpFlash(f => f + 1);
-        }
+      // 중복 완료 방지 가드
+      if (completedQuests.includes(questIdx)) {
+        setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
+        return;
+      }
+      const gained = QUESTS[questIdx].exp ?? 0;
+      const newExp = exp + gained;
+      setExp(newExp);
+      setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
+      // 리워드 효과
+      setConfettiKey(k => k + 1);
+      setRewardToast({ exp: gained, key: Date.now() });
+      setTimeout(() => setRewardToast(null), 3400);
+      // 레벨업 감지
+      const newLevel = Math.floor(newExp / 100) + 1;
+      if (newLevel > prevLevelRef.current) {
+        prevLevelRef.current = newLevel;
+        setLevelUpFlash(f => f + 1);
       }
       setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
     }
   };
+
+  // 마지막(요약) 미션 자동 완료 및 최종 경험치 지급
+  useEffect(() => {
+    const lastIdx = QUESTS.length - 1;
+    if (questIdx === lastIdx && QUESTS[lastIdx]?.targetId === null && !completedQuests.includes(lastIdx)) {
+      const gained = QUESTS[lastIdx].exp ?? 0;
+      const newExp = exp + gained;
+      setExp(newExp);
+      setCompletedQuests(prev => prev.includes(lastIdx) ? prev : [...prev, lastIdx]);
+      setConfettiKey(k => k + 1);
+      setRewardToast({ exp: gained, key: Date.now() });
+      setTimeout(() => setRewardToast(null), 3400);
+      const newLevel = Math.floor(newExp / 100) + 1;
+      if (newLevel > prevLevelRef.current) {
+        prevLevelRef.current = newLevel;
+        setLevelUpFlash(f => f + 1);
+      }
+    }
+  }, [questIdx, completedQuests]);
+
 
 
   const resetProgress = () => {
