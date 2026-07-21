@@ -130,7 +130,7 @@ const QUESTS = [
   { id: 88, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 89, text: "바탕화면에서 '인터넷' 앱을 실행하세요.", targetId: 'app-icon-Internet', exp: 20 },
   { id: 90, text: "상단 주소창을 눌러 입력창을 여세요.", targetId: 'internet-address-bar', exp: 20 },
-  { id: 91, text: "키보드로 'google.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
+  { id: 91, text: "키보드로 'naver.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
   { id: 92, text: "네이버 메인 화면 중앙의 검색창을 누르세요.", targetId: 'naver-search-bar', exp: 20 },
   { id: 93, text: "추천 검색어 '네이버'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
   { id: 94, text: "검색 결과에서 'NAVER - 네이버' 항목을 눌러 사이트에 접속하세요.", targetId: 'internet-result-naver', exp: 30 },
