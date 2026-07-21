@@ -112,8 +112,6 @@ const QUESTS = [
   { id: 72, text: "탐험대 계정 카드의 '로그아웃' 버튼을 누르세요.", targetId: 'google-logout-btn', exp: 20 },
   { id: 73, text: "확인 창에서 '로그아웃'을 눌러 정말로 로그아웃하세요.", targetId: 'google-logout-confirm', exp: 20 },
   { id: 74, text: "'계정 추가' 버튼을 눌러 다른 계정으로 다시 로그인해보세요.", targetId: 'account-add-btn', exp: 20 },
-  // ===== 블루투스 페어링 PIN =====
-  { id: 75, text: "페어링 코드를 확인하고 '페어링' 버튼을 눌러 연결을 완료하세요.", targetId: 'bt-pair-confirm', exp: 20 },
   // ===== 계산기로 12 × 8 = 96 =====
   { id: 76, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 77, text: "'계산기' 앱을 실행하세요.", targetId: 'app-icon-Calculator', exp: 10 },
