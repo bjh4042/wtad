@@ -2801,8 +2801,10 @@ export default function AndroidExplorer() {
       if (!text) return;
       if (text.includes('.') && !text.includes(' ')) {
         const host = text.replace(/^https?:\/\//, '').split('/')[0].toLowerCase();
-        if (host === 'google.com' || host === 'naver.com' || host === 'www.naver.com' || host === 'www.google.com') {
+        if (host === 'naver.com' || host === 'www.naver.com') {
           navigateActive({ title: 'NAVER', url: 'www.naver.com', view: 'naver' });
+        } else if (host === 'google.com' || host === 'www.google.com') {
+          navigateActive({ title: 'Google', url: 'www.google.com', view: 'google' });
         } else {
           const url = text.startsWith('http') ? text : `https://${text}`;
           navigateActive({ title: host, url, view: 'site' });
