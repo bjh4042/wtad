@@ -2967,24 +2967,20 @@ export default function AndroidExplorer() {
             </div>
           ) : activeTab?.view === 'google' ? (
             <div className="max-w-2xl mx-auto px-5 py-16 animate-[fadeIn_0.25s_ease-out]">
-              <div className="text-center text-6xl font-normal tracking-tight mb-8" style={{ fontFamily: 'Arial, sans-serif' }}>
-                <span style={{ color: '#4285F4' }}>G</span>
-                <span style={{ color: '#EA4335' }}>o</span>
-                <span style={{ color: '#FBBC05' }}>o</span>
-                <span style={{ color: '#4285F4' }}>g</span>
-                <span style={{ color: '#34A853' }}>l</span>
-                <span style={{ color: '#EA4335' }}>e</span>
+              <div className="text-center text-5xl font-light tracking-tight mb-8 text-gray-700">
+                google.com
               </div>
               <div onClick={() => setInternetUrlPanelOpen(true)} className="max-w-lg mx-auto">
                 <div className="w-full h-12 rounded-full border border-gray-300 bg-white flex items-center gap-3 px-5 cursor-text shadow-sm hover:shadow-md transition-shadow">
                   <Search size={18} className="text-gray-400"/>
-                  <div className="flex-1 text-[14px] text-gray-400">Google 검색 또는 URL 입력</div>
+                  <div className="flex-1 text-[14px] text-gray-400">검색어 또는 URL 입력</div>
                 </div>
                 <div className="flex justify-center gap-3 mt-6">
-                  <div className="px-4 py-2 rounded-md bg-gray-100 text-xs text-gray-700 font-medium">Google 검색</div>
-                  <div className="px-4 py-2 rounded-md bg-gray-100 text-xs text-gray-700 font-medium">I'm Feeling Lucky</div>
+                  <div className="px-4 py-2 rounded-md bg-gray-100 text-xs text-gray-700 font-medium">검색</div>
+                  <div className="px-4 py-2 rounded-md bg-gray-100 text-xs text-gray-700 font-medium">오늘의 운세</div>
                 </div>
               </div>
+              <div className="mt-10 text-center text-xs text-gray-400">탐험 브라우저 · google.com 모의 페이지</div>
             </div>
           ) : activeTab?.view === 'naver' ? (
             <div className="max-w-2xl mx-auto px-5 py-10 animate-[fadeIn_0.25s_ease-out]">
