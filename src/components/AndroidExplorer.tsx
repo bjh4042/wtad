@@ -364,7 +364,7 @@ export default function AndroidExplorer() {
   const [typingIndex, setTypingIndex] = useState(0);
 
   // 삼성 인터넷 앱
-  type InternetView = 'newtab' | 'results' | 'site' | 'naver';
+  type InternetView = 'newtab' | 'results' | 'site' | 'naver' | 'google';
   type InternetHist = { title: string; url: string; view: InternetView };
   type InternetTab = { id: number; title: string; url: string; view: InternetView; history: InternetHist[]; historyIndex: number };
   const makeInternetTab = (id: number): InternetTab => ({ id, title: '새 탭', url: '', view: 'newtab', history: [{ title: '새 탭', url: '', view: 'newtab' }], historyIndex: 0 });
