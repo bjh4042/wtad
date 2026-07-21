@@ -70,6 +70,7 @@ const QUESTS = [
   { id: 36, text: "'다크 모드' 버튼을 눌러 어두운 화면으로 바꿔보세요.", targetId: 'quick-darkmode', exp: 20 },
   { id: 37, text: "'블루투스' 버튼을 눌러 켜고 기기 목록을 여세요.", targetId: 'quick-bluetooth', exp: 20 },
   { id: 38, text: "'무선 이어버드'를 선택해 페어링하세요.", targetId: 'bt-device-buds', exp: 30 },
+  { id: 75, text: "페어링 코드를 확인하고 '페어링' 버튼을 눌러 연결을 완료하세요.", targetId: 'bt-pair-confirm', exp: 20 },
   { id: 39, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 40, text: "'메모' (빨간 아이콘) 앱을 실행하세요.", targetId: 'app-icon-Notes', exp: 20 },
   { id: 41, text: "오른쪽 아래 '+' 버튼을 눌러 새 메모를 만드세요.", targetId: 'notes-new', exp: 20 },
@@ -111,8 +112,6 @@ const QUESTS = [
   { id: 72, text: "탐험대 계정 카드의 '로그아웃' 버튼을 누르세요.", targetId: 'google-logout-btn', exp: 20 },
   { id: 73, text: "확인 창에서 '로그아웃'을 눌러 정말로 로그아웃하세요.", targetId: 'google-logout-confirm', exp: 20 },
   { id: 74, text: "'계정 추가' 버튼을 눌러 다른 계정으로 다시 로그인해보세요.", targetId: 'account-add-btn', exp: 20 },
-  // ===== 블루투스 페어링 PIN =====
-  { id: 75, text: "페어링 코드를 확인하고 '페어링' 버튼을 눌러 연결을 완료하세요.", targetId: 'bt-pair-confirm', exp: 20 },
   // ===== 계산기로 12 × 8 = 96 =====
   { id: 76, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 77, text: "'계산기' 앱을 실행하세요.", targetId: 'app-icon-Calculator', exp: 10 },
@@ -131,7 +130,7 @@ const QUESTS = [
   { id: 88, text: "홈 버튼을 눌러 바탕화면으로 가세요.", targetId: 'nav-home', exp: 10 },
   { id: 89, text: "바탕화면에서 '인터넷' 앱을 실행하세요.", targetId: 'app-icon-Internet', exp: 20 },
   { id: 90, text: "상단 주소창을 눌러 입력창을 여세요.", targetId: 'internet-address-bar', exp: 20 },
-  { id: 91, text: "키보드로 'google.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
+  { id: 91, text: "키보드로 'naver.com'을 입력하고 '이동'을 누르세요.", targetId: 'internet-url-go', exp: 40 },
   { id: 92, text: "네이버 메인 화면 중앙의 검색창을 누르세요.", targetId: 'naver-search-bar', exp: 20 },
   { id: 93, text: "추천 검색어 '네이버'를 눌러 검색하세요.", targetId: 'internet-search-suggest', exp: 30 },
   { id: 94, text: "검색 결과에서 'NAVER - 네이버' 항목을 눌러 사이트에 접속하세요.", targetId: 'internet-result-naver', exp: 30 },
@@ -365,7 +364,7 @@ export default function AndroidExplorer() {
   const [typingIndex, setTypingIndex] = useState(0);
 
   // 삼성 인터넷 앱
-  type InternetView = 'newtab' | 'results' | 'site' | 'naver';
+  type InternetView = 'newtab' | 'results' | 'site' | 'naver' | 'google';
   type InternetHist = { title: string; url: string; view: InternetView };
   type InternetTab = { id: number; title: string; url: string; view: InternetView; history: InternetHist[]; historyIndex: number };
   const makeInternetTab = (id: number): InternetTab => ({ id, title: '새 탭', url: '', view: 'newtab', history: [{ title: '새 탭', url: '', view: 'newtab' }], historyIndex: 0 });
@@ -556,14 +555,15 @@ export default function AndroidExplorer() {
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
   const dateStr = time ? time.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '';
 
-  // 다중 선택 미션 도달 시 샘플 사진 자동 추가
+  // 다중 선택 미션 도달 시 부족한 개수만 샘플 사진 추가 (기존 촬영 사진 보존)
   useEffect(() => {
     if (questIdx === 21 && photos.length < 3) {
-      setPhotos([
-        { id: Date.now() + 1, seed: 1001 },
-        { id: Date.now() + 2, seed: 1002 },
-        { id: Date.now() + 3, seed: 1003 },
-      ]);
+      const needed = 3 - photos.length;
+      const samples = Array.from({ length: needed }, (_, i) => ({
+        id: Date.now() + i + 1,
+        seed: 1001 + i,
+      }));
+      setPhotos(prev => [...prev, ...samples]);
     }
   }, [questIdx]);
 
@@ -610,25 +610,48 @@ export default function AndroidExplorer() {
 
   const advanceQuest = (targetId) => {
     if (QUESTS[questIdx]?.targetId === targetId) {
-      if (!completedQuests.includes(questIdx)) {
-        const gained = QUESTS[questIdx].exp;
-        const newExp = exp + gained;
-        setExp(newExp);
-        setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
-        // 리워드 효과
-        setConfettiKey(k => k + 1);
-        setRewardToast({ exp: gained, key: Date.now() });
-        setTimeout(() => setRewardToast(null), 3400);
-        // 레벨업 감지
-        const newLevel = Math.floor(newExp / 100) + 1;
-        if (newLevel > prevLevelRef.current) {
-          prevLevelRef.current = newLevel;
-          setLevelUpFlash(f => f + 1);
-        }
+      // 중복 완료 방지 가드
+      if (completedQuests.includes(questIdx)) {
+        setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
+        return;
+      }
+      const gained = QUESTS[questIdx].exp ?? 0;
+      const newExp = exp + gained;
+      setExp(newExp);
+      setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
+      // 리워드 효과
+      setConfettiKey(k => k + 1);
+      setRewardToast({ exp: gained, key: Date.now() });
+      setTimeout(() => setRewardToast(null), 3400);
+      // 레벨업 감지
+      const newLevel = Math.floor(newExp / 100) + 1;
+      if (newLevel > prevLevelRef.current) {
+        prevLevelRef.current = newLevel;
+        setLevelUpFlash(f => f + 1);
       }
       setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
     }
   };
+
+  // 마지막(요약) 미션 자동 완료 및 최종 경험치 지급
+  useEffect(() => {
+    const lastIdx = QUESTS.length - 1;
+    if (questIdx === lastIdx && QUESTS[lastIdx]?.targetId === null && !completedQuests.includes(lastIdx)) {
+      const gained = QUESTS[lastIdx].exp ?? 0;
+      const newExp = exp + gained;
+      setExp(newExp);
+      setCompletedQuests(prev => prev.includes(lastIdx) ? prev : [...prev, lastIdx]);
+      setConfettiKey(k => k + 1);
+      setRewardToast({ exp: gained, key: Date.now() });
+      setTimeout(() => setRewardToast(null), 3400);
+      const newLevel = Math.floor(newExp / 100) + 1;
+      if (newLevel > prevLevelRef.current) {
+        prevLevelRef.current = newLevel;
+        setLevelUpFlash(f => f + 1);
+      }
+    }
+  }, [questIdx, completedQuests]);
+
 
 
   const resetProgress = () => {
@@ -2779,8 +2802,10 @@ export default function AndroidExplorer() {
       if (!text) return;
       if (text.includes('.') && !text.includes(' ')) {
         const host = text.replace(/^https?:\/\//, '').split('/')[0].toLowerCase();
-        if (host === 'google.com' || host === 'naver.com' || host === 'www.naver.com' || host === 'www.google.com') {
+        if (host === 'naver.com' || host === 'www.naver.com') {
           navigateActive({ title: 'NAVER', url: 'www.naver.com', view: 'naver' });
+        } else if (host === 'google.com' || host === 'www.google.com') {
+          navigateActive({ title: 'Google', url: 'www.google.com', view: 'google' });
         } else {
           const url = text.startsWith('http') ? text : `https://${text}`;
           navigateActive({ title: host, url, view: 'site' });
@@ -2940,6 +2965,23 @@ export default function AndroidExplorer() {
                   return <div key={i} onClick={() => navigateActive({ title: r.title, url: r.url, view: 'site' })}>{inner}</div>;
                 })}
               </div>
+            </div>
+          ) : activeTab?.view === 'google' ? (
+            <div className="max-w-2xl mx-auto px-5 py-16 animate-[fadeIn_0.25s_ease-out]">
+              <div className="text-center text-5xl font-light tracking-tight mb-8 text-gray-700">
+                google.com
+              </div>
+              <div onClick={() => setInternetUrlPanelOpen(true)} className="max-w-lg mx-auto">
+                <div className="w-full h-12 rounded-full border border-gray-300 bg-white flex items-center gap-3 px-5 cursor-text shadow-sm hover:shadow-md transition-shadow">
+                  <Search size={18} className="text-gray-400"/>
+                  <div className="flex-1 text-[14px] text-gray-400">검색어 또는 URL 입력</div>
+                </div>
+                <div className="flex justify-center gap-3 mt-6">
+                  <div className="px-4 py-2 rounded-md bg-gray-100 text-xs text-gray-700 font-medium">검색</div>
+                  <div className="px-4 py-2 rounded-md bg-gray-100 text-xs text-gray-700 font-medium">오늘의 운세</div>
+                </div>
+              </div>
+              <div className="mt-10 text-center text-xs text-gray-400">탐험 브라우저 · google.com 모의 페이지</div>
             </div>
           ) : activeTab?.view === 'naver' ? (
             <div className="max-w-2xl mx-auto px-5 py-10 animate-[fadeIn_0.25s_ease-out]">
