@@ -555,14 +555,15 @@ export default function AndroidExplorer() {
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
   const dateStr = time ? time.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '';
 
-  // 다중 선택 미션 도달 시 샘플 사진 자동 추가
+  // 다중 선택 미션 도달 시 부족한 개수만 샘플 사진 추가 (기존 촬영 사진 보존)
   useEffect(() => {
     if (questIdx === 21 && photos.length < 3) {
-      setPhotos([
-        { id: Date.now() + 1, seed: 1001 },
-        { id: Date.now() + 2, seed: 1002 },
-        { id: Date.now() + 3, seed: 1003 },
-      ]);
+      const needed = 3 - photos.length;
+      const samples = Array.from({ length: needed }, (_, i) => ({
+        id: Date.now() + i + 1,
+        seed: 1001 + i,
+      }));
+      setPhotos(prev => [...prev, ...samples]);
     }
   }, [questIdx]);
 
