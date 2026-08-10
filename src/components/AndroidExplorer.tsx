@@ -202,7 +202,7 @@ export default function AndroidExplorer() {
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
-  const [homePages, setHomePages] = useState<any[][]>([DEFAULT_HOME_APPS, Array(40).fill(null)]);
+  const [homePages, setHomePages] = useState<any[][]>(() => [DEFAULT_HOME_APPS, emptyHomePage()]);
   const [currentPage, setCurrentPage] = useState(0);
   const homeApps = homePages[currentPage] ?? Array(40).fill(null);
   const setHomeApps: any = (updater: any) => {
@@ -262,7 +262,7 @@ export default function AndroidExplorer() {
   const [lockOffset, setLockOffset] = useState(0);
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [widgetPages, setWidgetPages] = useState<string[][]>([['clock', 'weather', 'calendar'], []]);
+  const [widgetPages, setWidgetPages] = useState<string[][]>(() => DEFAULT_WIDGETS.map(p => [...p]));
   const widgets = widgetPages[currentPage] ?? [];
   const setWidgets: any = (updater: any) => {
     setWidgetPages(prev => {
@@ -388,37 +388,26 @@ export default function AndroidExplorer() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const saved = loadLS();
-    setInstalledApps(saved.installedApps ?? []);
-    setWallpaper(saved.wallpaper ?? DEFAULT_WALLPAPER);
-    const loadedPages = saved.homePages ?? (saved.homeApps ? [saved.homeApps, Array(40).fill(null)] : [DEFAULT_HOME_APPS, Array(40).fill(null)]);
-    setHomePages(loadedPages);
-    setDarkMode(saved.darkMode ?? false);
-    setFontScale(saved.fontScale ?? 1);
-    const loadedWPages = saved.widgetPages ?? (saved.widgets ? [saved.widgets, []] : [['clock', 'weather', 'calendar'], []]);
-    setWidgetPages(loadedWPages);
-    setWidgetSizes(saved.widgetSizes ?? {});
-    setThemeColor(saved.themeColor ?? '#3b82f6');
-    // --- 진행도 마이그레이션: id 기반 저장 <-> 인덱스 기반 상태 ---
-    // 레거시(v2 초기) 저장은 배열 인덱스를 저장했고, 당시 배열은 id 순서(0..103)와 동일했으므로
-    // 레거시 인덱스 값은 그대로 퀘스트 id로 해석할 수 있다.
-    const toIdx = (id: number) => questIndexById(Number(id));
-    const rawCompletedIds: any[] = Array.isArray(saved.completedQuestIds)
-      ? saved.completedQuestIds
-      : Array.isArray(saved.completedQuests)
-        ? saved.completedQuests
-        : [];
-    const migratedCompleted = Array.from(
-      new Set(rawCompletedIds.map(toIdx).filter((v: number) => v >= 0))
-    );
-    const savedQuestId = saved.currentQuestId ?? saved.questIdx ?? 0;
-    const migratedIdx = toIdx(Number(savedQuestId));
-    setQuestIdx(migratedIdx >= 0 ? migratedIdx : 0);
-    setExp(saved.exp ?? 0);
-    setCompletedQuests(migratedCompleted);
-    setIsStorageReady(true);
-  }, []);
+  // 진행도 로드/저장 + 레거시 호환은 useProgressStorage 담당
+  const { isStorageReady } = useProgressStorage(
+    {
+      questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes,
+      wallpaper, darkMode, fontScale, themeColor,
+    },
+    (loaded) => {
+      setInstalledApps(loaded.installedApps);
+      setWallpaper(loaded.wallpaper);
+      setHomePages(loaded.homePages);
+      setDarkMode(loaded.darkMode);
+      setFontScale(loaded.fontScale);
+      setWidgetPages(loaded.widgetPages);
+      setWidgetSizes(loaded.widgetSizes);
+      setThemeColor(loaded.themeColor);
+      setQuestIdx(loaded.questIdx);
+      setExp(loaded.exp);
+      setCompletedQuests(loaded.completedQuests);
+    },
+  );
 
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
   const dateStr = time ? time.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '';
@@ -459,85 +448,22 @@ export default function AndroidExplorer() {
     return () => clearTimeout(t);
   }, [googleLoginOpen, googleLoginStep, googleShake]);
 
-  // 진행도 localStorage 저장
-  useEffect(() => {
-    if (!isStorageReady) return;
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        // id 기반으로 저장 (배열 순서가 바뀌어도 진행도 유지)
-        currentQuestId: QUESTS[questIdx]?.id ?? 0,
-        completedQuestIds: completedQuests.map((i: number) => QUESTS[i]?.id).filter((v: any) => typeof v === 'number'),
-        exp, installedApps, homePages, widgetPages, widgetSizes,
-        wallpaper, darkMode, fontScale, themeColor,
-      }));
-    } catch {}
-  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes, wallpaper, darkMode, fontScale, themeColor]);
 
 
 
 
 
 
-  const advanceQuest = (targetId) => {
-    if (QUESTS[questIdx]?.targetId === targetId) {
-      // 중복 완료 방지 가드
-      if (completedQuests.includes(questIdx)) {
-        setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
-        return;
-      }
-      const gained = QUESTS[questIdx].exp ?? 0;
-      const newExp = exp + gained;
-      setExp(newExp);
-      setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
-      // 리워드 효과
-      setConfettiKey(k => k + 1);
-      setRewardToast({ exp: gained, key: Date.now() });
-      setTimeout(() => setRewardToast(null), 3400);
-      // 레벨업 감지
-      const newLevel = Math.floor(newExp / 100) + 1;
-      if (newLevel > prevLevelRef.current) {
-        prevLevelRef.current = newLevel;
-        setLevelUpFlash(f => f + 1);
-      }
-      setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
-    }
-  };
-
-  // 마지막(요약) 미션 자동 완료 및 최종 경험치 지급
-  useEffect(() => {
-    const lastIdx = QUESTS.length - 1;
-    if (questIdx === lastIdx && QUESTS[lastIdx]?.targetId === null && !completedQuests.includes(lastIdx)) {
-      const gained = QUESTS[lastIdx].exp ?? 0;
-      const newExp = exp + gained;
-      setExp(newExp);
-      setCompletedQuests(prev => prev.includes(lastIdx) ? prev : [...prev, lastIdx]);
-      setConfettiKey(k => k + 1);
-      setRewardToast({ exp: gained, key: Date.now() });
-      setTimeout(() => setRewardToast(null), 3400);
-      const newLevel = Math.floor(newExp / 100) + 1;
-      if (newLevel > prevLevelRef.current) {
-        prevLevelRef.current = newLevel;
-        setLevelUpFlash(f => f + 1);
-      }
-    }
-  }, [questIdx, completedQuests]);
+  // advanceQuest / 마지막 미션 자동 완료 / 중복 EXP 방지 → useQuestEngine
 
 
 
   const resetProgress = () => {
-    if (typeof window !== 'undefined') {
-      try { localStorage.removeItem(LS_KEY); } catch {}
-    }
-    setQuestIdx(0); setExp(0); setCompletedQuests([]);
-    setInstalledApps([]); setHomePages([DEFAULT_HOME_APPS, Array(40).fill(null)]); setCurrentPage(0); setWallpaper(DEFAULT_WALLPAPER);
-    setDarkMode(false); setFontScale(1); setWidgetPages([['clock', 'weather', 'calendar'], []]); setWidgetSizes({});
+    clearProgress();
+    resetQuestProgress();
+    setInstalledApps([]); setHomePages([DEFAULT_HOME_APPS, emptyHomePage()]); setCurrentPage(0); setWallpaper(DEFAULT_WALLPAPER);
+    setDarkMode(false); setFontScale(1); setWidgetPages(DEFAULT_WIDGETS.map(p => [...p])); setWidgetSizes({});
     setThemeColor('#3b82f6'); setLocked(true);
-  };
-  const gotoQuest = (idx: number) => {
-    const clamped = Math.max(0, Math.min(QUESTS.length - 1, idx));
-    if (clamped > questIdx && !completedQuests.includes(questIdx)) return;
-    setQuestIdx(clamped);
   };
 
 
@@ -754,8 +680,11 @@ export default function AndroidExplorer() {
           <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
             <circle cx="50" cy="50" r="44" fill="#fff" stroke="#111" strokeWidth="5"/>
             {[0,1,2,3,4,5,6,7,8,9,10,11].map(i => {
-              const a = (i*30)*Math.PI/180; const x1 = 50+Math.sin(a)*38; const y1 = 50-Math.cos(a)*38;
-              const x2 = 50+Math.sin(a)*42; const y2 = 50-Math.cos(a)*42;
+              // 서버/클라이언트 부동소수 직렬화 차이로 hydration mismatch 가 발생하므로 고정 소수점으로 반올림
+              const r3 = (v: number) => Number(v.toFixed(3));
+              const a = (i*30)*Math.PI/180;
+              const x1 = r3(50+Math.sin(a)*38); const y1 = r3(50-Math.cos(a)*38);
+              const x2 = r3(50+Math.sin(a)*42); const y2 = r3(50-Math.cos(a)*42);
               return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#111" strokeWidth="2"/>;
             })}
             <line x1="50" y1="50" x2="50" y2="22" stroke="#111" strokeWidth="5" strokeLinecap="round"/>
