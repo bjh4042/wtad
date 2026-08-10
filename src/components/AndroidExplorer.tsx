@@ -18,7 +18,11 @@ import iconMessages from '@/assets/icons/messages.png';
 import iconInternet from '@/assets/icons/internet.png';
 import iconCamera from '@/assets/icons/camera.png';
 import iconPhone from '@/assets/icons/phone.png';
-import { QUESTS, questIndexById } from '@/data/quests';
+import { QUESTS } from '@/data/quests';
+import { DEFAULT_HOME_APPS, DEFAULT_WALLPAPER, DEFAULT_WIDGETS, emptyHomePage } from '@/data/homeDefaults';
+import { useQuestEngine } from '@/hooks/useQuestEngine';
+import { useDeviceState } from '@/hooks/useDeviceState';
+import { useProgressStorage, clearProgress } from '@/hooks/useProgressStorage';
 
 const APP_ICON_IMAGES: Record<string, string> = {
   Store: iconStore,
@@ -164,27 +168,7 @@ const ActionTarget = ({
 };
 
 
-const LS_KEY = 'android-explorer-v2';
-const loadLS = (): any => {
-  if (typeof window === 'undefined') return {};
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
-};
-
-const DEFAULT_WALLPAPER = 'radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a';
-
-const DEFAULT_HOME_APPS = (() => {
-  // 8 columns × 5 rows tablet layout
-  const a = Array(40).fill(null);
-  // Row 1
-  a[0] = 'PlayStore'; a[1] = 'Store'; a[2] = 'Notes'; a[3] = 'Folder';
-  a[4] = 'Internet'; a[5] = 'GameLauncher'; a[6] = 'Camera'; a[7] = 'Gallery';
-  // Row 2
-  a[8] = 'Messages'; a[9] = 'KakaoTalk'; a[10] = 'YouTube'; a[11] = 'Naver';
-  a[12] = 'Calculator'; a[13] = 'Calendar'; a[14] = 'Clock'; a[15] = 'Settings';
-  // Row 3
-  a[16] = 'Health'; a[17] = 'Wearable'; a[18] = 'Gmail';
-  return a;
-})();
+// 저장 로직: src/hooks/useProgressStorage.ts / 홈 기본값: src/data/homeDefaults.ts
 
 
 export default function AndroidExplorer() {
@@ -200,17 +184,21 @@ export default function AndroidExplorer() {
   }, []);
 
 
-  const [wifi, setWifi] = useState(false);
-  const [wifiConnected, setWifiConnected] = useState(null);
-  const [bluetooth, setBluetooth] = useState(false);
+  // 기기 상태는 useDeviceState 로 분리 (identifier 는 그대로 유지)
+  const device = useDeviceState();
+  const {
+    currentApp, setCurrentApp,
+    wifi, setWifi, wifiConnected, setWifiConnected,
+    bluetooth, setBluetooth, connectedBtDevice, setConnectedBtDevice,
+    brightness, setBrightness, volume, setVolume,
+    mediaVolume, setMediaVolume, ringVolume, setRingVolume, notifVolume, setNotifVolume,
+    volumePanelOpen, setVolumePanelOpen, volumePanelType, setVolumePanelType, showVolumePanel,
+    installedApps, setInstalledApps, wallpaper, setWallpaper,
+    photos, setPhotos, notes, setNotes,
+  } = device;
   const [airplane, setAirplane] = useState(false);
   const [soundMode, setSoundMode] = useState('sound');
-  const [brightness, setBrightness] = useState(80);
-  const [volume, setVolume] = useState(70);
-  const [photos, setPhotos] = useState([]);
-  const [installedApps, setInstalledApps] = useState<string[]>([]);
-  const [currentCameraSeed, setCurrentCameraSeed] = useState(Date.now());
-  const [wallpaper, setWallpaper] = useState<string>(DEFAULT_WALLPAPER);
+  const [currentCameraSeed, setCurrentCameraSeed] = useState(() => Date.now());
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
@@ -237,7 +225,6 @@ export default function AndroidExplorer() {
   const [dragInfo, setDragInfo] = useState({ isDragging: false, index: null, x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const [hoverIndex, setHoverIndex] = useState(null);
 
-  const [currentApp, setCurrentApp] = useState(null);
   const [settingsMenu, setSettingsMenu] = useState('connections');
   const [quickPanelOpen, setQuickPanelOpen] = useState(false);
   const [wifiModalOpen, setWifiModalOpen] = useState(false);
@@ -342,10 +329,8 @@ export default function AndroidExplorer() {
 
   // 신규: 블루투스 기기 / 노트
   const [bluetoothModalOpen, setBluetoothModalOpen] = useState(false);
-  const [connectedBtDevice, setConnectedBtDevice] = useState<string | null>(null);
   const [btPairingDevice, setBtPairingDevice] = useState<{ id: string; name: string; icon: string } | null>(null);
   const [btPairingPin, setBtPairingPin] = useState<string>('');
-  const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
@@ -358,10 +343,13 @@ export default function AndroidExplorer() {
   // Photo viewer zoom
   const [photoZoom, setPhotoZoom] = useState(1);
 
-  const [questIdx, setQuestIdx] = useState<number>(0);
-  const [exp, setExp] = useState<number>(0);
-  const [completedQuests, setCompletedQuests] = useState<number[]>([]);
-  const [isStorageReady, setIsStorageReady] = useState(false);
+  // 퀘스트 진행 로직은 useQuestEngine 으로 분리
+  const questEngine = useQuestEngine();
+  const {
+    questIdx, setQuestIdx, exp, setExp, completedQuests, setCompletedQuests,
+    currentTargetId, advanceQuest, gotoQuest, resetQuestProgress,
+    confettiKey, rewardToast, levelUpFlash,
+  } = questEngine;
   const [drawerSearch, setDrawerSearch] = useState('');
   const [appLaunchKey, setAppLaunchKey] = useState(0);
   const [showExpMenu, setShowExpMenu] = useState(true);
@@ -380,30 +368,10 @@ export default function AndroidExplorer() {
   const dragRefList = useRef<any>(null);
   const missionListRef = useRef<any>(null);
 
-  // 리워드 (3번) - confetti + level-up flash
-  const [confettiKey, setConfettiKey] = useState(0);
-  const [rewardToast, setRewardToast] = useState<{ exp: number; key: number } | null>(null);
-  const [levelUpFlash, setLevelUpFlash] = useState(0);
-  const prevLevelRef = useRef<number>(1);
 
   // 측면 하드웨어 버튼: 음량 패널 / 전원 메뉴
-  const [volumePanelOpen, setVolumePanelOpen] = useState(false);
-  const [volumePanelType, setVolumePanelType] = useState<'media' | 'ring' | 'notif'>('media');
-  const [mediaVolume, setMediaVolume] = useState(70);
-  const [ringVolume, setRingVolume] = useState(60);
-  const [notifVolume, setNotifVolume] = useState(50);
-  const volumeCloseTimer = useRef<any>(null);
   const [powerMenuOpen, setPowerMenuOpen] = useState(false);
   const [powerOff, setPowerOff] = useState(false);
-  const showVolumePanel = (type: 'media' | 'ring' | 'notif', delta: number) => {
-    setVolumePanelType(type);
-    setVolumePanelOpen(true);
-    if (type === 'media') setMediaVolume(v => Math.max(0, Math.min(100, v + delta)));
-    if (type === 'ring') setRingVolume(v => Math.max(0, Math.min(100, v + delta)));
-    if (type === 'notif') setNotifVolume(v => Math.max(0, Math.min(100, v + delta)));
-    if (volumeCloseTimer.current) clearTimeout(volumeCloseTimer.current);
-    volumeCloseTimer.current = setTimeout(() => setVolumePanelOpen(false), 2400);
-  };
 
   // 최근 앱 카드 스와이프(위로 밀어 닫기)
   const [recentSwipe, setRecentSwipe] = useState<{ index: number; startY: number; dy: number } | null>(null);
@@ -413,7 +381,6 @@ export default function AndroidExplorer() {
 
 
 
-  const currentTargetId = QUESTS[questIdx]?.targetId;
 
   useEffect(() => {
     setTime(new Date());
