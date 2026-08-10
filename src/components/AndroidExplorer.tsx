@@ -18,7 +18,11 @@ import iconMessages from '@/assets/icons/messages.png';
 import iconInternet from '@/assets/icons/internet.png';
 import iconCamera from '@/assets/icons/camera.png';
 import iconPhone from '@/assets/icons/phone.png';
-import { QUESTS, questIndexById } from '@/data/quests';
+import { QUESTS } from '@/data/quests';
+import { DEFAULT_HOME_APPS, DEFAULT_WALLPAPER, DEFAULT_WIDGETS, emptyHomePage } from '@/data/homeDefaults';
+import { useQuestEngine } from '@/hooks/useQuestEngine';
+import { useDeviceState } from '@/hooks/useDeviceState';
+import { useProgressStorage, clearProgress } from '@/hooks/useProgressStorage';
 
 const APP_ICON_IMAGES: Record<string, string> = {
   Store: iconStore,
@@ -164,27 +168,7 @@ const ActionTarget = ({
 };
 
 
-const LS_KEY = 'android-explorer-v2';
-const loadLS = (): any => {
-  if (typeof window === 'undefined') return {};
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
-};
-
-const DEFAULT_WALLPAPER = 'radial-gradient(ellipse at 20% 0%, #a78bfa 0%, transparent 55%), radial-gradient(ellipse at 100% 20%, #38bdf8 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, #f472b6 0%, transparent 55%), radial-gradient(ellipse at 0% 100%, #6366f1 0%, transparent 60%), #0f172a';
-
-const DEFAULT_HOME_APPS = (() => {
-  // 8 columns × 5 rows tablet layout
-  const a = Array(40).fill(null);
-  // Row 1
-  a[0] = 'PlayStore'; a[1] = 'Store'; a[2] = 'Notes'; a[3] = 'Folder';
-  a[4] = 'Internet'; a[5] = 'GameLauncher'; a[6] = 'Camera'; a[7] = 'Gallery';
-  // Row 2
-  a[8] = 'Messages'; a[9] = 'KakaoTalk'; a[10] = 'YouTube'; a[11] = 'Naver';
-  a[12] = 'Calculator'; a[13] = 'Calendar'; a[14] = 'Clock'; a[15] = 'Settings';
-  // Row 3
-  a[16] = 'Health'; a[17] = 'Wearable'; a[18] = 'Gmail';
-  return a;
-})();
+// 저장 로직: src/hooks/useProgressStorage.ts / 홈 기본값: src/data/homeDefaults.ts
 
 
 export default function AndroidExplorer() {
@@ -200,21 +184,25 @@ export default function AndroidExplorer() {
   }, []);
 
 
-  const [wifi, setWifi] = useState(false);
-  const [wifiConnected, setWifiConnected] = useState(null);
-  const [bluetooth, setBluetooth] = useState(false);
+  // 기기 상태는 useDeviceState 로 분리 (identifier 는 그대로 유지)
+  const device = useDeviceState();
+  const {
+    currentApp, setCurrentApp,
+    wifi, setWifi, wifiConnected, setWifiConnected,
+    bluetooth, setBluetooth, connectedBtDevice, setConnectedBtDevice,
+    brightness, setBrightness, volume, setVolume,
+    mediaVolume, setMediaVolume, ringVolume, setRingVolume, notifVolume, setNotifVolume,
+    volumePanelOpen, setVolumePanelOpen, volumePanelType, setVolumePanelType, showVolumePanel,
+    installedApps, setInstalledApps, wallpaper, setWallpaper,
+    photos, setPhotos, notes, setNotes,
+  } = device;
   const [airplane, setAirplane] = useState(false);
   const [soundMode, setSoundMode] = useState('sound');
-  const [brightness, setBrightness] = useState(80);
-  const [volume, setVolume] = useState(70);
-  const [photos, setPhotos] = useState([]);
-  const [installedApps, setInstalledApps] = useState<string[]>([]);
-  const [currentCameraSeed, setCurrentCameraSeed] = useState(Date.now());
-  const [wallpaper, setWallpaper] = useState<string>(DEFAULT_WALLPAPER);
+  const [currentCameraSeed, setCurrentCameraSeed] = useState(() => Date.now());
   const [mathAppOpen, setMathAppOpen] = useState(false);
   const [mathInstallProgress, setMathInstallProgress] = useState<number | null>(null);
 
-  const [homePages, setHomePages] = useState<any[][]>([DEFAULT_HOME_APPS, Array(40).fill(null)]);
+  const [homePages, setHomePages] = useState<any[][]>(() => [DEFAULT_HOME_APPS, emptyHomePage()]);
   const [currentPage, setCurrentPage] = useState(0);
   const homeApps = homePages[currentPage] ?? Array(40).fill(null);
   const setHomeApps: any = (updater: any) => {
@@ -237,7 +225,6 @@ export default function AndroidExplorer() {
   const [dragInfo, setDragInfo] = useState({ isDragging: false, index: null, x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const [hoverIndex, setHoverIndex] = useState(null);
 
-  const [currentApp, setCurrentApp] = useState(null);
   const [settingsMenu, setSettingsMenu] = useState('connections');
   const [quickPanelOpen, setQuickPanelOpen] = useState(false);
   const [wifiModalOpen, setWifiModalOpen] = useState(false);
@@ -275,7 +262,7 @@ export default function AndroidExplorer() {
   const [lockOffset, setLockOffset] = useState(0);
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [widgetPages, setWidgetPages] = useState<string[][]>([['clock', 'weather', 'calendar'], []]);
+  const [widgetPages, setWidgetPages] = useState<string[][]>(() => DEFAULT_WIDGETS.map(p => [...p]));
   const widgets = widgetPages[currentPage] ?? [];
   const setWidgets: any = (updater: any) => {
     setWidgetPages(prev => {
@@ -342,10 +329,8 @@ export default function AndroidExplorer() {
 
   // 신규: 블루투스 기기 / 노트
   const [bluetoothModalOpen, setBluetoothModalOpen] = useState(false);
-  const [connectedBtDevice, setConnectedBtDevice] = useState<string | null>(null);
   const [btPairingDevice, setBtPairingDevice] = useState<{ id: string; name: string; icon: string } | null>(null);
   const [btPairingPin, setBtPairingPin] = useState<string>('');
-  const [notes, setNotes] = useState<{ id: number; paths: string[] }[]>([]);
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
@@ -358,10 +343,13 @@ export default function AndroidExplorer() {
   // Photo viewer zoom
   const [photoZoom, setPhotoZoom] = useState(1);
 
-  const [questIdx, setQuestIdx] = useState<number>(0);
-  const [exp, setExp] = useState<number>(0);
-  const [completedQuests, setCompletedQuests] = useState<number[]>([]);
-  const [isStorageReady, setIsStorageReady] = useState(false);
+  // 퀘스트 진행 로직은 useQuestEngine 으로 분리
+  const questEngine = useQuestEngine();
+  const {
+    questIdx, setQuestIdx, exp, setExp, completedQuests, setCompletedQuests,
+    currentTargetId, advanceQuest, gotoQuest, resetQuestProgress,
+    confettiKey, rewardToast, levelUpFlash,
+  } = questEngine;
   const [drawerSearch, setDrawerSearch] = useState('');
   const [appLaunchKey, setAppLaunchKey] = useState(0);
   const [showExpMenu, setShowExpMenu] = useState(true);
@@ -380,30 +368,10 @@ export default function AndroidExplorer() {
   const dragRefList = useRef<any>(null);
   const missionListRef = useRef<any>(null);
 
-  // 리워드 (3번) - confetti + level-up flash
-  const [confettiKey, setConfettiKey] = useState(0);
-  const [rewardToast, setRewardToast] = useState<{ exp: number; key: number } | null>(null);
-  const [levelUpFlash, setLevelUpFlash] = useState(0);
-  const prevLevelRef = useRef<number>(1);
 
   // 측면 하드웨어 버튼: 음량 패널 / 전원 메뉴
-  const [volumePanelOpen, setVolumePanelOpen] = useState(false);
-  const [volumePanelType, setVolumePanelType] = useState<'media' | 'ring' | 'notif'>('media');
-  const [mediaVolume, setMediaVolume] = useState(70);
-  const [ringVolume, setRingVolume] = useState(60);
-  const [notifVolume, setNotifVolume] = useState(50);
-  const volumeCloseTimer = useRef<any>(null);
   const [powerMenuOpen, setPowerMenuOpen] = useState(false);
   const [powerOff, setPowerOff] = useState(false);
-  const showVolumePanel = (type: 'media' | 'ring' | 'notif', delta: number) => {
-    setVolumePanelType(type);
-    setVolumePanelOpen(true);
-    if (type === 'media') setMediaVolume(v => Math.max(0, Math.min(100, v + delta)));
-    if (type === 'ring') setRingVolume(v => Math.max(0, Math.min(100, v + delta)));
-    if (type === 'notif') setNotifVolume(v => Math.max(0, Math.min(100, v + delta)));
-    if (volumeCloseTimer.current) clearTimeout(volumeCloseTimer.current);
-    volumeCloseTimer.current = setTimeout(() => setVolumePanelOpen(false), 2400);
-  };
 
   // 최근 앱 카드 스와이프(위로 밀어 닫기)
   const [recentSwipe, setRecentSwipe] = useState<{ index: number; startY: number; dy: number } | null>(null);
@@ -413,7 +381,6 @@ export default function AndroidExplorer() {
 
 
 
-  const currentTargetId = QUESTS[questIdx]?.targetId;
 
   useEffect(() => {
     setTime(new Date());
@@ -421,37 +388,26 @@ export default function AndroidExplorer() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const saved = loadLS();
-    setInstalledApps(saved.installedApps ?? []);
-    setWallpaper(saved.wallpaper ?? DEFAULT_WALLPAPER);
-    const loadedPages = saved.homePages ?? (saved.homeApps ? [saved.homeApps, Array(40).fill(null)] : [DEFAULT_HOME_APPS, Array(40).fill(null)]);
-    setHomePages(loadedPages);
-    setDarkMode(saved.darkMode ?? false);
-    setFontScale(saved.fontScale ?? 1);
-    const loadedWPages = saved.widgetPages ?? (saved.widgets ? [saved.widgets, []] : [['clock', 'weather', 'calendar'], []]);
-    setWidgetPages(loadedWPages);
-    setWidgetSizes(saved.widgetSizes ?? {});
-    setThemeColor(saved.themeColor ?? '#3b82f6');
-    // --- 진행도 마이그레이션: id 기반 저장 <-> 인덱스 기반 상태 ---
-    // 레거시(v2 초기) 저장은 배열 인덱스를 저장했고, 당시 배열은 id 순서(0..103)와 동일했으므로
-    // 레거시 인덱스 값은 그대로 퀘스트 id로 해석할 수 있다.
-    const toIdx = (id: number) => questIndexById(Number(id));
-    const rawCompletedIds: any[] = Array.isArray(saved.completedQuestIds)
-      ? saved.completedQuestIds
-      : Array.isArray(saved.completedQuests)
-        ? saved.completedQuests
-        : [];
-    const migratedCompleted = Array.from(
-      new Set(rawCompletedIds.map(toIdx).filter((v: number) => v >= 0))
-    );
-    const savedQuestId = saved.currentQuestId ?? saved.questIdx ?? 0;
-    const migratedIdx = toIdx(Number(savedQuestId));
-    setQuestIdx(migratedIdx >= 0 ? migratedIdx : 0);
-    setExp(saved.exp ?? 0);
-    setCompletedQuests(migratedCompleted);
-    setIsStorageReady(true);
-  }, []);
+  // 진행도 로드/저장 + 레거시 호환은 useProgressStorage 담당
+  const { isStorageReady } = useProgressStorage(
+    {
+      questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes,
+      wallpaper, darkMode, fontScale, themeColor,
+    },
+    (loaded) => {
+      setInstalledApps(loaded.installedApps);
+      setWallpaper(loaded.wallpaper);
+      setHomePages(loaded.homePages);
+      setDarkMode(loaded.darkMode);
+      setFontScale(loaded.fontScale);
+      setWidgetPages(loaded.widgetPages);
+      setWidgetSizes(loaded.widgetSizes);
+      setThemeColor(loaded.themeColor);
+      setQuestIdx(loaded.questIdx);
+      setExp(loaded.exp);
+      setCompletedQuests(loaded.completedQuests);
+    },
+  );
 
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
   const dateStr = time ? time.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '';
@@ -492,85 +448,22 @@ export default function AndroidExplorer() {
     return () => clearTimeout(t);
   }, [googleLoginOpen, googleLoginStep, googleShake]);
 
-  // 진행도 localStorage 저장
-  useEffect(() => {
-    if (!isStorageReady) return;
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        // id 기반으로 저장 (배열 순서가 바뀌어도 진행도 유지)
-        currentQuestId: QUESTS[questIdx]?.id ?? 0,
-        completedQuestIds: completedQuests.map((i: number) => QUESTS[i]?.id).filter((v: any) => typeof v === 'number'),
-        exp, installedApps, homePages, widgetPages, widgetSizes,
-        wallpaper, darkMode, fontScale, themeColor,
-      }));
-    } catch {}
-  }, [isStorageReady, questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes, wallpaper, darkMode, fontScale, themeColor]);
 
 
 
 
 
 
-  const advanceQuest = (targetId) => {
-    if (QUESTS[questIdx]?.targetId === targetId) {
-      // 중복 완료 방지 가드
-      if (completedQuests.includes(questIdx)) {
-        setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
-        return;
-      }
-      const gained = QUESTS[questIdx].exp ?? 0;
-      const newExp = exp + gained;
-      setExp(newExp);
-      setCompletedQuests(prev => prev.includes(questIdx) ? prev : [...prev, questIdx]);
-      // 리워드 효과
-      setConfettiKey(k => k + 1);
-      setRewardToast({ exp: gained, key: Date.now() });
-      setTimeout(() => setRewardToast(null), 3400);
-      // 레벨업 감지
-      const newLevel = Math.floor(newExp / 100) + 1;
-      if (newLevel > prevLevelRef.current) {
-        prevLevelRef.current = newLevel;
-        setLevelUpFlash(f => f + 1);
-      }
-      setQuestIdx(q => Math.min(q + 1, QUESTS.length - 1));
-    }
-  };
-
-  // 마지막(요약) 미션 자동 완료 및 최종 경험치 지급
-  useEffect(() => {
-    const lastIdx = QUESTS.length - 1;
-    if (questIdx === lastIdx && QUESTS[lastIdx]?.targetId === null && !completedQuests.includes(lastIdx)) {
-      const gained = QUESTS[lastIdx].exp ?? 0;
-      const newExp = exp + gained;
-      setExp(newExp);
-      setCompletedQuests(prev => prev.includes(lastIdx) ? prev : [...prev, lastIdx]);
-      setConfettiKey(k => k + 1);
-      setRewardToast({ exp: gained, key: Date.now() });
-      setTimeout(() => setRewardToast(null), 3400);
-      const newLevel = Math.floor(newExp / 100) + 1;
-      if (newLevel > prevLevelRef.current) {
-        prevLevelRef.current = newLevel;
-        setLevelUpFlash(f => f + 1);
-      }
-    }
-  }, [questIdx, completedQuests]);
+  // advanceQuest / 마지막 미션 자동 완료 / 중복 EXP 방지 → useQuestEngine
 
 
 
   const resetProgress = () => {
-    if (typeof window !== 'undefined') {
-      try { localStorage.removeItem(LS_KEY); } catch {}
-    }
-    setQuestIdx(0); setExp(0); setCompletedQuests([]);
-    setInstalledApps([]); setHomePages([DEFAULT_HOME_APPS, Array(40).fill(null)]); setCurrentPage(0); setWallpaper(DEFAULT_WALLPAPER);
-    setDarkMode(false); setFontScale(1); setWidgetPages([['clock', 'weather', 'calendar'], []]); setWidgetSizes({});
+    clearProgress();
+    resetQuestProgress();
+    setInstalledApps([]); setHomePages([DEFAULT_HOME_APPS, emptyHomePage()]); setCurrentPage(0); setWallpaper(DEFAULT_WALLPAPER);
+    setDarkMode(false); setFontScale(1); setWidgetPages(DEFAULT_WIDGETS.map(p => [...p])); setWidgetSizes({});
     setThemeColor('#3b82f6'); setLocked(true);
-  };
-  const gotoQuest = (idx: number) => {
-    const clamped = Math.max(0, Math.min(QUESTS.length - 1, idx));
-    if (clamped > questIdx && !completedQuests.includes(questIdx)) return;
-    setQuestIdx(clamped);
   };
 
 
@@ -787,8 +680,11 @@ export default function AndroidExplorer() {
           <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
             <circle cx="50" cy="50" r="44" fill="#fff" stroke="#111" strokeWidth="5"/>
             {[0,1,2,3,4,5,6,7,8,9,10,11].map(i => {
-              const a = (i*30)*Math.PI/180; const x1 = 50+Math.sin(a)*38; const y1 = 50-Math.cos(a)*38;
-              const x2 = 50+Math.sin(a)*42; const y2 = 50-Math.cos(a)*42;
+              // 서버/클라이언트 부동소수 직렬화 차이로 hydration mismatch 가 발생하므로 고정 소수점으로 반올림
+              const r3 = (v: number) => Number(v.toFixed(3));
+              const a = (i*30)*Math.PI/180;
+              const x1 = r3(50+Math.sin(a)*38); const y1 = r3(50-Math.cos(a)*38);
+              const x2 = r3(50+Math.sin(a)*42); const y2 = r3(50-Math.cos(a)*42);
               return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#111" strokeWidth="2"/>;
             })}
             <line x1="50" y1="50" x2="50" y2="22" stroke="#111" strokeWidth="5" strokeLinecap="round"/>
