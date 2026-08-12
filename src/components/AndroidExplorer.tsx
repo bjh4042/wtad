@@ -401,46 +401,33 @@ export default function AndroidExplorer() {
 
 
   const handleGlobalEnd = () => {
+    // 드래그 중에는 래퍼의 transform 만 DOM 으로 직접 조작하고,
+    // 종료 시 최종 좌표만 state(top/left)에 반영한다. (React 가 같은 속성을 렌더하지 않음)
     if (isDraggingExp && expMenuRef.current && dragRefExp.current) {
       const dx = dragRefExp.current.lastDx || 0;
       const dy = dragRefExp.current.lastDy || 0;
-      expMenuRef.current.style.transition = 'none';
-      expMenuRef.current.style.transform = 'none';
+      expMenuRef.current.style.transform = '';
       expMenuRef.current.style.willChange = '';
       setExpPos({
         x: dragRefExp.current.initX + dx,
         y: dragRefExp.current.initY + dy
       });
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (expMenuRef.current) {
-            expMenuRef.current.style.transition = '';
-          }
-        });
-      });
     }
     if (isDraggingList && missionListRef.current && dragRefList.current) {
       const dx = dragRefList.current.lastDx || 0;
       const dy = dragRefList.current.lastDy || 0;
-      missionListRef.current.style.transition = 'none';
-      missionListRef.current.style.transform = 'none';
+      missionListRef.current.style.transform = '';
       missionListRef.current.style.willChange = '';
       setMissionListPos({
         x: dragRefList.current.initX + dx,
         y: dragRefList.current.initY + dy
-      });
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (missionListRef.current) {
-            missionListRef.current.style.transition = '';
-          }
-        });
       });
     }
     setIsDraggingExp(false);
     setIsDraggingList(false);
     setTouchStartY(null);
   };
+
 
   const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
 
