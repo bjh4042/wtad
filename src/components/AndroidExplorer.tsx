@@ -959,7 +959,7 @@ export default function AndroidExplorer() {
 
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
-      <div className={`relative w-full h-full bg-black shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] ${isPhone ? 'max-w-[420px] max-h-[860px] aspect-[9/19.5] rounded-[44px] p-[10px] mx-auto' : 'md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px]'}`}>
+      <div className={`relative w-full h-full bg-black shadow-[0_8px_28px_rgba(0,0,0,0.55),0_0_0_1.5px_#23272e] ${isPhone ? 'max-w-[420px] max-h-[860px] aspect-[9/19.5] rounded-[44px] p-[10px] mx-auto' : 'max-w-[1600px] max-h-[1000px] aspect-[16/10] rounded-[22px] md:rounded-[30px] p-[8px] md:p-[12px]'}`}>
         {/* front camera dot */}
         {isPhone ? (
           <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-700 rounded-full z-[180]"></div>
