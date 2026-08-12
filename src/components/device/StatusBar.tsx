@@ -23,7 +23,6 @@ export default function StatusBar({
 }: StatusBarProps) {
   return (
     <>
-    <>
       <ActionTarget
         id="swipe-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true}
         onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
@@ -70,7 +69,6 @@ export default function StatusBar({
           <div className="w-4 h-4 border-r-4 border-b-4 border-yellow-400 rotate-45 -mt-2"></div>
         </div>
       )}
-    </>
     </>
   );
 }
