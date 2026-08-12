@@ -63,7 +63,7 @@ export const ActionTarget = ({
   className = "", style = {}, currentTargetId, advanceQuest, disableClickAdvance,
   extraTargetIds = [], tooltipPosition = 'top', tooltipText = '여기를 누르세요!'
 }: ActionTargetProps) => {
-  const isTarget = currentTargetId === id || extraTargetIds.includes(currentTargetId);
+  const isTarget = currentTargetId === id || extraTargetIds.includes(currentTargetId as string);
   const tooltipClasses =
     tooltipPosition === 'bottom' ? 'absolute -bottom-12 left-1/2 transform -translate-x-1/2'
     : tooltipPosition === 'left' ? 'absolute top-1/2 right-full mr-3 -translate-y-1/2'

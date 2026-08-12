@@ -58,7 +58,7 @@ const PlayStoreApp = (props: PlayStoreAppProps) => {
     const row1 = keyboardShift ? row1_shift : row1_base;
     const targetKey = TARGET_SEQUENCE[typingIndex]?.key;
 
-    const handleKeyClick = (key) => {
+    const handleKeyClick = (key: string) => {
       if (key === 'Shift') {
         setKeyboardShift(!keyboardShift);
         if (targetKey === 'Shift') { setSearchText(TARGET_SEQUENCE[typingIndex].display); setTypingIndex(prev => prev + 1); }
@@ -71,7 +71,7 @@ const PlayStoreApp = (props: PlayStoreAppProps) => {
         if (typingIndex + 1 === TARGET_SEQUENCE.length) advanceQuest('playstore-search-input');
       }
     };
-    const getKeyClass = (key) => {
+    const getKeyClass = (key: string) => {
       const base = "flex items-center justify-center rounded-lg text-xl font-medium cursor-pointer transition-all active:scale-90 ";
       const isTarget = key === targetKey;
       return base + (isTarget ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.8)] ring-2 ring-blue-300 animate-pulse" : "bg-[#3a3a3c] hover:bg-[#4a4a4c] text-white");
