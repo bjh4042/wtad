@@ -34,8 +34,8 @@ export default function MissionListOverlay({
           <div
             className="text-white p-3 md:p-4 flex justify-between items-center cursor-move"
             style={{ background: themeColor }}
-            onMouseDown={handleDragStartList}
-            onTouchStart={handleDragStartList}
+            onMouseDown={onDragStart}
+            onTouchStart={onDragStart}
           >
             <div className="flex items-center gap-2 font-bold text-base md:text-lg">
               <Grid size={18}/> 미션 목록

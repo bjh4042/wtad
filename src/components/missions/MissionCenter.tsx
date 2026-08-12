@@ -33,7 +33,7 @@ export default function MissionCenter({
         className="bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300"
         style={{ borderColor: `${themeColor}55` }}
       >
-          <div className="text-white p-3 md:p-4 flex justify-between items-center cursor-move" style={{ background: themeColor }} onMouseDown={handleDragStartExp} onTouchStart={handleDragStartExp}>
+          <div className="text-white p-3 md:p-4 flex justify-between items-center cursor-move" style={{ background: themeColor }} onMouseDown={onDragStart} onTouchStart={onDragStart}>
             <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
             <div className="flex items-center gap-1">
               <button
