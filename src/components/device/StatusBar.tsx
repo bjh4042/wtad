@@ -7,7 +7,7 @@ export interface StatusBarProps {
   currentTargetId: string | null;
   advanceQuest: (id: string) => void;
   quickPanelOpen: boolean;
-  setQuickPanelOpen: (v: any) => void;
+  setQuickPanelOpen: React.Dispatch<React.SetStateAction<any>>;
   handleSwipeStart: (e: any) => void;
   timeStr: string;
   notifications: NotificationItem[];

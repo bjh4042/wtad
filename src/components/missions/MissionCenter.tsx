@@ -8,12 +8,12 @@ export interface MissionCenterProps {
   onDragStart: (e: any) => void;
   themeColor: string;
   darkMode: boolean;
-  setDarkMode: (v: any) => void;
+  setDarkMode: React.Dispatch<React.SetStateAction<any>>;
   missionListOpen: boolean;
-  setMissionListOpen: (v: any) => void;
+  setMissionListOpen: React.Dispatch<React.SetStateAction<any>>;
   isCompact: boolean;
-  setIsCompact: (v: any) => void;
-  setShowExpMenu: (v: any) => void;
+  setIsCompact: React.Dispatch<React.SetStateAction<any>>;
+  setShowExpMenu: React.Dispatch<React.SetStateAction<any>>;
   exp: number;
   questIdx: number;
   completedQuests: number[];

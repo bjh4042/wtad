@@ -5,7 +5,7 @@ import { ActionTarget } from '@/components/apps/shared';
 export interface NavigationBarProps {
   currentTargetId: string | null;
   advanceQuest: (id: string) => void;
-  setRecentAppsOpen: (v: any) => void;
+  setRecentAppsOpen: React.Dispatch<React.SetStateAction<any>>;
   /** 홈 버튼: 기존 상태 초기화 묶음을 그대로 전달받는다 */
   onHome: () => void;
 }

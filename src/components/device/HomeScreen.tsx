@@ -286,29 +286,29 @@ export interface HomeScreenProps {
   currentTargetId: string | null;
   advanceQuest: (id: string) => void;
   homePages: any[][];
-  setHomePages: (v: any) => void;
+  setHomePages: React.Dispatch<React.SetStateAction<any>>;
   currentPage: number;
-  setCurrentPage: (v: any) => void;
+  setCurrentPage: React.Dispatch<React.SetStateAction<any>>;
   homeApps: any[];
-  setHomeApps: (v: any) => void;
+  setHomeApps: React.Dispatch<React.SetStateAction<any>>;
   widgets: string[];
-  setWidgets: (v: any) => void;
-  setWidgetPages: (v: any) => void;
+  setWidgets: React.Dispatch<React.SetStateAction<any>>;
+  setWidgetPages: React.Dispatch<React.SetStateAction<any>>;
   widgetSizes: Record<string, 'sm' | 'md' | 'lg'>;
-  setWidgetSizes: (v: any) => void;
+  setWidgetSizes: React.Dispatch<React.SetStateAction<any>>;
   isEditMode: boolean;
-  setIsEditMode: (v: any) => void;
+  setIsEditMode: React.Dispatch<React.SetStateAction<any>>;
   homeFlashKey: number;
   pageSwipeStart: { x: number; y: number } | null;
-  setPageSwipeStart: (v: any) => void;
+  setPageSwipeStart: React.Dispatch<React.SetStateAction<any>>;
   pageSwipeDX: number;
-  setPageSwipeDX: (v: any) => void;
+  setPageSwipeDX: React.Dispatch<React.SetStateAction<any>>;
   homeLongPressTimer: any;
-  setHomeLongPressTimer: (v: any) => void;
-  setHomeMenuOpen: (v: any) => void;
-  setWidgetPickerOpen: (v: any) => void;
+  setHomeLongPressTimer: React.Dispatch<React.SetStateAction<any>>;
+  setHomeMenuOpen: React.Dispatch<React.SetStateAction<any>>;
+  setWidgetPickerOpen: React.Dispatch<React.SetStateAction<any>>;
   installedApps: string[];
-  setInstalledApps: (v: any) => void;
+  setInstalledApps: React.Dispatch<React.SetStateAction<any>>;
   notifications: NotificationItem[];
   dragInfo: DragInfo;
   onPointerDown: (e: any, index: number) => void;
@@ -317,17 +317,17 @@ export interface HomeScreenProps {
   handleAppPressStart: (appName: string, index?: number) => void;
   handleAppPressEnd: () => void;
   onOpenApp: (appName: string) => void;
-  setMathAppOpen: (v: any) => void;
+  setMathAppOpen: React.Dispatch<React.SetStateAction<any>>;
   appDrawerOpen: boolean;
-  setAppDrawerOpen: (v: any) => void;
+  setAppDrawerOpen: React.Dispatch<React.SetStateAction<any>>;
   drawerSwipeStart: number | null;
-  setDrawerSwipeStart: (v: any) => void;
+  setDrawerSwipeStart: React.Dispatch<React.SetStateAction<any>>;
   drawerSearch: string;
-  setDrawerSearch: (v: any) => void;
+  setDrawerSearch: React.Dispatch<React.SetStateAction<any>>;
   drawerLongPressTimer: any;
-  setDrawerLongPressTimer: (v: any) => void;
+  setDrawerLongPressTimer: React.Dispatch<React.SetStateAction<any>>;
   uninstallTarget: string | null;
-  setUninstallTarget: (v: any) => void;
+  setUninstallTarget: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export default function HomeScreen({
@@ -589,7 +589,7 @@ export default function HomeScreen({
 
       {dragInfo.isDragging && (
         <div id="drag-ghost" className="fixed pointer-events-none z-[200] opacity-80" style={{ left: dragInfo.x - dragInfo.offsetX, top: dragInfo.y - dragInfo.offsetY }}>
-          {renderAppIcon(homeApps[dragInfo.index], dragInfo.index, false)}
+          {renderAppIcon(homeApps[dragInfo.index as number], dragInfo.index as number, false)}
         </div>
       )}
 
@@ -631,7 +631,7 @@ export default function HomeScreen({
                   onClick={() => {
                     if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
                     if (appName === 'math') { setMathAppOpen(true); setAppDrawerOpen(false); return; }
-                    setCurrentApp(appName);
+                    onOpenApp(appName);
                     setAppDrawerOpen(false);
                   }}
                   onMouseDown={() => {

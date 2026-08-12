@@ -8,8 +8,8 @@ export interface MissionListOverlayProps {
   onDragStart: (e: any) => void;
   themeColor: string;
   missionListCompact: boolean;
-  setMissionListCompact: (v: any) => void;
-  setMissionListOpen: (v: any) => void;
+  setMissionListCompact: React.Dispatch<React.SetStateAction<any>>;
+  setMissionListOpen: React.Dispatch<React.SetStateAction<any>>;
   questIdx: number;
   completedQuests: number[];
   gotoQuest: (idx: number) => void;
