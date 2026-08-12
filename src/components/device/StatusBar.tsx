@@ -75,6 +75,28 @@ function IconBattery() {
   );
 }
 
+export interface StatusIconsProps {
+  airplane: boolean;
+  wifiConnected: string | null;
+  bluetooth: boolean;
+  soundMode: string;
+}
+
+/** 상태 아이콘 묶음 (상태표시줄 / 잠금화면 공용) */
+export function StatusIcons({ airplane, wifiConnected, bluetooth, soundMode }: StatusIconsProps) {
+  return (
+    <div className="flex items-center text-white/95" style={{ gap: 'var(--oneui-icon-gap)' }}>
+      {airplane && <IconAirplane />}
+      {!airplane && wifiConnected && <IconWifi />}
+      {bluetooth && <IconBluetooth />}
+      {soundMode === 'vibrate' && <IconVibrate />}
+      {soundMode === 'mute' && <IconMute />}
+      <span className="text-[11px] font-semibold tabular-nums ml-0.5">98%</span>
+      <IconBattery />
+    </div>
+  );
+}
+
 export default function StatusBar({
   currentTargetId, advanceQuest, quickPanelOpen, setQuickPanelOpen, handleSwipeStart,
   timeStr, notifications, airplane, wifiConnected, bluetooth, soundMode,
@@ -96,15 +118,7 @@ export default function StatusBar({
             <span className="w-[5px] h-[5px] rounded-full bg-white/90" />
           )}
         </div>
-        <div className="flex items-center text-white/95" style={{ gap: 'var(--oneui-icon-gap)' }}>
-          {airplane && <IconAirplane />}
-          {!airplane && wifiConnected && <IconWifi />}
-          {bluetooth && <IconBluetooth />}
-          {soundMode === 'vibrate' && <IconVibrate />}
-          {soundMode === 'mute' && <IconMute />}
-          <span className="text-[11px] font-semibold tabular-nums ml-0.5">98%</span>
-          <IconBattery />
-        </div>
+        <StatusIcons airplane={airplane} wifiConnected={wifiConnected} bluetooth={bluetooth} soundMode={soundMode} />
       </ActionTarget>
 
       {currentTargetId === 'swipe-trigger' && (

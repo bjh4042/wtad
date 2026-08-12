@@ -1579,6 +1579,10 @@ export default function AndroidExplorer() {
               isDragging={lockSwipeY !== null}
               onSwipeStart={handleLockSwipeStart}
               currentTargetId={currentTargetId}
+              airplane={airplane}
+              wifiConnected={wifiConnected}
+              bluetooth={bluetooth}
+              soundMode={soundMode}
             />
           )}
 

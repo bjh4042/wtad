@@ -1,4 +1,5 @@
 import React from 'react';
+import { StatusIcons } from '@/components/device/StatusBar';
 
 export interface LockScreenProps {
   wallpaper: string;
@@ -8,11 +9,16 @@ export interface LockScreenProps {
   isDragging: boolean;
   onSwipeStart: (e: any) => void;
   currentTargetId: string | null;
+  airplane: boolean;
+  wifiConnected: string | null;
+  bluetooth: boolean;
+  soundMode: string;
 }
 
 /** Galaxy Tab One UI 잠금화면 (가로 화면 기준) */
 export default function LockScreen({
   wallpaper, timeStr, dateStr, lockOffset, isDragging, onSwipeStart, currentTargetId,
+  airplane, wifiConnected, bluetooth, soundMode,
 }: LockScreenProps) {
   const progress = Math.min(1, lockOffset / 140);
 
@@ -34,6 +40,13 @@ export default function LockScreen({
       <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/10 to-black/45 pointer-events-none" />
 
       <div className="relative z-10 h-full w-full text-white">
+        {/* 잠금화면 상태 표시줄 (우측 아이콘만 — 실제 One UI 동일) */}
+        <div
+          className="absolute top-0 left-0 right-0 oneui-statusbar flex items-center justify-end"
+          style={{ paddingLeft: 'var(--oneui-screen-pad)', paddingRight: 'var(--oneui-screen-pad)' }}
+        >
+          <StatusIcons airplane={airplane} wifiConnected={wifiConnected} bluetooth={bluetooth} soundMode={soundMode} />
+        </div>
         {/* 시계 / 날짜 — 상단 중앙 */}
         <div className="absolute left-0 right-0 top-[13%] flex flex-col items-center">
           <div className="text-[76px] md:text-[92px] font-light leading-[0.95] tracking-[-0.03em] tabular-nums">
