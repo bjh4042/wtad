@@ -31,6 +31,12 @@ import SettingsApp from '@/components/apps/SettingsApp';
 import GalleryApp from '@/components/apps/GalleryApp';
 import PlayStoreApp from '@/components/apps/PlayStoreApp';
 import InternetApp from '@/components/apps/InternetApp';
+import HomeScreen, { AppIcon } from '@/components/device/HomeScreen';
+import QuickPanel from '@/components/device/QuickPanel';
+import StatusBar from '@/components/device/StatusBar';
+import NavigationBar from '@/components/device/NavigationBar';
+import MissionCenter from '@/components/missions/MissionCenter';
+import MissionListOverlay from '@/components/missions/MissionListOverlay';
 
 const APP_ICON_IMAGES: Record<string, string> = {
   Store: iconStore,
