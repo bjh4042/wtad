@@ -1570,34 +1570,17 @@ export default function AndroidExplorer() {
 
           {/* Lock screen overlay */}
           {locked && (
-            <div
-              className="absolute inset-0 z-[150] cursor-grab active:cursor-grabbing overflow-hidden"
-              style={{
-                background: wallpaper,
-                backgroundSize: 'cover',
-                transform: `translateY(${-lockOffset}px)`,
-                transition: lockSwipeY === null ? 'transform 0.3s ease-out' : 'none',
-              }}
-              onMouseDown={handleLockSwipeStart}
-              onTouchStart={handleLockSwipeStart}
-            >
-              <div className="absolute inset-0 bg-black/40"></div>
-              <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
-                <Lock size={40} className="mb-4 opacity-80" />
-                <div className="text-[120px] font-thin leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
-                <div className="text-2xl mt-3 opacity-90 drop-shadow">{dateStr}</div>
-                <div className="absolute bottom-20 flex flex-col items-center pointer-events-none">
-                  <ChevronUp size={48} className={`text-white/80 ${currentTargetId === 'lock-swipe' ? 'animate-pulse-up' : 'opacity-60'}`} />
-                  <div className="text-white/90 text-lg mt-2 font-medium drop-shadow">위로 밀어 잠금해제</div>
-                </div>
-                {currentTargetId === 'lock-swipe' && (
-                  <div className="absolute top-24 bg-blue-600 text-white text-sm px-4 py-2 rounded-xl shadow-xl font-bold pointer-events-none animate-bounce">
-                    👆 여기서부터 위로 스와이프!
-                  </div>
-                )}
-              </div>
-            </div>
+            <LockScreen
+              wallpaper={wallpaper}
+              timeStr={timeStr}
+              dateStr={dateStr}
+              lockOffset={lockOffset}
+              isDragging={lockSwipeY !== null}
+              onSwipeStart={handleLockSwipeStart}
+              currentTargetId={currentTargetId}
+            />
           )}
+
         </div>
       </div>
 
