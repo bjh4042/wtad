@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { ActionTarget } from '@/components/apps/shared';
 import { WIFI_NETWORKS } from '@/data/appCatalog';
-import type { NotificationItem } from '@/components/device/HomeScreen';
+import type { NotificationItem, Upd } from '@/components/device/HomeScreen';
 
 export interface QuickPanelProps {
   currentTargetId: string | null;
@@ -14,7 +14,7 @@ export interface QuickPanelProps {
   quickPanelOpen: boolean;
   setQuickPanelOpen: React.Dispatch<React.SetStateAction<any>>;
   notifications: NotificationItem[];
-  setNotifications: React.Dispatch<React.SetStateAction<any>>;
+  setNotifications: Upd<NotificationItem[]>;
   notifDrag: { id: number; startX: number; dx: number } | null;
   setNotifDrag: React.Dispatch<React.SetStateAction<any>>;
   readNotifIds: number[];
@@ -43,7 +43,7 @@ export interface QuickPanelProps {
   setVolume: React.Dispatch<React.SetStateAction<any>>;
   soundMode: string;
   setSoundMode: React.Dispatch<React.SetStateAction<any>>;
-  setPhotos: React.Dispatch<React.SetStateAction<any>>;
+  setPhotos: Upd<any[]>;
   setCurrentApp: React.Dispatch<React.SetStateAction<any>>;
   setSettingsMenu: React.Dispatch<React.SetStateAction<any>>;
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Grid, ChevronUp, Minus, X, Check, Lock } from 'lucide-react';
 import { QUESTS } from '@/data/quests';
+import type { Upd } from '@/components/device/HomeScreen';
 
 export interface MissionListOverlayProps {
   dragRef: React.MutableRefObject<any>;
@@ -8,8 +9,8 @@ export interface MissionListOverlayProps {
   onDragStart: (e: any) => void;
   themeColor: string;
   missionListCompact: boolean;
-  setMissionListCompact: React.Dispatch<React.SetStateAction<any>>;
-  setMissionListOpen: React.Dispatch<React.SetStateAction<any>>;
+  setMissionListCompact: Upd<boolean>;
+  setMissionListOpen: Upd<boolean>;
   questIdx: number;
   completedQuests: number[];
   gotoQuest: (idx: number) => void;

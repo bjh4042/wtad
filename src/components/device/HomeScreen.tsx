@@ -24,6 +24,9 @@ export const APP_ICON_IMAGES: Record<string, string> = {
   Phone: iconPhone,
 };
 
+/** setState 호환 업데이터 (값 또는 콜백) */
+export type Upd<T> = (v: T | ((prev: T) => T)) => void;
+
 export interface NotificationItem {
   id: number;
   app: string;
@@ -286,16 +289,16 @@ export interface HomeScreenProps {
   currentTargetId: string | null;
   advanceQuest: (id: string) => void;
   homePages: any[][];
-  setHomePages: React.Dispatch<React.SetStateAction<any>>;
+  setHomePages: Upd<any[][]>;
   currentPage: number;
-  setCurrentPage: React.Dispatch<React.SetStateAction<any>>;
+  setCurrentPage: Upd<number>;
   homeApps: any[];
-  setHomeApps: React.Dispatch<React.SetStateAction<any>>;
+  setHomeApps: Upd<any[]>;
   widgets: string[];
-  setWidgets: React.Dispatch<React.SetStateAction<any>>;
-  setWidgetPages: React.Dispatch<React.SetStateAction<any>>;
+  setWidgets: Upd<string[]>;
+  setWidgetPages: Upd<string[][]>;
   widgetSizes: Record<string, 'sm' | 'md' | 'lg'>;
-  setWidgetSizes: React.Dispatch<React.SetStateAction<any>>;
+  setWidgetSizes: Upd<Record<string, 'sm' | 'md' | 'lg'>>;
   isEditMode: boolean;
   setIsEditMode: React.Dispatch<React.SetStateAction<any>>;
   homeFlashKey: number;
@@ -308,7 +311,7 @@ export interface HomeScreenProps {
   setHomeMenuOpen: React.Dispatch<React.SetStateAction<any>>;
   setWidgetPickerOpen: React.Dispatch<React.SetStateAction<any>>;
   installedApps: string[];
-  setInstalledApps: React.Dispatch<React.SetStateAction<any>>;
+  setInstalledApps: Upd<string[]>;
   notifications: NotificationItem[];
   dragInfo: DragInfo;
   onPointerDown: (e: any, index: number) => void;

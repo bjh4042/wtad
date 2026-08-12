@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sun, Moon, Grid, ChevronUp, ChevronLeft, Minus, X, Check, GripHorizontal, RefreshCcw } from 'lucide-react';
 import { QUESTS } from '@/data/quests';
+import type { Upd } from '@/components/device/HomeScreen';
 
 export interface MissionCenterProps {
   dragRef: React.MutableRefObject<any>;
@@ -8,12 +9,12 @@ export interface MissionCenterProps {
   onDragStart: (e: any) => void;
   themeColor: string;
   darkMode: boolean;
-  setDarkMode: React.Dispatch<React.SetStateAction<any>>;
+  setDarkMode: Upd<boolean>;
   missionListOpen: boolean;
-  setMissionListOpen: React.Dispatch<React.SetStateAction<any>>;
+  setMissionListOpen: Upd<boolean>;
   isCompact: boolean;
-  setIsCompact: React.Dispatch<React.SetStateAction<any>>;
-  setShowExpMenu: React.Dispatch<React.SetStateAction<any>>;
+  setIsCompact: Upd<boolean>;
+  setShowExpMenu: Upd<boolean>;
   exp: number;
   questIdx: number;
   completedQuests: number[];
