@@ -62,7 +62,7 @@ export const ActionTarget = ({
   onMouseDown, onMouseMove, onMouseUp, onMouseLeave, onPointerDown, onPointerMove, onPointerUp,
   className = "", style = {}, currentTargetId, advanceQuest, disableClickAdvance,
   extraTargetIds = [], tooltipPosition = 'top', tooltipText = '여기를 누르세요!'
-}) => {
+}: ActionTargetProps) => {
   const isTarget = currentTargetId === id || extraTargetIds.includes(currentTargetId);
   const tooltipClasses =
     tooltipPosition === 'bottom' ? 'absolute -bottom-12 left-1/2 transform -translate-x-1/2'
