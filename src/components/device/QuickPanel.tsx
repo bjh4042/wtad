@@ -18,7 +18,7 @@ export interface QuickPanelProps {
   notifDrag: { id: number; startX: number; dx: number } | null;
   setNotifDrag: React.Dispatch<React.SetStateAction<any>>;
   readNotifIds: number[];
-  setReadNotifIds: React.Dispatch<React.SetStateAction<any>>;
+  setReadNotifIds: Upd<number[]>;
   wifi: boolean;
   setWifi: React.Dispatch<React.SetStateAction<any>>;
   wifiConnected: string | null;
