@@ -35,6 +35,7 @@ import HomeScreen, { AppIcon } from '@/components/device/HomeScreen';
 import QuickPanel from '@/components/device/QuickPanel';
 import StatusBar from '@/components/device/StatusBar';
 import NavigationBar from '@/components/device/NavigationBar';
+import LockScreen from '@/components/device/LockScreen';
 import MissionCenter from '@/components/missions/MissionCenter';
 import MissionListOverlay from '@/components/missions/MissionListOverlay';
 
