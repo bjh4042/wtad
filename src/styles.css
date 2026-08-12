@@ -150,3 +150,29 @@
   60% { transform: translateX(-6px); }
   80% { transform: translateX(6px); }
 }
+
+/* ===== One UI (Galaxy Tab) system tokens ===== */
+:root {
+  --oneui-statusbar-h: 28px;
+  --oneui-navbar-h: 44px;
+  --oneui-screen-pad: 24px;
+  --oneui-icon: 15px;
+  --oneui-icon-gap: 7px;
+  --oneui-radius-sys: 12px;
+  --oneui-overlay-blur: 24px;
+  --oneui-duration: 220ms;
+  --oneui-ease: cubic-bezier(0.33, 0, 0.2, 1);
+  --oneui-font: "Samsung Sans", "SamsungOne", "Pretendard", -apple-system, "Segoe UI", Roboto, "Noto Sans KR", system-ui, sans-serif;
+}
+
+.oneui { font-family: var(--oneui-font); }
+.oneui-statusbar { height: var(--oneui-statusbar-h); }
+.oneui-navbar { height: var(--oneui-navbar-h); }
+.oneui-press { transition: transform var(--oneui-duration) var(--oneui-ease), opacity var(--oneui-duration) var(--oneui-ease); }
+.oneui-press:active { transform: scale(0.92); opacity: 0.7; }
+
+@keyframes oneuiHintUp {
+  0%, 100% { transform: translateY(2px); opacity: 0.45; }
+  50% { transform: translateY(-6px); opacity: 0.95; }
+}
+.oneui-hint-up { animation: oneuiHintUp 1.8s var(--oneui-ease) infinite; }

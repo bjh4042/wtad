@@ -35,6 +35,7 @@ import HomeScreen, { AppIcon } from '@/components/device/HomeScreen';
 import QuickPanel from '@/components/device/QuickPanel';
 import StatusBar from '@/components/device/StatusBar';
 import NavigationBar from '@/components/device/NavigationBar';
+import LockScreen from '@/components/device/LockScreen';
 import MissionCenter from '@/components/missions/MissionCenter';
 import MissionListOverlay from '@/components/missions/MissionListOverlay';
 
@@ -921,7 +922,7 @@ export default function AndroidExplorer() {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center overflow-hidden select-none font-sans p-4" onMouseMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onTouchMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onMouseUp={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onTouchEnd={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onMouseLeave={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }}>
+    <div className="fixed inset-0 w-full h-full bg-[#0a0b0d] flex items-center justify-center overflow-hidden select-none oneui p-3 md:p-6" onMouseMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onTouchMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onMouseUp={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onTouchEnd={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onMouseLeave={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -958,7 +959,7 @@ export default function AndroidExplorer() {
 
 
       {/* Galaxy Tab S10 Ultra bezel frame */}
-      <div className={`relative w-full h-full bg-black shadow-[0_10px_30px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] md:shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_2px_#1f2937] ${isPhone ? 'max-w-[420px] max-h-[860px] aspect-[9/19.5] rounded-[44px] p-[10px] mx-auto' : 'md:max-w-[1600px] md:max-h-[1080px] md:aspect-[16/10] rounded-[20px] md:rounded-[36px] p-[6px] md:p-[14px]'}`}>
+      <div className={`relative w-full h-full bg-black shadow-[0_8px_28px_rgba(0,0,0,0.55),0_0_0_1.5px_#23272e] ${isPhone ? 'max-w-[420px] max-h-[860px] aspect-[9/19.5] rounded-[44px] p-[10px] mx-auto' : 'max-w-[1600px] max-h-[1000px] aspect-[16/10] rounded-[22px] md:rounded-[30px] p-[8px] md:p-[12px]'}`}>
         {/* front camera dot */}
         {isPhone ? (
           <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-700 rounded-full z-[180]"></div>
@@ -983,7 +984,7 @@ export default function AndroidExplorer() {
           className="absolute right-[-3px] top-[51%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
         />
 
-        <div className={`relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[34px]' : 'rounded-[14px] md:rounded-[24px]'}`} style={{ fontSize: `${fontScale}rem` }}>
+        <div className={`oneui relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[34px]' : 'rounded-[15px] md:rounded-[20px]'}`} style={{ fontSize: `${fontScale}rem` }}>
 
           <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
           {darkMode && <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-[59] mix-blend-multiply"></div>}
@@ -1570,34 +1571,21 @@ export default function AndroidExplorer() {
 
           {/* Lock screen overlay */}
           {locked && (
-            <div
-              className="absolute inset-0 z-[150] cursor-grab active:cursor-grabbing overflow-hidden"
-              style={{
-                background: wallpaper,
-                backgroundSize: 'cover',
-                transform: `translateY(${-lockOffset}px)`,
-                transition: lockSwipeY === null ? 'transform 0.3s ease-out' : 'none',
-              }}
-              onMouseDown={handleLockSwipeStart}
-              onTouchStart={handleLockSwipeStart}
-            >
-              <div className="absolute inset-0 bg-black/40"></div>
-              <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
-                <Lock size={40} className="mb-4 opacity-80" />
-                <div className="text-[120px] font-thin leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
-                <div className="text-2xl mt-3 opacity-90 drop-shadow">{dateStr}</div>
-                <div className="absolute bottom-20 flex flex-col items-center pointer-events-none">
-                  <ChevronUp size={48} className={`text-white/80 ${currentTargetId === 'lock-swipe' ? 'animate-pulse-up' : 'opacity-60'}`} />
-                  <div className="text-white/90 text-lg mt-2 font-medium drop-shadow">위로 밀어 잠금해제</div>
-                </div>
-                {currentTargetId === 'lock-swipe' && (
-                  <div className="absolute top-24 bg-blue-600 text-white text-sm px-4 py-2 rounded-xl shadow-xl font-bold pointer-events-none animate-bounce">
-                    👆 여기서부터 위로 스와이프!
-                  </div>
-                )}
-              </div>
-            </div>
+            <LockScreen
+              wallpaper={wallpaper}
+              timeStr={timeStr}
+              dateStr={dateStr}
+              lockOffset={lockOffset}
+              isDragging={lockSwipeY !== null}
+              onSwipeStart={handleLockSwipeStart}
+              currentTargetId={currentTargetId}
+              airplane={airplane}
+              wifiConnected={wifiConnected}
+              bluetooth={bluetooth}
+              soundMode={soundMode}
+            />
           )}
+
         </div>
       </div>
 
