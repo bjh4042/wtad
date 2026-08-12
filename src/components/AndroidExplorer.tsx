@@ -922,7 +922,7 @@ export default function AndroidExplorer() {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center overflow-hidden select-none font-sans p-4" onMouseMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onTouchMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onMouseUp={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onTouchEnd={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onMouseLeave={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }}>
+    <div className="fixed inset-0 w-full h-full bg-[#0a0b0d] flex items-center justify-center overflow-hidden select-none oneui p-3 md:p-6" onMouseMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onTouchMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onMouseUp={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onTouchEnd={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onMouseLeave={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -984,7 +984,7 @@ export default function AndroidExplorer() {
           className="absolute right-[-3px] top-[51%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
         />
 
-        <div className={`relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[34px]' : 'rounded-[14px] md:rounded-[24px]'}`} style={{ fontSize: `${fontScale}rem` }}>
+        <div className={`oneui relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[34px]' : 'rounded-[15px] md:rounded-[20px]'}`} style={{ fontSize: `${fontScale}rem` }}>
 
           <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
           {darkMode && <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-[59] mix-blend-multiply"></div>}
