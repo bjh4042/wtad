@@ -163,7 +163,47 @@
   --oneui-duration: 220ms;
   --oneui-ease: cubic-bezier(0.33, 0, 0.2, 1);
   --oneui-font: "Samsung Sans", "SamsungOne", "Pretendard", -apple-system, "Segoe UI", Roboto, "Noto Sans KR", system-ui, sans-serif;
+
+  /* ---- Home / Apps / Taskbar layout tokens (tablet defaults) ---- */
+  --oneui-home-pad-x: 40px;
+  --oneui-home-pad-top: 14px;
+  --oneui-home-pad-bottom: 6px;
+  --oneui-home-grid-gap-x: 8px;
+  --oneui-home-grid-gap-y: 18px;
+  --oneui-home-icon-size: 62px;
+  --oneui-home-label-size: 12px;
+  --oneui-finder-h: 40px;
+  --oneui-indicator-h: 18px;
+  --oneui-taskbar-h: 56px;
+  --oneui-taskbar-icon-size: 40px;
+  /* 홈 콘텐츠가 침범하면 안 되는 하단 영역 (indicator + finder + taskbar) */
+  --oneui-home-reserve: calc(var(--oneui-taskbar-h) + var(--oneui-finder-h) + var(--oneui-indicator-h) + 14px);
 }
+
+/* 스마트폰 세로형에서는 값만 축소 (구조 동일) */
+@media (max-width: 767px) {
+  :root {
+    --oneui-home-pad-x: 18px;
+    --oneui-home-grid-gap-x: 4px;
+    --oneui-home-grid-gap-y: 14px;
+    --oneui-home-icon-size: 58px;
+    --oneui-home-label-size: 11px;
+    --oneui-taskbar-h: 0px;
+    --oneui-finder-h: 42px;
+  }
+}
+
+/* 세로 여유가 적은 해상도(예: 1366×768)에서 아이콘·간격만 소폭 축소 */
+@media (min-width: 768px) and (max-height: 820px) {
+  :root {
+    --oneui-home-grid-gap-y: 12px;
+    --oneui-home-icon-size: 54px;
+    --oneui-home-pad-top: 8px;
+    --oneui-taskbar-h: 50px;
+    --oneui-taskbar-icon-size: 36px;
+  }
+}
+
 
 .oneui { font-family: var(--oneui-font); }
 .oneui-statusbar { height: var(--oneui-statusbar-h); }
