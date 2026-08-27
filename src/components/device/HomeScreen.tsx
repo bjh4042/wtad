@@ -494,7 +494,15 @@ export default function HomeScreen({
         }}
       >
       {/* Home widgets row */}
-      <div className={`absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5] ${isEditMode ? '' : 'pointer-events-none'}`}>
+      <div
+        className={`absolute flex gap-2 md:gap-4 flex-wrap z-[5] ${isEditMode ? '' : 'pointer-events-none'}`}
+        style={{
+          top: 'calc(var(--oneui-statusbar-h) + var(--oneui-home-pad-top))',
+          left: 'var(--oneui-home-pad-x)',
+          right: 'var(--oneui-home-pad-x)',
+        }}
+      >
+
         {widgets.includes('clock') && (
           <div onClick={() => isEditMode && cycleWidgetSize('clock')} className={`group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-2 md:py-3 border border-white/10 flex flex-col text-white pointer-events-auto transition-transform ${widgetSizeClass('clock')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <div className="text-2xl md:text-4xl font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
