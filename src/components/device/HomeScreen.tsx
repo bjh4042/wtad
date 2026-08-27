@@ -541,9 +541,24 @@ export default function HomeScreen({
         )}
       </div>
 
-      {/* App grid — fills the screen like real tablet */}
-      <div key={`page-${currentPage}`} className="flex-1 flex flex-col justify-center pt-8 md:pt-20 pb-4 min-h-0 animate-[fadeIn_0.25s_ease-out]">
-        <div className={`grid gap-y-3 md:gap-y-5 gap-x-1 md:gap-x-2 px-2 md:px-6 w-full max-w-[1200px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}>
+      {/* App grid — One UI tablet home grid */}
+      <div
+        key={`page-${currentPage}`}
+        className="flex-1 flex flex-col justify-center min-h-0 animate-[fadeIn_0.25s_ease-out]"
+        style={{
+          paddingTop: 'calc(var(--oneui-statusbar-h) + var(--oneui-home-pad-top) + 78px)',
+          paddingBottom: 'var(--oneui-home-reserve)',
+        }}
+      >
+        <div
+          className={`grid w-full max-w-[1240px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}
+          style={{
+            columnGap: 'var(--oneui-home-grid-gap-x)',
+            rowGap: 'var(--oneui-home-grid-gap-y)',
+            paddingLeft: 'var(--oneui-home-pad-x)',
+            paddingRight: 'var(--oneui-home-pad-x)',
+          }}
+        >
           {(() => {
             const slots: any[] = [...homeApps];
             const extras: string[] = [];
@@ -553,16 +568,20 @@ export default function HomeScreen({
               const i = slots.indexOf(null);
               if (i >= 0) slots[i] = ex; else slots.push(ex);
             }
+            const iconBox = { width: 'var(--oneui-home-icon-size)', height: 'var(--oneui-home-icon-size)' } as const;
+            const cellBox = { width: 'calc(var(--oneui-home-icon-size) + 22px)' } as const;
+            const labelStyle = { fontSize: 'var(--oneui-home-label-size)' } as const;
             return slots.map((appName, index) => {
               if (appName === '__math') {
                 return (
                   <ActionTarget
                     key={`math-${index}`} id="app-icon-math" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                     onClick={() => setMathAppOpen(true)}
-                    className="flex flex-col items-center gap-1.5 cursor-pointer group w-[64px] md:w-[88px]"
+                    className="flex flex-col items-center gap-1.5 cursor-pointer group oneui-press"
+                    style={cellBox}
                   >
-                    <div className="w-[56px] h-[56px] md:w-[64px] md:h-[64px] bg-yellow-400 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-2xl transition-transform group-hover:scale-105 active:scale-95">1+2</div>
-                    <span className="text-white text-[11px] md:text-[12px] font-medium drop-shadow-md truncate w-full text-center">수학탐험대</span>
+                    <div style={iconBox} className="bg-yellow-400 rounded-[22%] flex items-center justify-center font-black text-white text-2xl shadow-[0_2px_6px_rgba(0,0,0,0.18)]">1+2</div>
+                    <span style={labelStyle} className="text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight">수학탐험대</span>
                   </ActionTarget>
                 );
               }
@@ -571,9 +590,9 @@ export default function HomeScreen({
                 const app = PLAYSTORE_APPS.find(a => a.id === id);
                 if (!app) return null;
                 return (
-                  <div key={`ps-${index}`} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} className="flex flex-col items-center gap-1.5 cursor-pointer group w-[64px] md:w-[88px] active:scale-95 transition-transform">
-                    <div className="w-[56px] h-[56px] md:w-[64px] md:h-[64px] rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-2xl group-hover:scale-105 transition-transform" style={{ background: app.color }}>{app.label}</div>
-                    <span className="text-white text-[11px] md:text-[12px] font-medium drop-shadow-md truncate w-full text-center">{app.name}</span>
+                  <div key={`ps-${index}`} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} style={cellBox} className="flex flex-col items-center gap-1.5 cursor-pointer group oneui-press">
+                    <div style={{ ...iconBox, background: app.color }} className="rounded-[22%] flex items-center justify-center font-black text-white text-2xl shadow-[0_2px_6px_rgba(0,0,0,0.18)]">{app.label}</div>
+                    <span style={labelStyle} className="text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight">{app.name}</span>
                   </div>
                 );
               }
@@ -581,49 +600,104 @@ export default function HomeScreen({
               return (
                 <ActionTarget
                   key={index} id={`empty-slot-${index}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  className={`w-[56px] h-[56px] md:w-[64px] md:h-[64px] ${isEditMode ? 'border-2 border-dashed border-white/50 rounded-[1.25rem] bg-white/10 transition-colors' : ''}`}
+                  style={iconBox}
+                  className={`${isEditMode ? 'border border-dashed border-white/40 rounded-[22%] bg-white/5 transition-colors' : ''}`}
                 ><div data-slot-idx={index} className="w-full h-full"></div></ActionTarget>
               );
             });
           })()}
         </div>
       </div>
-
-      {/* Bottom search bar (Samsung Finder style) */}
-      <div className="w-full max-w-xl mx-auto mb-3 bg-white/90 rounded-full h-11 md:h-12 flex items-center px-5 shadow-lg shrink-0 transition-transform active:scale-[0.98]">
-        <span className="text-gray-500 text-sm flex-1">검색</span>
-        <Mic size={18} className="text-gray-500" />
       </div>
 
-      <div className="absolute bottom-14 w-full flex justify-center gap-2 left-0">
-        {homePages.map((_, i) => (
-          <button
-            key={i}
-            onClick={(e) => { e.stopPropagation(); setCurrentPage(i); }}
-            className={`h-2 rounded-full transition-all ${i === currentPage ? 'w-6 bg-white' : 'w-2 bg-white/40'}`}
-          />
-        ))}
-      </div>
-      </div>
-
-
-
-      {/* App drawer pull-up handle */}
+      {/* ── 하단 chrome: page indicator → Finder → Taskbar (서로 겹치지 않는 safe area) ── */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-12 flex flex-col items-center justify-end pb-1 cursor-pointer group"
-        onClick={() => setAppDrawerOpen(true)}
-        onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
-        onTouchMove={(e) => {
-          if (drawerSwipeStart !== null && drawerSwipeStart - e.touches[0].clientY > 60) {
-            setAppDrawerOpen(true);
-            setDrawerSwipeStart(null);
-          }
-        }}
-        onTouchEnd={() => setDrawerSwipeStart(null)}
+        className="absolute left-0 right-0 z-[10] flex flex-col items-center pointer-events-none"
+        style={{ bottom: 'var(--oneui-taskbar-h)' }}
       >
-        <ChevronUp size={28} className="text-white/70 group-hover:text-white animate-pulse-up" />
-        <div className="text-white/60 text-[11px] -mt-1">앱 서랍</div>
+        {/* Page indicator — One UI 처럼 작은 dot */}
+        <div className="flex items-center justify-center gap-1.5 pointer-events-auto" style={{ height: 'var(--oneui-indicator-h)' }}>
+          {homePages.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`홈 ${i + 1}페이지`}
+              onClick={(e) => { e.stopPropagation(); setCurrentPage(i); }}
+              className={`rounded-full transition-colors ${i === currentPage ? 'w-[7px] h-[7px] bg-white' : 'w-[6px] h-[6px] bg-white/35'}`}
+            />
+          ))}
+        </div>
+
+        {/* Finder (Samsung 검색 pill) */}
+        <div
+          className="pointer-events-auto mt-1.5 mb-2 w-[min(46%,440px)] min-w-[220px] bg-black/25 backdrop-blur-sm rounded-full flex items-center gap-2 px-4 border border-white/15 oneui-press cursor-pointer"
+          style={{ height: 'var(--oneui-finder-h)' }}
+          onClick={() => setAppDrawerOpen(true)}
+        >
+          <Search size={16} className="text-white/80 shrink-0" />
+          <span className="text-white/80 text-[13px] flex-1 truncate">검색</span>
+          <Mic size={15} className="text-white/70 shrink-0" />
+        </div>
       </div>
+
+      {/* Galaxy Tab Taskbar — NavigationBar 와 분리된 별도 영역 */}
+      {!isPhone && (
+        <div
+          className="absolute left-0 right-0 bottom-0 z-[12] flex items-center justify-center"
+          style={{ height: 'var(--oneui-taskbar-h)' }}
+          onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
+          onTouchMove={(e) => {
+            if (drawerSwipeStart !== null && drawerSwipeStart - e.touches[0].clientY > 60) {
+              setAppDrawerOpen(true);
+              setDrawerSwipeStart(null);
+            }
+          }}
+          onTouchEnd={() => setDrawerSwipeStart(null)}
+        >
+          <div className="flex items-center gap-3 md:gap-4 px-4 py-1.5 rounded-full bg-white/10 border border-white/10">
+            {/* 앱스 화면 진입 */}
+            <button
+              aria-label="앱스 화면"
+              onClick={() => setAppDrawerOpen(true)}
+              className="w-8 h-8 rounded-full grid grid-cols-2 grid-rows-2 gap-[3px] p-[7px] bg-white/15 oneui-press"
+            >
+              {[0, 1, 2, 3].map(i => <span key={i} className="rounded-[1px] bg-white/90" />)}
+            </button>
+            <div className="w-px h-6 bg-white/15" />
+            {taskbarPinned.map(app => (
+              <div key={`tb-${app}`} className="relative">
+                {renderAppIcon(app, -1, false, 'taskbar')}
+                {currentApp === app && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white" />}
+              </div>
+            ))}
+            {taskbarRecents.length > 0 && <div className="w-px h-6 bg-white/15" />}
+            {taskbarRecents.map(app => (
+              <div key={`tb-recent-${app}`} className="relative opacity-90">
+                {renderAppIcon(app, -1, false, 'taskbar')}
+                {currentApp === app && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 홈 화면 위로 swipe → 앱스 화면 (모바일 하단 핸들) */}
+      {isPhone && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-10 flex items-end justify-center pb-1 cursor-pointer group"
+          onClick={() => setAppDrawerOpen(true)}
+          onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
+          onTouchMove={(e) => {
+            if (drawerSwipeStart !== null && drawerSwipeStart - e.touches[0].clientY > 60) {
+              setAppDrawerOpen(true);
+              setDrawerSwipeStart(null);
+            }
+          }}
+          onTouchEnd={() => setDrawerSwipeStart(null)}
+        >
+          <ChevronUp size={22} className="text-white/60 oneui-hint-up" />
+        </div>
+      )}
+
 
       {dragInfo.isDragging && (
         <div id="drag-ghost" className="fixed pointer-events-none z-[200] opacity-80" style={{ left: dragInfo.x - dragInfo.offsetX, top: dragInfo.y - dragInfo.offsetY }}>
