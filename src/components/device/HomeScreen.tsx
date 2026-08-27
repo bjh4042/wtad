@@ -240,12 +240,14 @@ export function AppIcon({
           width={512}
           height={512}
           draggable={false}
-          className="w-full h-full object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)] select-none pointer-events-none"
+          className="w-full h-full object-contain drop-shadow-[0_2px_5px_rgba(0,0,0,0.2)] select-none pointer-events-none"
         />
       );
     }
     if (!content) return null;
     const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
+    const isTaskbar = variant === 'taskbar';
+    const iconSizeVar = isTaskbar ? 'var(--oneui-taskbar-icon-size)' : 'var(--oneui-home-icon-size)';
     return (
       <ActionTarget
         key={index}
@@ -267,21 +269,32 @@ export function AppIcon({
         onTouchStart={() => handleAppPressStart(appName, index)} onTouchEnd={handleAppPressEnd}
         onMouseDown={() => handleAppPressStart(appName, index)} onMouseUp={handleAppPressEnd} onMouseLeave={handleAppPressEnd}
 
-        className={`flex flex-col items-center gap-3 cursor-pointer group w-[72px] md:w-20 ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
+        className={`flex flex-col items-center cursor-pointer group oneui-press ${isTaskbar ? '' : 'gap-1.5'} ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
+        style={{ width: isTaskbar ? iconSizeVar : `calc(${iconSizeVar} + 22px)` }}
       >
         <div
-          className={`relative w-[72px] h-[72px] md:w-20 md:h-20 transition-transform ${!isEditMode ? 'group-hover:scale-105 active:scale-95' : 'ring-2 ring-white/50 rounded-[1.25rem] bg-white/10'}`}
-          style={{ visibility: hideWhenDragging && dragInfo.isDragging && dragInfo.index === index ? 'hidden' : 'visible' }}
+          className={`relative transition-transform ${!isEditMode ? 'md:group-hover:scale-105' : 'ring-2 ring-white/50 rounded-[1.25rem] bg-white/10'}`}
+          style={{
+            width: iconSizeVar,
+            height: iconSizeVar,
+            visibility: hideWhenDragging && dragInfo.isDragging && dragInfo.index === index ? 'hidden' : 'visible',
+          }}
         >
           {content}
           {hasNotif && !isEditMode && (
-            <div className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1.5 bg-red-500 text-white rounded-full text-xs font-bold flex items-center justify-center shadow-lg border-2 border-white/80 z-10">
+            <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center border border-white/70 z-10">
               {notifications.filter(n => n.app === 'KakaoTalk').length}
             </div>
           )}
         </div>
-        <span className="text-white text-[13px] md:text-sm font-medium drop-shadow-md truncate w-full text-center">{name}</span>
+        {!isTaskbar && (
+          <span
+            className="text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight"
+            style={{ fontSize: 'var(--oneui-home-label-size)' }}
+          >{name}</span>
+        )}
       </ActionTarget>
+
     );
 }
 
