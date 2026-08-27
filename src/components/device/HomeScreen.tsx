@@ -496,14 +496,14 @@ export default function HomeScreen({
       {/* Home widgets row */}
       <div className={`absolute top-12 md:top-16 left-3 md:left-8 right-3 md:right-8 flex gap-2 md:gap-4 flex-wrap z-[5] ${isEditMode ? '' : 'pointer-events-none'}`}>
         {widgets.includes('clock') && (
-          <div onClick={() => isEditMode && cycleWidgetSize('clock')} className={`group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-2 md:py-3 shadow-xl border border-white/20 flex flex-col text-white pointer-events-auto transition-transform ${widgetSizeClass('clock')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+          <div onClick={() => isEditMode && cycleWidgetSize('clock')} className={`group relative bg-white/15 backdrop-blur-md rounded-2xl md:rounded-3xl px-4 md:px-6 py-2 md:py-3 border border-white/10 flex flex-col text-white pointer-events-auto transition-transform ${widgetSizeClass('clock')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <div className="text-2xl md:text-4xl font-light tracking-tight leading-none drop-shadow-lg tabular-nums">{timeStr}</div>
             <div className="text-[10px] md:text-xs mt-1 opacity-90 font-medium truncate">{dateStr}</div>
             {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'clock')); }}>×</button>}
           </div>
         )}
         {widgets.includes('weather') && (
-          <div onClick={() => isEditMode && cycleWidgetSize('weather')} className={`group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-2 md:py-3 shadow-xl border border-white/20 flex items-center gap-2 md:gap-3 text-white pointer-events-auto transition-transform ${widgetSizeClass('weather')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+          <div onClick={() => isEditMode && cycleWidgetSize('weather')} className={`group relative bg-gradient-to-br from-sky-400/40 to-blue-600/40 backdrop-blur-md rounded-2xl md:rounded-3xl px-3 md:px-5 py-2 md:py-3 border border-white/10 flex items-center gap-2 md:gap-3 text-white pointer-events-auto transition-transform ${widgetSizeClass('weather')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <Sun size={28} className="text-yellow-300 drop-shadow-md"/>
             <div>
               <div className="text-lg md:text-2xl font-bold leading-none">21°</div>
@@ -513,20 +513,20 @@ export default function HomeScreen({
           </div>
         )}
         {widgets.includes('calendar') && (
-          <div onClick={() => isEditMode && cycleWidgetSize('calendar')} className={`group relative bg-white/15 backdrop-blur-md rounded-2xl px-3 py-2 shadow-xl border border-white/20 text-white pointer-events-auto transition-transform ${widgetSizeClass('calendar')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+          <div onClick={() => isEditMode && cycleWidgetSize('calendar')} className={`group relative bg-white/15 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/10 text-white pointer-events-auto transition-transform ${widgetSizeClass('calendar')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <div className="text-[10px] opacity-80">{time ? time.toLocaleDateString('ko-KR', { weekday: 'long' }) : ''}</div>
             <div className="text-2xl font-bold leading-none">{time ? time.getDate() : ''}</div>
             {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'calendar')); }}>×</button>}
           </div>
         )}
         {widgets.includes('music') && (
-          <div onClick={() => isEditMode && cycleWidgetSize('music')} className={`group relative bg-gradient-to-br from-pink-500/40 to-purple-600/40 backdrop-blur-md rounded-2xl px-3 py-2 shadow-xl border border-white/20 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('music')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+          <div onClick={() => isEditMode && cycleWidgetSize('music')} className={`group relative bg-gradient-to-br from-pink-500/40 to-purple-600/40 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/10 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('music')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <div className="text-2xl">🎵</div><div className="text-xs">재생 중</div>
             {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'music')); }}>×</button>}
           </div>
         )}
         {widgets.includes('fitness') && (
-          <div onClick={() => isEditMode && cycleWidgetSize('fitness')} className={`group relative bg-gradient-to-br from-green-500/40 to-emerald-600/40 backdrop-blur-md rounded-2xl px-3 py-2 shadow-xl border border-white/20 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('fitness')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
+          <div onClick={() => isEditMode && cycleWidgetSize('fitness')} className={`group relative bg-gradient-to-br from-green-500/40 to-emerald-600/40 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/10 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('fitness')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
             <div className="text-2xl">👟</div><div className="text-xs">5,280 걸음</div>
             {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'fitness')); }}>×</button>}
           </div>
