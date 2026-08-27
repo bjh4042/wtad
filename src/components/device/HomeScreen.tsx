@@ -45,6 +45,8 @@ export interface DragInfo {
   offsetY: number;
 }
 
+export type AppIconVariant = 'home' | 'drawer' | 'taskbar';
+
 export interface AppIconProps {
   appName: string;
   index: number;
@@ -56,6 +58,8 @@ export interface AppIconProps {
   dragInfo: DragInfo;
   /** 드래그 고스트 사본은 숨김 처리를 하지 않는다 (React 렌더와 DOM 조작 충돌 방지) */
   hideWhenDragging?: boolean;
+  /** 홈 / 앱스 화면 / 작업표시줄 — 크기와 라벨 표시만 달라진다 */
+  variant?: AppIconVariant;
   onOpenApp: (appName: string) => void;
   onPointerDown: (e: any, index: number) => void;
   onPointerMove: (e: any) => void;
@@ -64,16 +68,17 @@ export interface AppIconProps {
   handleAppPressEnd: () => void;
 }
 
-/** 홈/앱서랍 공용 앱 아이콘 (기존 renderAppIcon 과 동일한 마크업) */
+/** 홈/앱스/작업표시줄 공용 앱 아이콘 */
 export function AppIcon({
   appName, index, time, notifications, currentTargetId, advanceQuest,
-  isEditMode, dragInfo, hideWhenDragging = true, onOpenApp,
+  isEditMode, dragInfo, hideWhenDragging = true, variant = 'home', onOpenApp,
   onPointerDown, onPointerMove, onPointerUp, handleAppPressStart, handleAppPressEnd,
 }: AppIconProps) {
     let content = null;
     let name = '';
-    // One UI 7 / Android 15 풍 squircle (스쿼클) 공통 클래스
-    const sq = "w-full h-full rounded-[22%] flex items-center justify-center shadow-[0_6px_14px_rgba(0,0,0,0.25)] overflow-hidden";
+    // One UI 스쿼클 (과도한 그림자 제거)
+    const sq = "w-full h-full rounded-[22%] flex items-center justify-center overflow-hidden shadow-[0_2px_6px_rgba(0,0,0,0.18)]";
+
     switch(appName) {
       case 'Calculator': name = '계산기';
         content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#1f2937 0%,#0f172a 100%)' }}>
