@@ -349,6 +349,9 @@ export interface HomeScreenProps {
   setDrawerLongPressTimer: React.Dispatch<React.SetStateAction<any>>;
   uninstallTarget: string | null;
   setUninstallTarget: React.Dispatch<React.SetStateAction<any>>;
+  /** 작업표시줄 표시용 (기존 상태 재사용, 새 관리 시스템 없음) */
+  recentApps?: string[];
+  currentApp?: string | null;
 }
 
 export default function HomeScreen({
@@ -363,9 +366,9 @@ export default function HomeScreen({
   handleAppPressStart, handleAppPressEnd, onOpenApp, setMathAppOpen,
   appDrawerOpen, setAppDrawerOpen, drawerSwipeStart, setDrawerSwipeStart,
   drawerSearch, setDrawerSearch, drawerLongPressTimer, setDrawerLongPressTimer,
-  uninstallTarget, setUninstallTarget,
+  uninstallTarget, setUninstallTarget, recentApps = [], currentApp = null,
 }: HomeScreenProps) {
-  const renderAppIcon = (appName: any, index: number, hideWhenDragging = true) => {
+  const renderAppIcon = (appName: any, index: number, hideWhenDragging = true, variant: 'home' | 'drawer' | 'taskbar' = 'home') => {
     if (!appName) return null;
     return (
       <AppIcon
@@ -379,6 +382,7 @@ export default function HomeScreen({
         isEditMode={isEditMode}
         dragInfo={dragInfo}
         hideWhenDragging={hideWhenDragging}
+        variant={variant}
         onOpenApp={onOpenApp}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -388,6 +392,11 @@ export default function HomeScreen({
       />
     );
   };
+
+  /** 작업표시줄: 고정 앱(홈 1페이지 상위 앱) + 기존 recentApps */
+  const taskbarPinned = ['Internet', 'Messages', 'Gallery', 'Camera', 'Settings'].filter(a => homePages.some(p => p.includes(a)));
+  const taskbarRecents = recentApps.filter(a => !taskbarPinned.includes(a)).slice(0, 3);
+
 
   const cycleWidgetSize = (id: string) => {
     setWidgetSizes(prev => {
