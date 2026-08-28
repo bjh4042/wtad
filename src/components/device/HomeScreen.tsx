@@ -247,7 +247,11 @@ export function AppIcon({
     if (!content) return null;
     const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
     const isTaskbar = variant === 'taskbar';
-    const iconSizeVar = isTaskbar ? 'var(--oneui-taskbar-icon-size)' : 'var(--oneui-home-icon-size)';
+    const iconSizeVar = isTaskbar
+      ? 'var(--oneui-taskbar-icon-size)'
+      : variant === 'drawer'
+        ? 'var(--oneui-drawer-icon-size)'
+        : 'var(--oneui-home-icon-size)';
     return (
       <ActionTarget
         key={index}
