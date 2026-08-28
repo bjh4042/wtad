@@ -517,7 +517,9 @@ export default function AndroidExplorer() {
       drawerSearch={drawerSearch} setDrawerSearch={setDrawerSearch}
       drawerLongPressTimer={drawerLongPressTimer} setDrawerLongPressTimer={setDrawerLongPressTimer}
       uninstallTarget={uninstallTarget} setUninstallTarget={setUninstallTarget}
+      recentApps={recentApps} currentApp={currentApp}
     />
+
   );
 
   const renderSettings = () => (
