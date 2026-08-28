@@ -711,39 +711,50 @@ export default function HomeScreen({
 
       {/* App Drawer overlay */}
       {appDrawerOpen && (
-        <div className="absolute inset-0 z-[90] bg-black/85 backdrop-blur-xl animate-[slideUp_0.3s_ease-out] flex flex-col pt-6">
-          <div className="flex items-center justify-between px-8 mb-3">
-            <div className="text-white text-2xl font-bold">앱 서랍</div>
-            <button
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white active:scale-90 transition-all"
-              onClick={() => { setAppDrawerOpen(false); setDrawerSearch(''); }}
-            >
-              <X size={20}/>
-            </button>
-          </div>
-          <div className="px-8 mb-4">
-            <div className="relative">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50"/>
-              <input
-                value={drawerSearch}
-                onChange={(e) => setDrawerSearch(e.target.value)}
-                placeholder="앱 검색…"
-                className="w-full bg-white/10 border border-white/15 text-white placeholder-white/40 rounded-full pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:bg-white/15"
-              />
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto px-6 pb-8">
+        <div
+          className="absolute inset-0 z-[90] bg-black/80 backdrop-blur-xl animate-[slideUp_0.3s_ease-out] flex flex-col"
+          style={{ paddingTop: 'calc(var(--oneui-statusbar-h) + var(--oneui-drawer-pad-top))' }}
+          onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
+          onTouchMove={(e) => {
+            if (drawerSwipeStart !== null && e.touches[0].clientY - drawerSwipeStart > 70) {
+              setAppDrawerOpen(false); setDrawerSearch(''); setDrawerSwipeStart(null);
+            }
+          }}
+          onTouchEnd={() => setDrawerSwipeStart(null)}
+        >
+          {/* 닫기 (기존 동작 유지) */}
+          <button
+            aria-label="앱스 화면 닫기"
+            className="absolute right-5 w-9 h-9 rounded-full bg-white/10 md:hover:bg-white/20 flex items-center justify-center text-white oneui-press z-[2]"
+            style={{ top: 'calc(var(--oneui-statusbar-h) + 8px)' }}
+            onClick={() => { setAppDrawerOpen(false); setDrawerSearch(''); }}
+          >
+            <X size={18}/>
+          </button>
+
+          {/* App Grid */}
+          <div
+            className="flex-1 overflow-y-auto"
+            style={{
+              paddingLeft: 'var(--oneui-drawer-pad-x)',
+              paddingRight: 'var(--oneui-drawer-pad-x)',
+              paddingBottom: 'var(--oneui-drawer-reserve)',
+            }}
+          >
             {(() => {
               const all = homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []);
               const filtered = drawerSearch
                 ? all.filter(a => a.toLowerCase().includes(drawerSearch.toLowerCase()))
                 : all;
               return (
-            <div className="grid grid-cols-6 md:grid-cols-8 gap-y-8 gap-x-4 justify-items-center">
+            <div
+              className="grid grid-cols-4 md:grid-cols-8 justify-items-center"
+              style={{ columnGap: 'var(--oneui-drawer-gap-x)', rowGap: 'var(--oneui-drawer-gap-y)' }}
+            >
               {filtered.map((appName, i) => (
                 <div
                   key={`drawer-${appName}-${i}`}
-                  className="flex flex-col items-center gap-2 cursor-pointer group w-[72px] active:scale-95 transition-transform"
+                  className="flex flex-col items-center cursor-pointer group oneui-press"
                   onClick={() => {
                     if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
                     if (appName === 'math') { setMathAppOpen(true); setAppDrawerOpen(false); return; }
@@ -762,18 +773,44 @@ export default function HomeScreen({
                   }}
                   onTouchEnd={() => { if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); } }}
                 >
-                  <div className="w-[72px] h-[72px] pointer-events-none">
+                  <div className="pointer-events-none flex flex-col items-center">
                     {appName === 'math' ? (
-                      <div className="w-full h-full bg-yellow-400 rounded-[1.25rem] flex items-center justify-center shadow-lg font-black text-white text-3xl">1+2</div>
-                    ) : renderAppIcon(appName, -1)}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div
+                          className="bg-yellow-400 rounded-[1.25rem] flex items-center justify-center font-black text-white text-2xl"
+                          style={{ width: 'var(--oneui-drawer-icon-size)', height: 'var(--oneui-drawer-icon-size)' }}
+                        >1+2</div>
+                        <span className="text-white truncate w-full text-center leading-tight" style={{ fontSize: 'var(--oneui-home-label-size)' }}>똑똑수학탐험대</span>
+                      </div>
+                    ) : renderAppIcon(appName, -1, false, 'drawer')}
                   </div>
                 </div>
               ))}
             </div>
               );
             })()}
-            <div className="text-center text-white/50 text-xs mt-8">아이콘을 꾹 누르면 앱을 삭제할 수 있어요 · 총 {homeApps.filter(Boolean).length + (installedApps.includes('math') ? 1 : 0)}개</div>
           </div>
+
+          {/* Drawer Finder — 홈 Finder 와 동일한 pill 디자인 */}
+          <div
+            className="absolute left-0 right-0 z-[2] flex justify-center pointer-events-none"
+            style={{ bottom: 'calc(var(--oneui-taskbar-h) + 8px)' }}
+          >
+            <div
+              className="pointer-events-auto w-[min(46%,440px)] min-w-[220px] bg-black/30 backdrop-blur-sm rounded-full flex items-center gap-2 px-4 border border-white/15"
+              style={{ height: 'var(--oneui-finder-h)' }}
+            >
+              <Search size={16} className="text-white/80 shrink-0"/>
+              <input
+                value={drawerSearch}
+                onChange={(e) => setDrawerSearch(e.target.value)}
+                placeholder="검색"
+                className="flex-1 bg-transparent border-0 text-white placeholder-white/60 text-[13px] focus:outline-none min-w-0"
+              />
+              <Mic size={15} className="text-white/70 shrink-0"/>
+            </div>
+          </div>
+
 
 
           {/* Uninstall confirm */}
