@@ -178,7 +178,17 @@
   --oneui-taskbar-icon-size: 40px;
   /* 홈 콘텐츠가 침범하면 안 되는 하단 영역 (indicator + finder + taskbar) */
   --oneui-home-reserve: calc(var(--oneui-taskbar-h) + var(--oneui-finder-h) + var(--oneui-indicator-h) + 14px);
+
+  /* ---- App Drawer (앱스 화면) ---- */
+  --oneui-drawer-icon-size: 56px;
+  --oneui-drawer-pad-x: 44px;
+  --oneui-drawer-pad-top: 22px;
+  --oneui-drawer-gap-x: 8px;
+  --oneui-drawer-gap-y: 20px;
+  /* Finder + taskbar 영역을 침범하지 않는 하단 여백 */
+  --oneui-drawer-reserve: calc(var(--oneui-taskbar-h) + var(--oneui-finder-h) + 18px);
 }
+
 
 /* 스마트폰 세로형에서는 값만 축소 (구조 동일) */
 @media (max-width: 767px) {
