@@ -751,7 +751,9 @@ export default function HomeScreen({
             }}
           >
             {(() => {
-              const all = homeApps.filter(Boolean).concat(installedApps.includes('math') ? ['math'] : []);
+              const all = homeApps
+                .filter((a: any): a is string => typeof a === 'string' && DRAWER_KNOWN_APPS.includes(a))
+                .concat(installedApps.includes('math') ? ['math'] : []);
               const filtered = drawerSearch
                 ? all.filter(a => a.toLowerCase().includes(drawerSearch.toLowerCase()))
                 : all;
@@ -766,9 +768,28 @@ export default function HomeScreen({
                   className="flex flex-col items-center cursor-pointer group oneui-press"
                   onClick={() => {
                     if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
+                    // 명확한 스와이프 동작은 앱 실행으로 처리하지 않는다
+                    if (drawerPressMoved.current) { drawerPressMoved.current = false; return; }
                     if (appName === 'math') { setMathAppOpen(true); setAppDrawerOpen(false); return; }
-                    onOpenApp(appName);
                     setAppDrawerOpen(false);
+                    setDrawerSearch('');
+                    if (DRAWER_APPS_WITH_SCREEN.includes(appName)) {
+                      onOpenApp(appName);
+                    } else {
+                      alert(`${appName} 앱이 실행되었어요! (시뮬레이션)`);
+                    }
+                  }}
+                  onPointerDown={(e) => {
+                    drawerPressStart.current = { x: e.clientX, y: e.clientY };
+                    drawerPressMoved.current = false;
+                  }}
+                  onPointerMove={(e) => {
+                    const s = drawerPressStart.current;
+                    if (!s) return;
+                    if (Math.abs(e.clientX - s.x) > 10 || Math.abs(e.clientY - s.y) > 10) {
+                      drawerPressMoved.current = true;
+                      if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
+                    }
                   }}
                   onMouseDown={() => {
                     const t = setTimeout(() => setUninstallTarget(appName), 600);
