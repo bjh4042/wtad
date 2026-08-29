@@ -47,6 +47,15 @@ export interface DragInfo {
 
 export type AppIconVariant = 'home' | 'drawer' | 'taskbar';
 
+/** 앱스 화면에 아이콘을 그릴 수 있는 앱 목록 (아이콘이 없는 항목이 투명 히트박스로 남지 않게 함) */
+const DRAWER_KNOWN_APPS = [
+  'Calculator', 'GameLauncher', 'Store', 'Camera', 'Gallery', 'Wearable', 'Calendar',
+  'Clock', 'Health', 'Folder', 'Notes', 'Messages', 'Internet', 'PlayStore',
+  'YouTube', 'KakaoTalk', 'Naver', 'Settings',
+];
+/** 전용 앱 화면이 구현된 앱 (그 외는 시뮬레이션 안내로 처리 — 검은 화면 방지) */
+const DRAWER_APPS_WITH_SCREEN = ['Settings', 'Camera', 'Gallery', 'PlayStore', 'Notes', 'Calculator', 'Internet'];
+
 export interface AppIconProps {
   appName: string;
   index: number;
