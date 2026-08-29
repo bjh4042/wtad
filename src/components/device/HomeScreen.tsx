@@ -381,6 +381,9 @@ export default function HomeScreen({
   drawerSearch, setDrawerSearch, drawerLongPressTimer, setDrawerLongPressTimer,
   uninstallTarget, setUninstallTarget, recentApps = [], currentApp = null,
 }: HomeScreenProps) {
+  /** 앱스 화면 전용: 탭과 스와이프를 구분하기 위한 이동 임계값 추적 */
+  const drawerPressStart = React.useRef<{ x: number; y: number } | null>(null);
+  const drawerPressMoved = React.useRef(false);
   const renderAppIcon = (appName: any, index: number, hideWhenDragging = true, variant: 'home' | 'drawer' | 'taskbar' = 'home') => {
     if (!appName) return null;
     return (
