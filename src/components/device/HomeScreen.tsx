@@ -384,6 +384,31 @@ export default function HomeScreen({
   /** 앱스 화면 전용: 탭과 스와이프를 구분하기 위한 이동 임계값 추적 */
   const drawerPressStart = React.useRef<{ x: number; y: number } | null>(null);
   const drawerPressMoved = React.useRef(false);
+  // 기존 drawerLongPressTimer(state)를 ref 로도 미러링해, 이벤트 사이 stale closure 없이 항상 취소할 수 있게 한다
+  const drawerLongPressRef = React.useRef<any>(null);
+  const startDrawerLongPress = (appName: string) => {
+    if (drawerLongPressRef.current) clearTimeout(drawerLongPressRef.current);
+    const t = setTimeout(() => {
+      drawerLongPressRef.current = null;
+      setDrawerLongPressTimer(null);
+      if (drawerPressMoved.current) return; // 이동 중이면 롱프레스 무시
+      setUninstallTarget(appName);
+    }, 600);
+    drawerLongPressRef.current = t;
+    setDrawerLongPressTimer(t);
+  };
+  const cancelDrawerLongPress = () => {
+    if (drawerLongPressRef.current) { clearTimeout(drawerLongPressRef.current); drawerLongPressRef.current = null; }
+    if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
+  };
+  const drawerPointerMoveCheck = (x: number, y: number) => {
+    const s = drawerPressStart.current;
+    if (!s) return;
+    if (Math.abs(x - s.x) > 10 || Math.abs(y - s.y) > 10) {
+      drawerPressMoved.current = true;
+      cancelDrawerLongPress();
+    }
+  };
   const renderAppIcon = (appName: any, index: number, hideWhenDragging = true, variant: 'home' | 'drawer' | 'taskbar' = 'home') => {
     if (!appName) return null;
     return (
@@ -435,7 +460,7 @@ export default function HomeScreen({
       style={{ background: wallpaper, backgroundSize: 'cover' }}
       onContextMenu={(e) => { e.preventDefault(); setHomeMenuOpen(true); }}
       onMouseDown={(e) => {
-        if (isEditMode) return;
+        if (isEditMode || appDrawerOpen) return; // Drawer 는 자체 제스처 처리
         const target = e.target as HTMLElement;
         if (target.closest('[data-slot-idx]') || target.closest('button')) return;
         setPageSwipeStart({ x: e.clientX, y: e.clientY });
@@ -459,6 +484,7 @@ export default function HomeScreen({
         setPageSwipeStart(null); setPageSwipeDX(0);
       }}
       onTouchStart={(e) => {
+        if (appDrawerOpen) return; // Drawer 는 자체 제스처 처리 (홈 롱프레스 타이머 시작 금지)
         const target = e.target as HTMLElement;
         if (target.closest('button')) return;
         setPageSwipeStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
@@ -729,10 +755,12 @@ export default function HomeScreen({
           onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
           onTouchMove={(e) => {
             if (drawerSwipeStart !== null && e.touches[0].clientY - drawerSwipeStart > 70) {
+              cancelDrawerLongPress(); drawerPressMoved.current = true;
               setAppDrawerOpen(false); setDrawerSearch(''); setDrawerSwipeStart(null);
             }
           }}
           onTouchEnd={() => setDrawerSwipeStart(null)}
+          onTouchCancel={() => { setDrawerSwipeStart(null); cancelDrawerLongPress(); }}
         >
           {/* 닫기 (기존 동작 유지) */}
           <button
@@ -770,7 +798,7 @@ export default function HomeScreen({
                   key={`drawer-${appName}-${i}`}
                   className="flex flex-col items-center cursor-pointer group oneui-press"
                   onClick={() => {
-                    if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
+                    cancelDrawerLongPress();
                     // 명확한 스와이프 동작은 앱 실행으로 처리하지 않는다
                     if (drawerPressMoved.current) { drawerPressMoved.current = false; return; }
                     if (appName === 'math') { setMathAppOpen(true); setAppDrawerOpen(false); return; }
@@ -786,25 +814,15 @@ export default function HomeScreen({
                     drawerPressStart.current = { x: e.clientX, y: e.clientY };
                     drawerPressMoved.current = false;
                   }}
-                  onPointerMove={(e) => {
-                    const s = drawerPressStart.current;
-                    if (!s) return;
-                    if (Math.abs(e.clientX - s.x) > 10 || Math.abs(e.clientY - s.y) > 10) {
-                      drawerPressMoved.current = true;
-                      if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); }
-                    }
-                  }}
-                  onMouseDown={() => {
-                    const t = setTimeout(() => setUninstallTarget(appName), 600);
-                    setDrawerLongPressTimer(t);
-                  }}
-                  onMouseUp={() => { if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); } }}
-                  onMouseLeave={() => { if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); } }}
-                  onTouchStart={() => {
-                    const t = setTimeout(() => setUninstallTarget(appName), 600);
-                    setDrawerLongPressTimer(t);
-                  }}
-                  onTouchEnd={() => { if (drawerLongPressTimer) { clearTimeout(drawerLongPressTimer); setDrawerLongPressTimer(null); } }}
+                  onPointerMove={(e) => drawerPointerMoveCheck(e.clientX, e.clientY)}
+                  onPointerCancel={cancelDrawerLongPress}
+                  onMouseDown={() => startDrawerLongPress(appName)}
+                  onMouseUp={cancelDrawerLongPress}
+                  onMouseLeave={cancelDrawerLongPress}
+                  onTouchStart={() => startDrawerLongPress(appName)}
+                  onTouchMove={(e) => drawerPointerMoveCheck(e.touches[0].clientX, e.touches[0].clientY)}
+                  onTouchEnd={cancelDrawerLongPress}
+                  onTouchCancel={cancelDrawerLongPress}
                 >
                   <div className="pointer-events-none flex flex-col items-center">
                     {appName === 'math' ? (
