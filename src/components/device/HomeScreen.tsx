@@ -256,6 +256,7 @@ export function AppIcon({
     if (!content) return null;
     const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
     const isTaskbar = variant === 'taskbar';
+    const isHome = variant === 'home';
     const iconSizeVar = isTaskbar
       ? 'var(--oneui-taskbar-icon-size)'
       : variant === 'drawer'
@@ -276,11 +277,17 @@ export function AppIcon({
           onOpenApp(appName);
         }}
 
-        onPointerDown={(e) => onPointerDown(e, index)}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onTouchStart={() => handleAppPressStart(appName, index)} onTouchEnd={handleAppPressEnd}
-        onMouseDown={() => handleAppPressStart(appName, index)} onMouseUp={handleAppPressEnd} onMouseLeave={handleAppPressEnd}
+        {...(isHome ? {
+          // Home 전용: 편집모드 롱프레스 + 드래그. drawer/taskbar 에서는 절대 시작하지 않는다
+          onPointerDown: (e: any) => onPointerDown(e, index),
+          onPointerMove,
+          onPointerUp,
+          onTouchStart: () => handleAppPressStart(appName, index),
+          onTouchEnd: handleAppPressEnd,
+          onMouseDown: () => handleAppPressStart(appName, index),
+          onMouseUp: handleAppPressEnd,
+          onMouseLeave: handleAppPressEnd,
+        } : {})}
 
         className={`flex flex-col items-center cursor-pointer group oneui-press ${isTaskbar ? '' : 'gap-1.5'} ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
         style={{ width: isTaskbar ? iconSizeVar : `calc(${iconSizeVar} + 22px)` }}
@@ -386,12 +393,14 @@ export default function HomeScreen({
   const drawerPressMoved = React.useRef(false);
   // 기존 drawerLongPressTimer(state)를 ref 로도 미러링해, 이벤트 사이 stale closure 없이 항상 취소할 수 있게 한다
   const drawerLongPressRef = React.useRef<any>(null);
+  const uninstallOpenedAt = React.useRef(0);
   const startDrawerLongPress = (appName: string) => {
     if (drawerLongPressRef.current) clearTimeout(drawerLongPressRef.current);
     const t = setTimeout(() => {
       drawerLongPressRef.current = null;
       setDrawerLongPressTimer(null);
       if (drawerPressMoved.current) return; // 이동 중이면 롱프레스 무시
+      uninstallOpenedAt.current = Date.now();
       setUninstallTarget(appName);
     }, 600);
     drawerLongPressRef.current = t;
@@ -866,7 +875,14 @@ export default function HomeScreen({
 
           {/* Uninstall confirm */}
           {uninstallTarget && (
-            <div className="absolute inset-0 z-[95] bg-black/60 flex items-center justify-center animate-[fadeIn_0.2s_ease-out]" onClick={() => setUninstallTarget(null)}>
+            <div
+              className="absolute inset-0 z-[95] bg-black/60 flex items-center justify-center animate-[fadeIn_0.2s_ease-out]"
+              onClick={() => {
+                // 롱프레스 손가락을 떼는 순간 생기는 compat click(touchend 직후) 이 backdrop 에 떨어져 팝업이 바로 닫히는 것을 방지
+                if (Date.now() - uninstallOpenedAt.current < 500) return;
+                setUninstallTarget(null);
+              }}
+            >
               <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-[340px] shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-3">
                   <Trash2 size={24} className="text-red-400"/>
