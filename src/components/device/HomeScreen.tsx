@@ -393,12 +393,14 @@ export default function HomeScreen({
   const drawerPressMoved = React.useRef(false);
   // 기존 drawerLongPressTimer(state)를 ref 로도 미러링해, 이벤트 사이 stale closure 없이 항상 취소할 수 있게 한다
   const drawerLongPressRef = React.useRef<any>(null);
+  const uninstallOpenedAt = React.useRef(0);
   const startDrawerLongPress = (appName: string) => {
     if (drawerLongPressRef.current) clearTimeout(drawerLongPressRef.current);
     const t = setTimeout(() => {
       drawerLongPressRef.current = null;
       setDrawerLongPressTimer(null);
       if (drawerPressMoved.current) return; // 이동 중이면 롱프레스 무시
+      uninstallOpenedAt.current = Date.now();
       setUninstallTarget(appName);
     }, 600);
     drawerLongPressRef.current = t;
