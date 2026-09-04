@@ -873,7 +873,14 @@ export default function HomeScreen({
 
           {/* Uninstall confirm */}
           {uninstallTarget && (
-            <div className="absolute inset-0 z-[95] bg-black/60 flex items-center justify-center animate-[fadeIn_0.2s_ease-out]" onClick={() => setUninstallTarget(null)}>
+            <div
+              className="absolute inset-0 z-[95] bg-black/60 flex items-center justify-center animate-[fadeIn_0.2s_ease-out]"
+              onClick={() => {
+                // 롱프레스 손가락을 떼는 순간 생기는 compat click(touchend 직후) 이 backdrop 에 떨어져 팝업이 바로 닫히는 것을 방지
+                if (Date.now() - uninstallOpenedAt.current < 500) return;
+                setUninstallTarget(null);
+              }}
+            >
               <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-[340px] shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-3">
                   <Trash2 size={24} className="text-red-400"/>
