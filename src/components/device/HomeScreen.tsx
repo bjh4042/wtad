@@ -276,11 +276,17 @@ export function AppIcon({
           onOpenApp(appName);
         }}
 
-        onPointerDown={(e) => onPointerDown(e, index)}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onTouchStart={() => handleAppPressStart(appName, index)} onTouchEnd={handleAppPressEnd}
-        onMouseDown={() => handleAppPressStart(appName, index)} onMouseUp={handleAppPressEnd} onMouseLeave={handleAppPressEnd}
+        {...(isHome ? {
+          // Home 전용: 편집모드 롱프레스 + 드래그. drawer/taskbar 에서는 절대 시작하지 않는다
+          onPointerDown: (e: any) => onPointerDown(e, index),
+          onPointerMove,
+          onPointerUp,
+          onTouchStart: () => handleAppPressStart(appName, index),
+          onTouchEnd: handleAppPressEnd,
+          onMouseDown: () => handleAppPressStart(appName, index),
+          onMouseUp: handleAppPressEnd,
+          onMouseLeave: handleAppPressEnd,
+        } : {})}
 
         className={`flex flex-col items-center cursor-pointer group oneui-press ${isTaskbar ? '' : 'gap-1.5'} ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
         style={{ width: isTaskbar ? iconSizeVar : `calc(${iconSizeVar} + 22px)` }}
