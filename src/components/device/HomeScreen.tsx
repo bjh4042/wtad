@@ -467,7 +467,7 @@ export default function HomeScreen({
       key={`home-flash-${homeFlashKey}`}
       className="oneui flex-1 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0 animate-app-enter"
       style={{ background: wallpaper, backgroundSize: 'cover' }}
-      onContextMenu={(e) => { e.preventDefault(); setHomeMenuOpen(true); }}
+      onContextMenu={(e) => { e.preventDefault(); if (appDrawerOpen) return; setHomeMenuOpen(true); }}
       onMouseDown={(e) => {
         if (isEditMode || appDrawerOpen) return; // Drawer 는 자체 제스처 처리
         const target = e.target as HTMLElement;
@@ -830,7 +830,11 @@ export default function HomeScreen({
                   onMouseLeave={cancelDrawerLongPress}
                   onTouchStart={() => startDrawerLongPress(appName)}
                   onTouchMove={(e) => drawerPointerMoveCheck(e.touches[0].clientX, e.touches[0].clientY)}
-                  onTouchEnd={cancelDrawerLongPress}
+                  onTouchEnd={() => {
+                    cancelDrawerLongPress();
+                    // 롱프레스 팝업이 열린 뒤 손가락을 떼는 시점을 기준으로 compat click 보호창을 다시 잡는다 (길게 누를수록 click 이 늦게 오므로)
+                    if (uninstallOpenedAt.current) uninstallOpenedAt.current = Date.now();
+                  }}
                   onTouchCancel={cancelDrawerLongPress}
                 >
                   <div className="pointer-events-none flex flex-col items-center">
