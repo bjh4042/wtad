@@ -830,7 +830,11 @@ export default function HomeScreen({
                   onMouseLeave={cancelDrawerLongPress}
                   onTouchStart={() => startDrawerLongPress(appName)}
                   onTouchMove={(e) => drawerPointerMoveCheck(e.touches[0].clientX, e.touches[0].clientY)}
-                  onTouchEnd={cancelDrawerLongPress}
+                  onTouchEnd={() => {
+                    cancelDrawerLongPress();
+                    // 롱프레스 팝업이 열린 뒤 손가락을 떼는 시점을 기준으로 compat click 보호창을 다시 잡는다 (길게 누를수록 click 이 늦게 오므로)
+                    if (uninstallOpenedAt.current) uninstallOpenedAt.current = Date.now();
+                  }}
                   onTouchCancel={cancelDrawerLongPress}
                 >
                   <div className="pointer-events-none flex flex-col items-center">
