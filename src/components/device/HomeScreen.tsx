@@ -467,7 +467,7 @@ export default function HomeScreen({
       key={`home-flash-${homeFlashKey}`}
       className="oneui flex-1 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0 animate-app-enter"
       style={{ background: wallpaper, backgroundSize: 'cover' }}
-      onContextMenu={(e) => { e.preventDefault(); setHomeMenuOpen(true); }}
+      onContextMenu={(e) => { e.preventDefault(); if (appDrawerOpen) return; setHomeMenuOpen(true); }}
       onMouseDown={(e) => {
         if (isEditMode || appDrawerOpen) return; // Drawer 는 자체 제스처 처리
         const target = e.target as HTMLElement;
