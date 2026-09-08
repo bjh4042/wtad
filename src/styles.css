@@ -187,6 +187,36 @@
   --oneui-drawer-gap-y: 20px;
   /* Finder + taskbar 영역을 침범하지 않는 하단 여백 */
   --oneui-drawer-reserve: calc(var(--oneui-taskbar-h) + var(--oneui-finder-h) + 18px);
+
+  /* ---- Quick settings / Notification system panel ---- */
+  --oneui-panel-bg: rgba(28, 30, 33, 0.78);
+  --oneui-panel-tile: rgba(255, 255, 255, 0.13);
+  --oneui-panel-tile-on: rgba(255, 255, 255, 0.94);
+  --oneui-panel-radius: 26px;
+  --oneui-panel-pad: 22px;
+  --oneui-panel-gap: 12px;
+  --oneui-panel-scrim: rgba(0, 0, 0, 0.28);
+  --oneui-panel-header-h: 46px;
+}
+
+/* 세로 공간이 좁은 해상도(예: 1366x768) 대응 */
+@media (max-height: 800px) {
+  :root {
+    --oneui-panel-pad: 16px;
+    --oneui-panel-gap: 9px;
+    --oneui-panel-header-h: 38px;
+  }
+}
+
+.oneui-panel-enter {
+  animation: oneuiPanelIn var(--oneui-duration) var(--oneui-ease) both;
+}
+@keyframes oneuiPanelIn {
+  from { transform: translateY(-14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oneui-panel-enter { animation: none; }
 }
 
 
