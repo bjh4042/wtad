@@ -402,11 +402,13 @@ export default function AndroidExplorer() {
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
       if (!quickPanelOpen && currentY - touchStartY > 15) {
+        setPanelMode(resolvePanelMode());
         setQuickPanelOpen(true);
         advanceQuest('swipe-trigger');
         setTouchStartY(null);
       } else if (quickPanelOpen && touchStartY - currentY > 15) {
         setQuickPanelOpen(false);
+        setPanelMode(null);
         advanceQuest('quick-panel-bg');
         setTouchStartY(null);
       }
