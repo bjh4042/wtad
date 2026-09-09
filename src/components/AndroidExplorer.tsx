@@ -248,6 +248,14 @@ export default function AndroidExplorer() {
   const dragRefExp = useRef(null);
   const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
+  // 시스템 패널 모드: 왼쪽 위에서 내리면 알림, 오른쪽 위에서 내리면 빠른 설정
+  const [panelMode, setPanelMode] = useState<'quick' | 'notifications' | null>(null);
+  const swipeStartX = useRef<number>(0);
+  const resolvePanelMode = (): 'quick' | 'notifications' => {
+    if (typeof currentTargetId === 'string' && currentTargetId.startsWith('notif-')) return 'notifications';
+    const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
+    return swipeStartX.current > w * 0.55 ? 'quick' : 'notifications';
+  };
 
   // 미션 리스트 팝업 (12번)
   const [missionListOpen, setMissionListOpen] = useState(false);
