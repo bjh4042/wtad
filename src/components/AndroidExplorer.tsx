@@ -248,6 +248,14 @@ export default function AndroidExplorer() {
   const dragRefExp = useRef(null);
   const expMenuRef = useRef(null);
   const [touchStartY, setTouchStartY] = useState(null);
+  // 시스템 패널 모드: 왼쪽 위에서 내리면 알림, 오른쪽 위에서 내리면 빠른 설정
+  const [panelMode, setPanelMode] = useState<'quick' | 'notifications' | null>(null);
+  const swipeStartX = useRef<number>(0);
+  const resolvePanelMode = (): 'quick' | 'notifications' => {
+    if (typeof currentTargetId === 'string' && currentTargetId.startsWith('notif-')) return 'notifications';
+    const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
+    return swipeStartX.current > w * 0.55 ? 'quick' : 'notifications';
+  };
 
   // 미션 리스트 팝업 (12번)
   const [missionListOpen, setMissionListOpen] = useState(false);
@@ -394,11 +402,13 @@ export default function AndroidExplorer() {
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
       if (!quickPanelOpen && currentY - touchStartY > 15) {
+        setPanelMode(resolvePanelMode());
         setQuickPanelOpen(true);
         advanceQuest('swipe-trigger');
         setTouchStartY(null);
       } else if (quickPanelOpen && touchStartY - currentY > 15) {
         setQuickPanelOpen(false);
+        setPanelMode(null);
         advanceQuest('quick-panel-bg');
         setTouchStartY(null);
       }
@@ -436,7 +446,11 @@ export default function AndroidExplorer() {
   };
 
 
-  const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
+  const handleSwipeStart = (e) => {
+    const isTouch = e.type.includes('touch');
+    swipeStartX.current = isTouch ? e.touches[0].clientX : e.clientX;
+    setTouchStartY(isTouch ? e.touches[0].clientY : e.clientY);
+  };
 
   const handleAppPressStart = (appName, index?: number) => {
     if (isEditMode) return;
@@ -562,6 +576,7 @@ export default function AndroidExplorer() {
     <QuickPanel
       currentTargetId={currentTargetId} advanceQuest={advanceQuest}
       quickPanelOpen={quickPanelOpen} setQuickPanelOpen={setQuickPanelOpen}
+      panelMode={panelMode} setPanelMode={setPanelMode}
       notifications={notifications} setNotifications={setNotifications}
       notifDrag={notifDrag} setNotifDrag={setNotifDrag}
       readNotifIds={readNotifIds} setReadNotifIds={setReadNotifIds}
