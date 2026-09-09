@@ -576,6 +576,7 @@ export default function AndroidExplorer() {
     <QuickPanel
       currentTargetId={currentTargetId} advanceQuest={advanceQuest}
       quickPanelOpen={quickPanelOpen} setQuickPanelOpen={setQuickPanelOpen}
+      panelMode={panelMode} setPanelMode={setPanelMode}
       notifications={notifications} setNotifications={setNotifications}
       notifDrag={notifDrag} setNotifDrag={setNotifDrag}
       readNotifIds={readNotifIds} setReadNotifIds={setReadNotifIds}
