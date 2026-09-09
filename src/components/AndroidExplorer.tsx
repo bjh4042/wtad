@@ -446,7 +446,11 @@ export default function AndroidExplorer() {
   };
 
 
-  const handleSwipeStart = (e) => { setTouchStartY(e.type.includes('touch') ? e.touches[0].clientY : e.clientY); };
+  const handleSwipeStart = (e) => {
+    const isTouch = e.type.includes('touch');
+    swipeStartX.current = isTouch ? e.touches[0].clientX : e.clientX;
+    setTouchStartY(isTouch ? e.touches[0].clientY : e.clientY);
+  };
 
   const handleAppPressStart = (appName, index?: number) => {
     if (isEditMode) return;
