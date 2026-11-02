@@ -1,0 +1,94 @@
+{
+  "calculator.png": {
+    "page": "https://galaxystore.samsung.com/detail/com.sec.android.app.popupcalculator?cntyCd=USA",
+    "asset": "https://img.samsungapps.com/productNew/000008917135/ENG/IconImage_20261001072053854_NEW_WAP_ICON_512_512.png"
+  },
+  "calendar.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-calendar.webp"
+  },
+  "camera.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-camera.webp"
+  },
+  "chrome.png": {
+    "page": "https://play.google.com/store/apps/details?id=com.android.chrome",
+    "asset": "https://play-lh.googleusercontent.com/gbkzfC3R1fXcGR4Uag1uRSN_123Tpo_KxhVZFLFCatmthFuO1bzPczUomFtxI42YYEQMJeAaZuIFVrTF58gZYg=s512"
+  },
+  "clock.png": {
+    "page": "https://galaxystore.samsung.com/detail/com.sec.android.app.clockpackage?cntyCd=USA",
+    "asset": "https://img.samsungapps.com/productNew/000008373503/ENG/IconImage_20260223001841360_NEW_WAP_ICON_512_512.png"
+  },
+  "folder.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/_next/static/media/app-my-files.35a88f3f.webp"
+  },
+  "gallery.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-gallery.webp"
+  },
+  "gamelauncher.png": {
+    "page": "https://galaxystore.samsung.com/detail/com.samsung.android.game.gamehome?cntyCd=USA",
+    "asset": "https://img.samsungapps.com/productNew/000008551282/ENG/IconImage_20261007054310606_NEW_WAP_ICON_512_512.png"
+  },
+  "gmail.png": {
+    "page": "https://play.google.com/store/apps/details?id=com.google.android.gm",
+    "asset": "https://play-lh.googleusercontent.com/c6KD_8-GvnGRJA4lRQ4y5YnUa3-LOeYAS7ubw1jWyB9bmr6Kj6zzRvh2A5WBB-Vd3e6zhElmhDv07fCJx2Fc=s512"
+  },
+  "google.png": {
+    "page": "https://play.google.com/store/apps/details?id=com.google.android.googlequicksearchbox",
+    "asset": "https://play-lh.googleusercontent.com/xqk8hd6dMyffxE6iQa59cUt75EA-0YDvjnJlxH4z8W63-e5KwaWXbrNob6Q-OoH5SSDa78Y0I0YA3BB0zDVnB8w=s512"
+  },
+  "health.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-health.webp"
+  },
+  "internet.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-samsung-internet.webp"
+  },
+  "kakaotalk.png": {
+    "page": "https://play.google.com/store/apps/details?id=com.kakao.talk",
+    "asset": "https://play-lh.googleusercontent.com/VaxoIL0V83FKXsQ5fOR0XJ3CQ7Q_eOt_WXuKFtnuK3nWUH_SOll1_LRK5AlXE7b8sUg4iHNKBVof1zV1haQRyw=s512"
+  },
+  "math.png": {
+    "page": "https://play.google.com/store/apps/details?id=com.cemware.aimath",
+    "asset": "https://play-lh.googleusercontent.com/lW-mh6y-aEfueN9So53kysHi74sx3iHQ6szWEvtvHjhCrM-yyFaYlZpqDsveM6mvgHTMyQm6h5n3CSRFImvY=s512"
+  },
+  "messages.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-messages.webp"
+  },
+  "naver.png": {
+    "page": "https://play.google.com/store/apps/details?id=com.nhn.android.search",
+    "asset": "https://play-lh.googleusercontent.com/8g15G46I-P4wZRcQqX---TMMia5yzpXJLPBh2TWhwbD1zb7AvhMuTc05OZZfnVzXZxOtxLuU6d1G9JKCRUCdnQ=s512"
+  },
+  "notes.webp": {
+    "page": "https://galaxystore.samsung.com/detail/com.samsung.android.app.notes?cntyCd=USA",
+    "asset": "https://img.samsungapps.com/productNew/000008925864/ENG/IconImage_20260920223315218_NEW_WAP_ICON_512_512.png"
+  },
+  "phone.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-call.webp"
+  },
+  "playstore-symbol.svg": {
+    "page": "https://play.google.com/store/apps/details?id=com.google.android.googlequicksearchbox",
+    "asset": "Exact inline svg[viewBox=\"0 0 40 40\"] from page HTML"
+  },
+  "settings.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-settings.webp"
+  },
+  "store.png": {
+    "page": "https://galaxystore.samsung.com/detail/com.sec.android.app.samsungapps?cntyCd=USA",
+    "asset": "https://img.samsungapps.com/productNew/000009233937/ENG/IconImage_20260923073005677_NEW_WAP_ICON_512_512.png"
+  },
+  "wearable.webp": {
+    "page": "https://trygalaxy.com/",
+    "asset": "https://trygalaxy.com/assets/images/themes/qhb8/icons/app-wearable.webp"
+  },
+  "youtube.png": {
+    "page": "https://play.google.com/store/apps/details?id=com.google.android.youtube",
+    "asset": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg=s512"
+  }
+}

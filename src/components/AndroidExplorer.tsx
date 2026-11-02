@@ -1,5 +1,12 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
+import { toPng } from 'html-to-image';
+import { useSimulatorStorage } from '@/hooks/useSimulatorStorage';
+import MyFilesApp from './apps/MyFilesApp';
+import ClockApp from './apps/ClockApp';
+import CameraApp from './apps/CameraApp';
+import NotesPracticeApp from './apps/NotesPracticeApp';
+import CalendarPracticeApp from './apps/CalendarPracticeApp';
 import {
   Wifi, Bluetooth, Volume2, VolumeX, Vibrate,
   Sun, Camera, Settings, Play, Search,
@@ -8,16 +15,9 @@ import {
   MonitorPlay, ShieldCheck, User, Bell, ImageIcon, Home,
   Lock, ShieldAlert, AlertTriangle, HeartPulse, BatteryCharging,
   Grid, Sliders, Smartphone, PaintBucket, Moon, Type, ChevronUp,
-  Cloud, MessageSquare, Power, Minus, Share2, Edit3, Heart, Zap, Menu
+  Cloud, MessageSquare, Power, Minus, Share2, Edit3, Heart, Zap, Menu,
+  Music2, Phone, Headphones, Keyboard, Watch, Speaker, PanelsTopLeft, Palette
 } from 'lucide-react';
-import iconStore from '@/assets/icons/store.png';
-import iconGallery from '@/assets/icons/gallery.png';
-import iconPlayStore from '@/assets/icons/playstore.png';
-import iconFolder from '@/assets/icons/folder.png';
-import iconMessages from '@/assets/icons/messages.png';
-import iconInternet from '@/assets/icons/internet.png';
-import iconCamera from '@/assets/icons/camera.png';
-import iconPhone from '@/assets/icons/phone.png';
 import { QUESTS } from '@/data/quests';
 import { DEFAULT_HOME_APPS, DEFAULT_WALLPAPER, DEFAULT_WIDGETS, emptyHomePage } from '@/data/homeDefaults';
 import { useQuestEngine } from '@/hooks/useQuestEngine';
@@ -31,24 +31,20 @@ import SettingsApp from '@/components/apps/SettingsApp';
 import GalleryApp from '@/components/apps/GalleryApp';
 import PlayStoreApp from '@/components/apps/PlayStoreApp';
 import InternetApp from '@/components/apps/InternetApp';
-import HomeScreen, { AppIcon } from '@/components/device/HomeScreen';
+import HomeScreen from '@/components/device/HomeScreen';
+import { GalaxyAppIcon, GALAXY_APP_LABELS } from '@/components/device/GalaxyAppIcon';
 import QuickPanel from '@/components/device/QuickPanel';
 import StatusBar from '@/components/device/StatusBar';
 import NavigationBar from '@/components/device/NavigationBar';
 import LockScreen from '@/components/device/LockScreen';
 import MissionCenter from '@/components/missions/MissionCenter';
 import MissionListOverlay from '@/components/missions/MissionListOverlay';
+import './mobile-shell.css';
 
-const APP_ICON_IMAGES: Record<string, string> = {
-  Store: iconStore,
-  Gallery: iconGallery,
-  PlayStore: iconPlayStore,
-  Folder: iconFolder,
-  Messages: iconMessages,
-  Internet: iconInternet,
-  Camera: iconCamera,
-  Phone: iconPhone,
-};
+function BluetoothDeviceIcon({ deviceId, size = 28 }: { deviceId: string; size?: number }) {
+  const Icon = deviceId === 'bt-device-keyboard' ? Keyboard : deviceId === 'bt-device-watch' ? Watch : deviceId === 'bt-device-speaker' ? Speaker : Headphones;
+  return <Icon size={size} strokeWidth={1.8} aria-hidden="true" />;
+}
 
 // QUESTS 데이터는 src/data/quests.ts 로 분리됨
 
@@ -65,7 +61,9 @@ const APP_ICON_IMAGES: Record<string, string> = {
 
 export default function AndroidExplorer() {
   const [time, setTime] = useState<Date | null>(null);
-  const [isPhone, setIsPhone] = useState<boolean>(false);
+  const [isPhone, setIsPhone] = useState<boolean>(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches);
+  const settingsBackHandler = useRef<(() => boolean) | null>(null);
+  const registerSettingsBackHandler = React.useCallback((handler: (() => boolean) | null) => { settingsBackHandler.current = handler; }, []);
   useEffect(() => {
     const mql = typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)') : null;
     if (!mql) return;
@@ -84,7 +82,7 @@ export default function AndroidExplorer() {
     bluetooth, setBluetooth, connectedBtDevice, setConnectedBtDevice,
     brightness, setBrightness, volume, setVolume,
     mediaVolume, setMediaVolume, ringVolume, setRingVolume, notifVolume, setNotifVolume,
-    volumePanelOpen, setVolumePanelOpen, volumePanelType, setVolumePanelType, showVolumePanel,
+    volumePanelOpen, setVolumePanelOpen, volumePanelType, setVolumePanelType, showVolumePanel, volumeCloseTimer,
     installedApps, setInstalledApps, wallpaper, setWallpaper,
     photos, setPhotos, notes, setNotes,
   } = device;
@@ -218,7 +216,7 @@ export default function AndroidExplorer() {
 
   // 신규: 블루투스 기기 / 노트
   const [bluetoothModalOpen, setBluetoothModalOpen] = useState(false);
-  const [btPairingDevice, setBtPairingDevice] = useState<{ id: string; name: string; icon: string } | null>(null);
+  const [btPairingDevice, setBtPairingDevice] = useState<{ id: string; name: string } | null>(null);
   const [btPairingPin, setBtPairingPin] = useState<string>('');
   const [notesEditing, setNotesEditing] = useState<{ paths: string[]; current: string } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -236,14 +234,22 @@ export default function AndroidExplorer() {
   const questEngine = useQuestEngine();
   const {
     questIdx, setQuestIdx, exp, setExp, completedQuests, setCompletedQuests,
-    currentTargetId, advanceQuest, gotoQuest, resetQuestProgress,
+    currentTargetId: engineTargetId, advanceQuest: engineAdvanceQuest, gotoQuest: engineGotoQuest, resetQuestProgress,
     confettiKey, rewardToast, levelUpFlash,
   } = questEngine;
+  const [practiceMode, setPracticeMode] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(() => {try{return !localStorage.getItem('android-explorer-welcome-v3')}catch{return true}});
+  const [notice, setNotice] = useState('');
+  const [captureBusy, setCaptureBusy] = useState(false);
+  const deviceScreenRef = useRef<HTMLDivElement>(null);
+  const currentTargetId = practiceMode ? null : engineTargetId;
+  const advanceQuest = (target: string) => { if (!practiceMode) engineAdvanceQuest(target); };
+  const gotoQuest = (idx:number) => { engineGotoQuest(idx); setNotice('복습 미션을 골랐어요. 필요한 화면은 아래 현재 미션으로 버튼으로 열 수 있어요.'); };
   const [drawerSearch, setDrawerSearch] = useState('');
   const [appLaunchKey, setAppLaunchKey] = useState(0);
   const [showExpMenu, setShowExpMenu] = useState(true);
   const [isCompact, setIsCompact] = useState(false);
-  const [expPos, setExpPos] = useState({ x: 20, y: 60 });
+  const [expPos, setExpPos] = useState({ x: 26, y: 92 });
   const [isDraggingExp, setIsDraggingExp] = useState(false);
   const dragRefExp = useRef(null);
   const expMenuRef = useRef(null);
@@ -252,9 +258,8 @@ export default function AndroidExplorer() {
   const [panelMode, setPanelMode] = useState<'quick' | 'notifications' | null>(null);
   const swipeStartX = useRef<number>(0);
   const resolvePanelMode = (): 'quick' | 'notifications' => {
-    if (typeof currentTargetId === 'string' && currentTargetId.startsWith('notif-')) return 'notifications';
-    const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
-    return swipeStartX.current > w * 0.55 ? 'quick' : 'notifications';
+    const bounds = deviceScreenRef.current?.getBoundingClientRect();
+    return swipeStartX.current > (bounds ? bounds.left + bounds.width * .55 : window.innerWidth * .55) ? 'quick' : 'notifications';
   };
 
   // 미션 리스트 팝업 (12번)
@@ -286,7 +291,7 @@ export default function AndroidExplorer() {
   }, []);
 
   // 진행도 로드/저장 + 레거시 호환은 useProgressStorage 담당
-  const { isStorageReady } = useProgressStorage(
+  const { isStorageReady, storageError: progressStorageError } = useProgressStorage(
     {
       questIdx, exp, completedQuests, installedApps, homePages, widgetPages, widgetSizes,
       wallpaper, darkMode, fontScale, themeColor,
@@ -306,20 +311,28 @@ export default function AndroidExplorer() {
     },
   );
 
+  const {storageError: sessionStorageError} = useSimulatorStorage(
+    {photos,notes,wifi,wifiConnected,bluetooth,connectedBtDevice,brightness,mediaVolume,notifVolume,airplane,soundMode,currentApp,locked,quickPanelOpen,panelMode,settingsMenu,viewPhoto,internetTabs,internetActiveTabId,internetBookmarks,googleAccount,notifications,readNotifIds,recentApps,appsUpdated},
+    data => {
+      if(Array.isArray(data.photos))setPhotos(data.photos.filter(p=>p&&Number.isFinite(p.id)&&Number.isFinite(p.seed)).slice(-30));
+      if(Array.isArray(data.notes))setNotes(data.notes.filter(n=>n&&Array.isArray(n.paths)).slice(-50));
+      setWifi(!!data.wifi);setWifiConnected(typeof data.wifiConnected==='string'?data.wifiConnected:null);
+      setBluetooth(!!data.bluetooth);setConnectedBtDevice(typeof data.connectedBtDevice==='string'?data.connectedBtDevice:null);
+      for(const [key,setter] of [['brightness',setBrightness],['mediaVolume',setMediaVolume],['notifVolume',setNotifVolume]] as any) if(Number.isFinite(data[key]))setter(Math.max(0,Math.min(100,data[key])));
+      setAirplane(!!data.airplane);if(['sound','vibrate','mute'].includes(data.soundMode))setSoundMode(data.soundMode);
+      if(typeof data.currentApp==='string'||data.currentApp===null)setCurrentApp(data.currentApp);
+      setLocked(data.locked===true);setQuickPanelOpen(!!data.quickPanelOpen);if(['quick','notifications',null].includes(data.panelMode))setPanelMode(data.panelMode);
+      if(typeof data.settingsMenu==='string')setSettingsMenu(data.settingsMenu);if(data.viewPhoto&&typeof data.viewPhoto==='object')setViewPhoto(data.viewPhoto);
+      if(Array.isArray(data.internetTabs)){const tabs=data.internetTabs.filter(t=>t&&Number.isFinite(t.id)&&typeof t.title==='string'&&typeof t.url==='string'&&['newtab','results','site','naver','google'].includes(t.view)&&Array.isArray(t.history)&&t.history.length>0&&t.history.every(h=>h&&typeof h.title==='string'&&typeof h.url==='string'&&['newtab','results','site','naver','google'].includes(h.view))&&Number.isInteger(t.historyIndex)&&t.historyIndex>=0&&t.historyIndex<t.history.length).slice(0,20);if(tabs.length){setInternetTabs(tabs);setInternetActiveTabId(tabs.some(t=>t.id===data.internetActiveTabId)?data.internetActiveTabId:tabs[0].id);}}
+      if(Array.isArray(data.internetBookmarks))setInternetBookmarks(data.internetBookmarks.filter(b=>b&&typeof b.title==='string'&&typeof b.url==='string').slice(0,50));
+      if(typeof data.googleAccount==='string')setGoogleAccount(data.googleAccount);
+      if(Array.isArray(data.notifications))setNotifications(data.notifications.filter(n=>n&&Number.isFinite(n.id)&&typeof n.title==='string'&&typeof n.body==='string'&&typeof n.app==='string'&&typeof n.appName==='string'&&typeof n.color==='string').slice(0,30));if(Array.isArray(data.readNotifIds))setReadNotifIds(data.readNotifIds.filter(Number.isFinite));
+      if(Array.isArray(data.recentApps))setRecentApps(data.recentApps.filter(a=>typeof a==='string').slice(0,5));setAppsUpdated(!!data.appsUpdated);
+    }
+  );
+
   const timeStr = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--';
   const dateStr = time ? time.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }) : '';
-
-  // 다중 선택 미션 도달 시 부족한 개수만 샘플 사진 추가 (기존 촬영 사진 보존)
-  useEffect(() => {
-    if (questIdx === 21 && photos.length < 3) {
-      const needed = 3 - photos.length;
-      const samples = Array.from({ length: needed }, (_, i) => ({
-        id: Date.now() + i + 1,
-        seed: 1001 + i,
-      }));
-      setPhotos(prev => [...prev, ...samples]);
-    }
-  }, [questIdx]);
 
   // 최근 사용 앱 추적
   useEffect(() => {
@@ -356,13 +369,10 @@ export default function AndroidExplorer() {
 
 
   const resetProgress = () => {
-    clearProgress();
-    resetQuestProgress();
-    setInstalledApps([]); setHomePages([DEFAULT_HOME_APPS, emptyHomePage()]); setCurrentPage(0); setWallpaper(DEFAULT_WALLPAPER);
-    setDarkMode(false); setFontScale(1); setWidgetPages(DEFAULT_WIDGETS.map(p => [...p])); setWidgetSizes({});
-    setThemeColor('#3b82f6'); setLocked(true);
+    const error=clearProgress();
+    if(error){setNotice(error);return;}
+    window.location.reload();
   };
-
 
   const handleDragStartExp = (e) => {
     setIsDraggingExp(true);
@@ -402,9 +412,10 @@ export default function AndroidExplorer() {
     if (touchStartY !== null && !dragInfo.isDragging) {
       const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
       if (!quickPanelOpen && currentY - touchStartY > 15) {
-        setPanelMode(resolvePanelMode());
+        const nextMode=resolvePanelMode();
+        setPanelMode(nextMode);
         setQuickPanelOpen(true);
-        advanceQuest('swipe-trigger');
+        advanceQuest(nextMode === 'quick' ? 'swipe-trigger' : 'notification-trigger');
         setTouchStartY(null);
       } else if (quickPanelOpen && touchStartY - currentY > 15) {
         setQuickPanelOpen(false);
@@ -538,6 +549,10 @@ export default function AndroidExplorer() {
 
   const renderSettings = () => (
     <SettingsApp
+      isPhone={isPhone} onBackHandlerChange={registerSettingsBackHandler}
+      onOpenApp={(id)=>openApp(id==='MyFiles'?'Folder':id)}
+      mediaVolume={mediaVolume} setMediaVolume={setMediaVolume} notifVolume={notifVolume} setNotifVolume={setNotifVolume} soundMode={soundMode} setSoundMode={setSoundMode} setWifiConnected={setWifiConnected}
+      onOpenWifi={()=>{setPanelMode("quick");setQuickPanelOpen(true);setWifiModalOpen(true);}} onOpenBluetooth={()=>setBluetoothModalOpen(true)}
       currentTargetId={currentTargetId} advanceQuest={advanceQuest}
       settingsSearch={settingsSearch} setSettingsSearch={setSettingsSearch}
       settingsMenu={settingsMenu} setSettingsMenu={setSettingsMenu}
@@ -562,6 +577,7 @@ export default function AndroidExplorer() {
 
   const renderStatusBar = () => (
     <StatusBar
+      setPanelMode={setPanelMode}
       currentTargetId={currentTargetId} advanceQuest={advanceQuest}
       quickPanelOpen={quickPanelOpen} setQuickPanelOpen={setQuickPanelOpen}
       handleSwipeStart={handleSwipeStart}
@@ -574,6 +590,9 @@ export default function AndroidExplorer() {
 
   const renderQuickPanel = () => (
     <QuickPanel
+      isPhone={isPhone}
+      onScreenshot={()=>captureScreen("quick-screenshot")}
+      onPowerMenu={()=>{setQuickPanelOpen(false);setPowerMenuOpen(true);}}
       currentTargetId={currentTargetId} advanceQuest={advanceQuest}
       quickPanelOpen={quickPanelOpen} setQuickPanelOpen={setQuickPanelOpen}
       panelMode={panelMode} setPanelMode={setPanelMode}
@@ -589,69 +608,13 @@ export default function AndroidExplorer() {
       airplane={airplane} setAirplane={setAirplane}
       darkMode={darkMode} setDarkMode={setDarkMode}
       brightness={brightness} setBrightness={setBrightness}
-      volume={volume} setVolume={setVolume}
+      volume={mediaVolume} setVolume={setMediaVolume}
       soundMode={soundMode} setSoundMode={setSoundMode}
       setPhotos={setPhotos} setCurrentApp={setCurrentApp} setSettingsMenu={setSettingsMenu}
     />
   );
 
-  const renderCamera = () => (
-    <div className="flex-1 bg-black relative flex flex-col overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
-      {!cameraPermissionAsked && (
-        <div className="absolute inset-0 z-[120] bg-black/85 flex items-center justify-center backdrop-blur">
-          <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 mx-4 w-full max-w-[360px] shadow-2xl animate-[fadeIn_0.2s_ease-out]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0"><Camera size={24} className="text-blue-400"/></div>
-              <div>
-                <div className="font-bold text-lg">카메라 권한</div>
-                <div className="text-xs text-gray-400">카메라 앱이 다음을 요청합니다</div>
-              </div>
-            </div>
-            <div className="text-sm text-gray-300 leading-relaxed mb-6">
-              사진을 찍고 동영상을 녹화할 수 있도록 <span className="font-bold text-white">카메라</span>에 액세스 권한을 허용하시겠어요?
-            </div>
-            <div className="flex flex-col gap-2">
-              <button className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all font-bold" onClick={() => setCameraPermissionAsked(true)}>앱 사용 중에만 허용</button>
-              <button className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all font-medium" onClick={() => setCameraPermissionAsked(true)}>이번만 허용</button>
-              <button className="w-full py-2 text-red-400 active:scale-95 text-sm" onClick={() => { setCameraPermissionAsked(true); setCurrentApp(null); }}>허용 안 함</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden pt-8 bg-[#111]">
-        <div className="w-80 h-80 opacity-95"><CuteStudent seed={currentCameraSeed} /></div>
-        <div className="absolute top-6 right-6 flex flex-col gap-6 text-white"><Settings size={28} className="drop-shadow-md cursor-pointer active:scale-90 transition-transform"/></div>
-        <div className="absolute inset-0 border border-white/20 m-12 pointer-events-none">
-          <div className="absolute top-0 left-1/3 w-px h-full bg-white/20"></div>
-          <div className="absolute top-0 right-1/3 w-px h-full bg-white/20"></div>
-          <div className="absolute top-1/3 left-0 w-full h-px bg-white/20"></div>
-          <div className="absolute bottom-1/3 left-0 w-full h-px bg-white/20"></div>
-        </div>
-      </div>
-      <div className="h-40 bg-black flex justify-around items-center px-12 pb-4 shrink-0">
-        <div className="w-16 h-16 rounded-full border border-gray-600 bg-gray-800 overflow-hidden cursor-pointer flex-shrink-0 active:scale-95 transition-transform" onClick={() => setCurrentApp('Gallery')}>
-          {photos.length > 0 && <div className="w-full h-full bg-[#111] flex items-center justify-center p-1"><CuteStudent seed={photos[photos.length-1].seed} /></div>}
-        </div>
-        <ActionTarget
-          id="camera-shutter" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-          onClick={() => {
-            const flash = document.createElement('div');
-            flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-70';
-            document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 200);
-            setPhotos([...photos, { id: Date.now(), seed: currentCameraSeed }]);
-            setCurrentCameraSeed(Date.now());
-          }}
-        >
-          <div className="w-24 h-24 rounded-full border-[6px] border-white p-1 cursor-pointer hover:scale-105 active:scale-95 transition-all">
-            <div className="w-full h-full bg-white rounded-full"></div>
-          </div>
-        </ActionTarget>
-        <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center text-white flex-shrink-0 hover:bg-gray-700 active:scale-95 transition-all cursor-pointer"><Camera size={26} /></div>
-      </div>
-    </div>
-  );
+  const renderCamera = () => <CameraApp photos={photos} setPhotos={setPhotos} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onOpenGallery={()=>setCurrentApp('Gallery')}/>;
 
   const renderGallery = () => (
     <GalleryApp
@@ -667,6 +630,7 @@ export default function AndroidExplorer() {
 
   const renderPlayStore = () => (
     <PlayStoreApp
+      onOpenApp={(id)=>{if(id==="math"){setMathAppOpen(true);setCurrentApp(null);}else openApp(id);}} networkAvailable={wifi && !!wifiConnected}
       currentTargetId={currentTargetId} advanceQuest={advanceQuest}
       searchText={searchText} setSearchText={setSearchText}
       isSearched={isSearched} setIsSearched={setIsSearched}
@@ -691,12 +655,12 @@ export default function AndroidExplorer() {
       if (op === '+') return a + b;
       if (op === '−') return a - b;
       if (op === '×') return a * b;
-      if (op === '÷') return b === 0 ? 0 : a / b;
+      if (op === '÷') return b === 0 ? NaN : a / b;
       return b;
     };
     const inputDigit = (d: string) => {
       if (calcJustEvaluated) { setCalcDisplay(d); setCalcJustEvaluated(false); return; }
-      setCalcDisplay(prev => prev === '0' ? d : prev + d);
+      setCalcDisplay(prev => prev === '0'||!Number.isFinite(Number(prev)) ? d : (prev.length<14?prev+d:prev));
     };
     const inputDot = () => {
       if (calcJustEvaluated) { setCalcDisplay('0.'); setCalcJustEvaluated(false); return; }
@@ -707,7 +671,7 @@ export default function AndroidExplorer() {
       if (calcPrev !== null && calcOp && !calcJustEvaluated) {
         const r = apply(calcPrev, cur, calcOp);
         setCalcPrev(r);
-        setCalcDisplay(String(r));
+        setCalcDisplay(Number.isFinite(r)?String(Number(r.toPrecision(12))):'계산할 수 없음');
       } else {
         setCalcPrev(cur);
       }
@@ -718,7 +682,7 @@ export default function AndroidExplorer() {
       if (calcPrev === null || !calcOp) return;
       const cur = parseFloat(calcDisplay);
       const r = apply(calcPrev, cur, calcOp);
-      setCalcDisplay(String(r));
+      setCalcDisplay(Number.isFinite(r)?String(Number(r.toPrecision(12))):'계산할 수 없음');
       setCalcPrev(null);
       setCalcOp(null);
       setCalcJustEvaluated(true);
@@ -729,19 +693,19 @@ export default function AndroidExplorer() {
       <ActionTarget id={targetId || `calc-btn-${label}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
         disableClickAdvance={!targetId}
         onClick={onPress}
-        className={`h-16 rounded-2xl text-2xl font-medium flex items-center justify-center active:scale-95 transition-all cursor-pointer select-none ${
-          variant === 'op' ? 'bg-orange-500 text-white' :
-          variant === 'fn' ? 'bg-[#a6a6a6] text-black' :
-          'bg-[#333333] text-white'
+        className={`h-12 md:h-16 rounded-full text-2xl font-medium flex items-center justify-center active:scale-95 transition-all cursor-pointer select-none ${
+          variant === 'op' ? 'bg-[#e6f3e4] text-[#258b37]'  :
+          variant === 'fn' ? 'bg-[#f0f0f2] text-[#d74747]'  :
+          'bg-[#f5f5f6] text-[#212124]' 
         }`}
       >
-        {label}
+        <button type="button" aria-label={`계산기 ${label}`} className="w-full h-full rounded-full">{label}</button>
       </ActionTarget>
     );
     return (
-      <div className="flex-1 bg-black text-white flex flex-col pt-10 px-4 pb-4 animate-[fadeIn_0.3s_ease-out] overflow-hidden min-h-0">
-        <div className="text-right text-7xl md:text-8xl font-extralight px-4 pb-6 truncate tabular-nums" aria-live="polite">{calcDisplay}</div>
-        <div className="grid grid-cols-4 gap-3">
+      <div className="flex-1 bg-white text-slate-900 flex flex-col pt-4 px-4 pb-4 animate-[fadeIn_0.3s_ease-out] overflow-hidden min-h-0">
+        <div className="text-right text-4xl md:text-6xl font-extralight px-4 pb-6 truncate tabular-nums" aria-live="polite">{calcDisplay}</div>
+        <div className="grid grid-cols-4 gap-2">
           <Btn label="AC" variant="fn" onPress={clear}/>
           <Btn label="±" variant="fn" onPress={() => setCalcDisplay(d => d.startsWith('-') ? d.slice(1) : (d === '0' ? d : '-' + d))}/>
           <Btn label="%" variant="fn" onPress={() => setCalcDisplay(String(parseFloat(calcDisplay) / 100))}/>
@@ -760,8 +724,8 @@ export default function AndroidExplorer() {
           <Btn label="+" variant="op" onPress={() => chooseOp('+')}/>
           <ActionTarget id="calc-key-0" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
             onClick={() => inputDigit('0')}
-            className="col-span-2 h-16 rounded-2xl text-2xl font-medium flex items-center justify-start pl-7 active:scale-95 transition-all cursor-pointer select-none bg-[#333333] text-white"
-          >0</ActionTarget>
+            className="col-span-2 h-12 md:h-16 rounded-full text-2xl font-medium flex items-center justify-start pl-7 active:scale-95 transition-all cursor-pointer select-none bg-[#f5f5f6] text-[#212124]"
+          ><button type="button" aria-label="계산기 0" className="w-full h-full text-left">0</button></ActionTarget>
           <Btn label="." onPress={inputDot}/>
           <Btn label="=" variant="op" onPress={equals} targetId="calc-key-eq"/>
         </div>
@@ -769,125 +733,11 @@ export default function AndroidExplorer() {
     );
   };
 
-  const renderNotes = () => {
-
-    const startDraw = (e: any) => {
-      if (!notesEditing) return;
-      const svg = e.currentTarget as SVGSVGElement;
-      const rect = svg.getBoundingClientRect();
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      const cy = e.touches ? e.touches[0].clientY : e.clientY;
-      const x = ((cx - rect.left) / rect.width) * 100;
-      const y = ((cy - rect.top) / rect.height) * 100;
-      setIsDrawing(true);
-      setNotesEditing({ ...notesEditing, current: `M ${x.toFixed(2)} ${y.toFixed(2)}` });
-    };
-    const moveDraw = (e: any) => {
-      if (!isDrawing || !notesEditing) return;
-      const svg = e.currentTarget as SVGSVGElement;
-      const rect = svg.getBoundingClientRect();
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      const cy = e.touches ? e.touches[0].clientY : e.clientY;
-      const x = ((cx - rect.left) / rect.width) * 100;
-      const y = ((cy - rect.top) / rect.height) * 100;
-      setNotesEditing({ ...notesEditing, current: `${notesEditing.current} L ${x.toFixed(2)} ${y.toFixed(2)}` });
-    };
-    const endDraw = () => {
-      if (!isDrawing || !notesEditing) return;
-      setIsDrawing(false);
-      if (notesEditing.current) {
-        const paths = [...notesEditing.paths, notesEditing.current];
-        setNotesEditing({ paths, current: '' });
-        advanceQuest('notes-draw');
-      }
-    };
-
-    if (notesEditing) {
-      return (
-        <div className="flex-1 bg-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out]">
-          <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
-            <button onClick={() => setNotesEditing(null)} className="flex items-center gap-1 text-gray-700 active:scale-95">
-              <ChevronLeft size={24}/> <span className="font-medium">취소</span>
-            </button>
-            <div className="font-bold text-lg text-gray-900">새 메모</div>
-            <ActionTarget id="notes-save" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-              onClick={() => {
-                const all = [...notesEditing.paths, notesEditing.current].filter(Boolean);
-                if (all.length > 0) setNotes(prev => [...prev, { id: Date.now(), paths: all }]);
-                setNotesEditing(null);
-              }}>
-              <button className="px-4 py-2 rounded-full bg-red-500 text-white font-bold text-sm active:scale-95">저장</button>
-            </ActionTarget>
-          </div>
-          <div className="flex-1 p-4 bg-[#fafafa] overflow-hidden min-h-0">
-            <ActionTarget id="notes-draw" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true} className="w-full h-full block">
-              <svg
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-                className="w-full h-full bg-white rounded-2xl shadow-inner border border-gray-200 touch-none cursor-crosshair"
-                onMouseDown={startDraw} onMouseMove={moveDraw} onMouseUp={endDraw} onMouseLeave={endDraw}
-                onTouchStart={startDraw} onTouchMove={moveDraw} onTouchEnd={endDraw}
-              >
-                {notesEditing.paths.map((d, i) => (
-                  <path key={i} d={d} stroke="#1f2937" strokeWidth="0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
-                ))}
-                {notesEditing.current && (
-                  <path d={notesEditing.current} stroke="#ef4444" strokeWidth="0.5" fill="none" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
-                )}
-              </svg>
-            </ActionTarget>
-          </div>
-          <div className="flex items-center justify-center gap-3 py-3 bg-white border-t border-gray-200 shrink-0">
-            <div className="w-8 h-8 rounded-full bg-black"/>
-            <div className="w-8 h-8 rounded-full bg-red-500"/>
-            <div className="w-8 h-8 rounded-full bg-blue-500"/>
-            <div className="w-8 h-8 rounded-full bg-green-500"/>
-            <button onClick={() => setNotesEditing({ paths: [], current: '' })} className="ml-4 text-sm text-gray-500 active:scale-95">전체 지우기</button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex-1 bg-white flex flex-col pt-8 overflow-hidden min-h-0 animate-[fadeIn_0.3s_ease-out] relative">
-        <div className="px-6 py-4 border-b border-gray-200 shrink-0">
-          <div className="text-3xl font-bold text-gray-900">메모</div>
-          <div className="text-sm text-gray-500 mt-1">{notes.length}개의 메모</div>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4 min-h-0">
-          {notes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <div className="text-6xl mb-3">📝</div>
-              <div className="text-sm">메모가 없어요. 오른쪽 아래 + 버튼으로 새 메모를 만들어보세요.</div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {notes.map(n => (
-                <div key={n.id} className="aspect-square bg-yellow-50 border border-yellow-200 rounded-2xl p-2 shadow-sm">
-                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-                    {n.paths.map((d, i) => (
-                      <path key={i} d={d} stroke="#1f2937" fill="none" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ strokeWidth: 2 }}/>
-                    ))}
-                  </svg>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <ActionTarget id="notes-new" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-          onClick={() => setNotesEditing({ paths: [], current: '' })}
-          tooltipPosition="top-left"
-          tooltipText="+ 버튼을 누르세요!"
-          className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all cursor-pointer text-4xl font-light"
-        >
-          <span>+</span>
-        </ActionTarget>
-      </div>
-    );
-  };
+  const renderNotes = () => <NotesPracticeApp notes={notes} setNotes={setNotes} currentTargetId={currentTargetId} advanceQuest={advanceQuest}/>;
 
   const renderInternet = () => (
     <InternetApp
+      networkAvailable={wifi && !!wifiConnected}
       currentTargetId={currentTargetId} advanceQuest={advanceQuest}
       internetTabs={internetTabs} setInternetTabs={setInternetTabs}
       internetActiveTabId={internetActiveTabId} setInternetActiveTabId={setInternetActiveTabId}
@@ -901,6 +751,7 @@ export default function AndroidExplorer() {
   );
 
   const homeButtonAction = () => {
+    setSplitScreen(null); setRecentAppsOpen(false); setViewPhoto(null); setWifiModalOpen(false); setBluetoothModalOpen(false); setGoogleLoginOpen(false); setAccountAddOpen(false); setAppDrawerOpen(false); setWidgetPickerOpen(false); setHomeMenuOpen(false);
     setCurrentApp(null); setQuickPanelOpen(false); setIsEditMode(false); setKeyboardOpen(false);
     setSearchText(''); setIsSearched(false); setTypingIndex(0); setKeyboardShift(false); setMathAppOpen(false);
     setPlayStoreView('home'); setPlayStoreProfileOpen(false);
@@ -912,9 +763,53 @@ export default function AndroidExplorer() {
       currentTargetId={currentTargetId}
       advanceQuest={advanceQuest}
       setRecentAppsOpen={setRecentAppsOpen}
-      onHome={homeButtonAction}
+      onHome={homeButtonAction} onBack={backAction}
     />
   );
+
+  const backAction = () => {
+    if(wifiModalOpen){setWifiModalOpen(false);return;}if(bluetoothModalOpen){setBluetoothModalOpen(false);return;}
+    if(googleLoginOpen){setGoogleLoginOpen(false);return;}if(accountAddOpen){setAccountAddOpen(false);return;}
+    if(quickPanelOpen){setQuickPanelOpen(false);return;}if(recentAppsOpen){setRecentAppsOpen(false);return;}
+    if(splitScreen){setSplitScreen(null);return;}if(viewPhoto){setViewPhoto(null);return;}
+    if(appDrawerOpen){setAppDrawerOpen(false);return;}if(widgetPickerOpen){setWidgetPickerOpen(false);return;}
+    if(isEditMode){setIsEditMode(false);return;}if(mathAppOpen){setMathAppOpen(false);return;}
+    if(currentApp==='Internet' && window.dispatchEvent(new Event('android-explorer-internet-back', {cancelable:true}))===false)return;
+    if(currentApp==='Settings' && isPhone){if(!settingsBackHandler.current?.())homeButtonAction();return;}
+    if(currentApp==='Settings' && settingsMenu!=='connections'){setSettingsMenu('connections');return;}
+    homeButtonAction();
+  };
+  const captureScreen = async (target:string) => {
+    if(captureBusy||!deviceScreenRef.current)return;
+    setCaptureBusy(true);setQuickPanelOpen(false);setNotice('화면을 캡처하고 있어요…');
+    await new Promise(resolve=>setTimeout(resolve,160));
+    try{
+      const src=await toPng(deviceScreenRef.current,{pixelRatio:.75,cacheBust:false,skipFonts:true,filter:node=>!(node instanceof HTMLElement && node.dataset.captureExclude==='true')});
+      setPhotos(prev=>[...prev,{id:Date.now(),seed:0,kind:'screenshot',src,name:'스크린샷 '+new Date().toLocaleTimeString('ko-KR')}]);
+      advanceQuest(target);if(target==='quick-screenshot'){setPanelMode('quick');setQuickPanelOpen(true);}setNotice('화면을 캡처했어요. 갤러리의 스크린샷에서 확인하세요.');
+    }catch{setNotice('이 브라우저에서 화면 캡처가 완료되지 않았어요. 다시 시도해 주세요.');}
+    finally{setCaptureBusy(false);}
+  };
+  const recoverLesson = () => {
+    const t=engineTargetId||'';setPracticeMode(false);setLocked(t==='lock-swipe');setShowExpMenu(true);setIsCompact(true);setRecentAppsOpen(false);setSplitScreen(null);setQuickPanelOpen(false);setWifiModalOpen(false);setAppDrawerOpen(false);
+    if(t==='lock-swipe'||t.startsWith('app-icon-')||t==='drag-camera'||t==='nav-home'){setCurrentApp(null);setIsEditMode(t==='drag-camera');}
+    else if(t==='swipe-trigger'||t==='notification-trigger')setCurrentApp(null);
+    else if(t.startsWith('quick-')||t.startsWith('wifi-')||t.startsWith('notif-')){setPanelMode(t.startsWith('notif-')?'notifications':'quick');setQuickPanelOpen(true);if(t.startsWith('wifi-')){setWifi(true);setWifiModalOpen(true);if(t==='wifi-pw-input'||t==='wifi-connect-btn'){setWifiPasswordInput('open');setWifiPassword('');}}}
+    else if(t.startsWith('settings-')||t.startsWith('perm-')||t.startsWith('account-')||t.startsWith('google-')){if(currentApp==='Settings')setAppLaunchKey(key=>key+1);setCurrentApp('Settings');if(t.startsWith('perm-'))setSettingsMenu('privacy');if(t.startsWith('account-')||t.startsWith('google-'))setSettingsMenu('account');if(t==='account-google')setAccountAddOpen(true);if(['google-email-next','google-password-next','google-consent-agree','google-done'].includes(t)){setGoogleLoginOpen(true);setGoogleEmail('student@example.invalid');setGoogleLoginStep(t==='google-email-next'?'email':t==='google-password-next'?'password':t==='google-consent-agree'?'consent':'done');}if(t==='google-logout-confirm')setLogoutConfirmOpen(true);}
+    else if(t.startsWith('gallery-')||t.startsWith('photo-'))setCurrentApp('Gallery');
+    else if(t.startsWith('camera-'))setCurrentApp('Camera');
+    else if(t.startsWith('bt-')){setBluetooth(true);setBluetoothModalOpen(true);if(t==='bt-pair-confirm'){setBtPairingDevice({id:'bt-device-buds',name:'무선 이어버드'});setBtPairingPin('482716');}}
+    else if(t.startsWith('playstore-'))setCurrentApp('PlayStore');
+    else if(t.startsWith('internet-')||t.startsWith('naver-'))setCurrentApp('Internet');
+    else if(t.startsWith('notes-'))setCurrentApp('Notes');
+    else if(t.startsWith('files-'))setCurrentApp('Folder');
+    else if(t.startsWith('clock-'))setCurrentApp('Clock');
+    else if(t.startsWith('calc-')){setCurrentApp('Calculator');setCalcDisplay('0');setCalcPrev(null);setCalcOp(null);}
+    else if(t==='split-screen-open')setRecentAppsOpen(true);
+    setNotice('현재 미션의 연습 화면을 열었어요. 직접 조작하면 완료돼요.');
+  };
+  useEffect(()=>{if(engineTargetId==='final-safety-check'){setIsCompact(false);setShowExpMenu(true);}},[engineTargetId]);
+  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return ()=>clearTimeout(timer);},[notice]);
 
   const handleLockSwipeStart = (e: any) => {
     const y = e.touches ? e.touches[0].clientY : e.clientY;
@@ -939,7 +834,7 @@ export default function AndroidExplorer() {
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#0a0b0d] flex items-center justify-center overflow-hidden select-none oneui p-3 md:p-6" onMouseMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onTouchMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onMouseUp={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onTouchEnd={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onMouseLeave={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }}>
+    <div data-device={isPhone ? 'phone' : 'tablet'} className="explorer-shell fixed inset-0 w-full h-full bg-[#15243b] flex items-center justify-center overflow-hidden select-none oneui p-2 md:p-5 pt-16 md:pt-20" onMouseMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onTouchMove={(e) => { handleGlobalMove(e); handleLockSwipeMove(e); }} onMouseUp={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onTouchEnd={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }} onMouseLeave={(e) => { handleGlobalEnd(e); handleLockSwipeEnd(); }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -975,11 +870,58 @@ export default function AndroidExplorer() {
 
 
 
-      {/* Galaxy Tab S10 Ultra bezel frame */}
-      <div className={`relative w-full h-full bg-black shadow-[0_8px_28px_rgba(0,0,0,0.55),0_0_0_1.5px_#23272e] ${isPhone ? 'max-w-[420px] max-h-[860px] aspect-[9/19.5] rounded-[44px] p-[10px] mx-auto' : 'max-w-[1600px] max-h-[1000px] aspect-[16/10] rounded-[22px] md:rounded-[30px] p-[8px] md:p-[12px]'}`}>
+      <header className="explorer-header absolute inset-x-0 top-0 h-14 md:h-16 px-3 md:px-6 flex items-center gap-3 text-white z-[350] bg-[#15243b]">
+        <div className="mr-auto"><h1 className="font-extrabold text-sm md:text-lg tracking-tight">안드로이드 탐험대 <span className="hidden sm:inline font-normal text-blue-200">/ 갤럭시탭 교실</span></h1><p className="hidden md:block text-[11px] text-slate-300">Android 17 · One UI 9 기준의 학습 시뮬레이션</p></div>
+        <button className={`px-3 py-2 rounded-xl text-xs md:text-sm ${practiceMode?'bg-white/10':'bg-blue-500'}`} onClick={()=>{setPracticeMode(false);setShowExpMenu(true)}}>미션</button>
+        <button className={`px-3 py-2 rounded-xl text-xs md:text-sm ${practiceMode?'bg-blue-500':'bg-white/10'}`} onClick={()=>{setPracticeMode(true);setLocked(false);setCurrentApp(null);setQuickPanelOpen(false)}}>자유 연습</button>
+        <button onClick={()=>setWelcomeOpen(true)} className="px-3 py-2 bg-white/10 rounded-xl text-xs md:text-sm">도움말</button>
+      </header>
+      <details className="explorer-tools" open={isPhone ? undefined : true}>
+        <summary>기기 조작 도구 <ChevronUp size={16}/></summary>
+      <div className="explorer-tools-buttons absolute bottom-2 left-3 md:left-8 z-[350] flex gap-1.5 flex-wrap max-w-[65%]">
+        <button onClick={()=>captureScreen('hardware-screenshot')} disabled={captureBusy||locked} title="실제 기기: 측면 버튼과 음량 아래 버튼을 짧게 동시에 누르기" className="px-3 py-2 bg-slate-800/95 text-white rounded-full text-[11px] disabled:opacity-50">측면 + 음량↓ 캡처</button>
+        <button onClick={()=>showVolumePanel('media',-10)} className="px-3 py-2 bg-slate-800/95 text-white rounded-full text-[11px]">음량 −</button><button onClick={()=>showVolumePanel('media',10)} className="px-3 py-2 bg-slate-800/95 text-white rounded-full text-[11px]">음량 +</button>
+        <button onClick={()=>setPowerMenuOpen(true)} className="px-3 py-2 bg-slate-800/95 text-white rounded-full text-[11px]">전원 메뉴</button>
+        {!practiceMode&&<button onClick={recoverLesson} className="px-3 py-2 bg-blue-700 text-white rounded-full text-[11px]">현재 미션으로</button>}
+      </div>
+      </details>
+      {notice&&<div role="status" className="explorer-notice absolute top-20 left-1/2 -translate-x-1/2 z-[450] bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-sm max-w-[90%]">{notice}</div>}
+      {(sessionStorageError||progressStorageError)&&<div role="alert" className="absolute top-16 left-3 z-[451] bg-amber-100 text-amber-900 p-2 rounded-xl text-xs">저장 공간이 부족해요. 새로고침 전에 학습 기록을 확인하세요.</div>}
+      {welcomeOpen&&<div className="fixed inset-0 z-[500] bg-[#0b172c]/85 backdrop-blur-md flex items-center justify-center p-4"><section role="dialog" aria-modal="true" aria-labelledby="welcome-title" className="w-full max-w-3xl max-h-[92dvh] overflow-auto bg-[#f7f9fc] rounded-[32px] p-6 md:p-10 text-slate-900 shadow-2xl">
+        <div className="text-blue-600 text-xs font-bold tracking-widest mb-4">GALAXY TAB · LEARNING LAB</div><h2 id="welcome-title" className="text-3xl md:text-4xl font-extrabold tracking-tight">내 손으로 익히는<br/>안드로이드 탐험대</h2><p className="mt-4 text-slate-600 leading-relaxed">설정을 바꾸고, 사진을 찍고, 앱을 설치하고, 파일을 정리해 보세요. 실수해도 괜찮아요. 이 안의 태블릿은 안전한 연습 공간이에요.</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 my-6">{[['01','터치와 화면','잠금 · 홈 · 최근 앱'],['02','연결과 설정','Wi-Fi · 음량 · 권한'],['03','앱 활용','사진 · 노트 · 파일'],['04','안전한 사용','설치 · 공유 · 확인']].map(([n,t,d])=><div key={n} className="rounded-2xl bg-white border border-slate-200 p-4"><span className="text-blue-600 text-xs font-bold">{n}</span><b className="block mt-2 text-sm">{t}</b><span className="text-[11px] text-slate-500">{d}</span></div>)}</div>
+        <div className="bg-blue-50 rounded-2xl p-4 text-sm leading-relaxed"><b>연습 방법</b><p>노란 테두리와 미션 안내를 따라 직접 조작해요. 왼쪽 위를 내리면 알림, 오른쪽 위를 내리면 빠른 설정이에요. 마우스로 누르거나 손가락으로 터치할 수 있어요.</p><p className="mt-2">실제 계정·비밀번호·사진은 필요하지 않아요. 촬영, 설치, 공유, Wi-Fi는 웹앱 안에서 연습하며 실제 기기 설정은 바뀌지 않아요.</p></div>
+        <p className="text-xs text-slate-500 my-4 leading-relaxed">최신 기준: Android 17 / One UI 9, Galaxy Tab S12 공식 발표 확인(2026.11.02). 학교 기기는 모델·업데이트 상태에 따라 메뉴가 달라질 수 있어요. 설정 → 태블릿 정보 → 소프트웨어 정보에서 확인해요. 웹 연습 뒤 실제 기기로 한 번 더 확인해요.</p>
+        <div className="flex gap-3 flex-wrap"><button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 font-bold" onClick={()=>{setWelcomeOpen(false);try{localStorage.setItem('android-explorer-welcome-v3','1')}catch{};setPracticeMode(false);setIsCompact(true)}}>미션 시작 / 이어 하기 →</button><button className="bg-slate-200 rounded-full px-6 py-3 font-bold" onClick={()=>{setWelcomeOpen(false);setPracticeMode(true);setLocked(false)}}>자유롭게 둘러보기</button></div>
+      </section></div>}
+
+      {showExpMenu && !practiceMode && !welcomeOpen && (
+        <MissionCenter
+          isPhone={isPhone}
+          dragRef={expMenuRef}
+          pos={expPos}
+          onDragStart={handleDragStartExp}
+          themeColor={themeColor}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          missionListOpen={missionListOpen}
+          setMissionListOpen={setMissionListOpen}
+          isCompact={isCompact}
+          setIsCompact={setIsCompact}
+          setShowExpMenu={setShowExpMenu}
+          exp={exp}
+          questIdx={questIdx}
+          completedQuests={completedQuests}
+          gotoQuest={gotoQuest}
+          resetProgress={resetProgress} advanceQuest={advanceQuest}
+        />
+      )}
+
+      {/* The phone display preserves Galaxy S26's 1080 × 2340 ratio in CSS pixels. */}
+      <div className={`device-frame relative w-full h-full bg-black shadow-[0_8px_28px_rgba(0,0,0,0.55),0_0_0_1.5px_#23272e] ${isPhone ? 'rounded-[37px] p-[7px] mx-auto' : 'max-w-[1600px] max-h-[1000px] aspect-[16/10] rounded-[22px] md:rounded-[30px] p-[8px] md:p-[12px]'}`}>
         {/* front camera dot */}
         {isPhone ? (
-          <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-700 rounded-full z-[180]"></div>
+          <div className="absolute top-[15px] left-1/2 -translate-x-1/2 w-2 h-2 bg-black ring-1 ring-white/10 rounded-full z-[180] pointer-events-none"></div>
         ) : (
           <div className="absolute top-1/2 -translate-y-1/2 left-[6px] w-1.5 h-1.5 bg-gray-700 rounded-full"></div>
         )}
@@ -987,7 +929,7 @@ export default function AndroidExplorer() {
         {/* 측면 하드웨어 버튼 — 우측 상단 */}
         <button
           title="전원"
-          onClick={() => setPowerMenuOpen(true)}
+          onClick={() => {setLocked(v=>!v);setNotice("측면 버튼으로 화면을 잠그거나 깨워요. 전원 메뉴는 기기 조작 도구에서 열 수 있어요.");}}
           className="absolute right-[-3px] top-[18%] w-[6px] h-14 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
         />
         <button
@@ -1001,9 +943,9 @@ export default function AndroidExplorer() {
           className="absolute right-[-3px] top-[51%] w-[6px] h-12 bg-gradient-to-b from-gray-700 to-gray-900 rounded-r-md hover:from-gray-600 active:translate-x-[1px] transition-all shadow-md z-[170]"
         />
 
-        <div className={`oneui relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[34px]' : 'rounded-[15px] md:rounded-[20px]'}`} style={{ fontSize: `${fontScale}rem` }}>
+        <div ref={deviceScreenRef} data-device-screen className={`device-screen oneui relative w-full h-full overflow-hidden bg-black flex flex-col ${isPhone ? 'rounded-[30px]' : 'rounded-[15px] md:rounded-[20px]'}`} style={{ fontSize: `${fontScale}rem` }}>
 
-          <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: 1 - (brightness / 100) }}></div>
+          <div className="absolute inset-0 bg-black pointer-events-none z-[60] transition-opacity duration-300" style={{ opacity: (1 - (brightness / 100)) * .55 }}></div>
           {darkMode && <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-[59] mix-blend-multiply"></div>}
 
           {renderStatusBar()}
@@ -1018,6 +960,10 @@ export default function AndroidExplorer() {
               {currentApp === 'Notes' && renderNotes()}
               {currentApp === 'Calculator' && renderCalculator()}
               {currentApp === 'Internet' && renderInternet()}
+              {currentApp === 'Folder' && <MyFilesApp currentTargetId={currentTargetId} advanceQuest={advanceQuest}/>}
+              {currentApp === 'Clock' && <ClockApp currentTargetId={currentTargetId} advanceQuest={advanceQuest}/>}
+              {currentApp === 'Calendar' && <CalendarPracticeApp/>}
+              {currentApp && !['Settings','Camera','Gallery','PlayStore','Notes','Calculator','Internet','Folder','Clock','Calendar'].includes(currentApp) && <div className="flex-1 bg-white p-10 text-center text-slate-800"><h2 className="text-2xl font-bold mb-4">이 앱은 추가 학습 영역이에요</h2><p>홈에서 설정, 카메라, 갤러리, Play 스토어, 삼성 노트, 내 파일, 시계, 캘린더, 계산기, 인터넷을 연습할 수 있어요.</p><button className="mt-6 rounded-full bg-blue-600 text-white p-4" onClick={homeButtonAction}>홈으로</button></div>}
 
             </div>
           </div>
@@ -1041,32 +987,32 @@ export default function AndroidExplorer() {
                   else if (volumePanelType === 'ring') setRingVolume(v);
                   else setNotifVolume(v);
                 };
-                const icon = volumePanelType === 'media' ? '🎵' : volumePanelType === 'ring' ? '🔔' : '📩';
+                const VolumeIcon = volumePanelType === 'media' ? Music2 : volumePanelType === 'ring' ? Volume2 : Bell;
                 return (
                   <>
-                    <div className="text-white text-lg leading-none">{icon}</div>
+                    <VolumeIcon size={22} strokeWidth={1.8} className="text-white" aria-hidden="true" />
                     <div className="relative w-3 h-40 bg-white/15 rounded-full overflow-hidden">
                       <div className="absolute bottom-0 left-0 right-0 bg-white transition-all" style={{ height: `${cur}%` }}/>
                     </div>
                     <div className="text-white/80 text-[11px] font-medium tabular-nums">{cur}</div>
                     <div className="flex flex-col gap-1 w-full">
                       {[
-                        { id: 'media', icon: '🎵', label: '미디어' },
-                        { id: 'ring', icon: '🔔', label: '벨소리' },
-                        { id: 'notif', icon: '📩', label: '알림' },
+                        { id: 'media', icon: Music2, label: '미디어' },
+                        { id: 'ring', icon: Volume2, label: '벨소리' },
+                        { id: 'notif', icon: Bell, label: '알림' },
                       ].map(t => (
                         <button
                           key={t.id}
                           onClick={() => setVolumePanelType(t.id as any)}
                           className={`w-full py-1.5 rounded-xl text-[10px] flex flex-col items-center gap-0.5 transition ${volumePanelType === t.id ? 'bg-white/20 text-white' : 'text-white/60 hover:bg-white/10'}`}
                         >
-                          <span className="text-sm leading-none">{t.icon}</span>
+                          <t.icon size={18} strokeWidth={1.8} aria-hidden="true" />
                           <span className="leading-none">{t.label}</span>
                         </button>
                       ))}
                     </div>
-                    <button onClick={() => setCur(cur === 0 ? 70 : 0)} className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-base active:scale-90 transition">
-                      {cur === 0 ? '🔇' : '🔊'}
+                    <button aria-label={cur === 0 ? '음량 켜기' : '음소거'} onClick={() => setCur(cur === 0 ? 70 : 0)} className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-base active:scale-90 transition">
+                      {cur === 0 ? <VolumeX size={20} strokeWidth={1.8}/> : <Volume2 size={20} strokeWidth={1.8}/>}
                     </button>
                   </>
                 );
@@ -1084,21 +1030,21 @@ export default function AndroidExplorer() {
                     onClick={() => { setPowerMenuOpen(false); setPowerOff(true); setTimeout(() => { setPowerOff(false); setLocked(true); }, 1800); }}
                     className="flex flex-col items-center gap-2 active:scale-95"
                   >
-                    <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-2xl">⏻</div>
+                    <div className="w-14 h-14 rounded-full bg-[#dc4949] flex items-center justify-center"><Power size={29} strokeWidth={1.8}/></div>
                     <div className="text-xs">전원 끄기</div>
                   </button>
                   <button
                     onClick={() => { setPowerMenuOpen(false); setPowerOff(true); setTimeout(() => { setPowerOff(false); setLocked(true); }, 1500); }}
                     className="flex flex-col items-center gap-2 active:scale-95"
                   >
-                    <div className="w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center text-2xl">↻</div>
+                    <div className="w-14 h-14 rounded-full bg-[#43a866] flex items-center justify-center"><RefreshCcw size={29} strokeWidth={1.8}/></div>
                     <div className="text-xs">다시 시작</div>
                   </button>
                   <button
                     onClick={() => setPowerMenuOpen(false)}
                     className="flex flex-col items-center gap-2 active:scale-95"
                   >
-                    <div className="w-14 h-14 rounded-full bg-gray-600 flex items-center justify-center text-2xl">📞</div>
+                    <div className="w-14 h-14 rounded-full bg-[#ed5757] flex items-center justify-center"><Phone size={27} strokeWidth={1.8}/></div>
                     <div className="text-xs">긴급전화</div>
                   </button>
                 </div>
@@ -1118,37 +1064,20 @@ export default function AndroidExplorer() {
           {mathAppOpen && (
             <div className="absolute left-0 right-0 top-0 bottom-14 z-[80] bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 flex flex-col items-center justify-center animate-[fadeIn_0.3s_ease-out] pt-8 pb-4">
               <div className="text-white text-7xl font-black drop-shadow-lg mb-4">1 + 2 = ?</div>
-              <div className="text-white text-2xl font-bold mb-10 drop-shadow">똑똑수학탐험대에 오신 걸 환영해요!</div>
+              <div className="text-white text-2xl font-bold mb-10 drop-shadow">설치한 앱 열기 연습 · 1 + 2를 풀어 보세요</div>
               <div className="flex gap-6">
                 {[2, 3, 4].map(n => (
-                  <div key={n} className={`w-24 h-24 rounded-3xl flex items-center justify-center text-4xl font-black shadow-xl cursor-pointer active:scale-90 transition-all ${n===3 ? 'bg-white text-green-600' : 'bg-white/80 text-gray-700'}`}>{n}</div>
+                  <button key={n} onClick={()=>setNotice(n===3?"정답이에요. 앱 실행을 잘했어요!":"다시 계산해 보세요.")} className={`w-24 h-24 rounded-3xl flex items-center justify-center text-4xl font-black shadow-xl cursor-pointer active:scale-90 transition-all ${n===3 ? 'bg-white text-green-600' : 'bg-white/80 text-gray-700'}`}>{n}</button>
                 ))}
               </div>
               <div className="mt-10 text-white text-sm opacity-80">홈 버튼을 눌러 종료하세요</div>
             </div>
           )}
 
-          {/* Split-screen overlay */}
-          {splitScreen && (
-            <div className="absolute inset-0 z-[85] flex flex-col bg-black pt-8 animate-[fadeIn_0.2s_ease-out]">
-              <div className="flex-1 border-b-2 border-white/20 relative overflow-hidden flex items-center justify-center" style={{ background: PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.color || '#1f2937' }}>
-                <div className="text-white text-center">
-                  <div className="text-5xl font-black mb-3">{PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.label || splitScreen.top[0]}</div>
-                  <div className="text-xl font-bold">{PLAYSTORE_APPS.find(a => a.id === splitScreen.top)?.name || splitScreen.top}</div>
-                  <div className="text-xs opacity-70 mt-1">상단 화면</div>
-                </div>
-                <button onClick={() => setSplitScreen(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 text-white text-xs">×</button>
-              </div>
-              <div className="h-1.5 bg-white/30 flex items-center justify-center"><div className="w-12 h-1 bg-white/60 rounded-full"/></div>
-              <div className="flex-1 relative overflow-hidden flex items-center justify-center" style={{ background: PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.color || '#374151' }}>
-                <div className="text-white text-center">
-                  <div className="text-5xl font-black mb-3">{PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.label || splitScreen.bottom[0]}</div>
-                  <div className="text-xl font-bold">{PLAYSTORE_APPS.find(a => a.id === splitScreen.bottom)?.name || splitScreen.bottom}</div>
-                  <div className="text-xs opacity-70 mt-1">하단 화면</div>
-                </div>
-              </div>
-            </div>
-          )}
+          {splitScreen && <div className="absolute inset-x-0 top-8 bottom-14 z-[85] flex flex-col bg-slate-200">
+            <div className="bg-white px-4 py-2 flex items-center justify-between text-sm text-slate-800"><b>분할 화면 · 계산하며 메모하기</b><button onClick={()=>setSplitScreen(null)} className="px-4 py-2 rounded-full bg-slate-100">분할 화면 닫기</button></div>
+            <div className="flex flex-1 min-h-0 flex-col md:flex-row gap-1"><div className="flex flex-1 min-h-0 min-w-0">{renderCalculator()}</div><div className="w-1 bg-slate-400 hidden md:block"/><div className="flex flex-1 min-h-0 min-w-0">{renderNotes()}</div></div>
+          </div>}
 
           {/* Recent apps overlay */}
           {recentAppsOpen && (
@@ -1161,8 +1090,7 @@ export default function AndroidExplorer() {
                   {recentApps.map((app, i) => {
                     const psApp = PLAYSTORE_APPS.find(a => a.id === app);
                     const bg = psApp?.color || ['#1e3a8a','#7c2d12','#065f46','#581c87','#7f1d1d'][i%5];
-                    const label = psApp?.label || app[0];
-                    const name = psApp?.name || app;
+                    const name = psApp?.name || ({Settings:'설정',Camera:'카메라',Gallery:'갤러리',PlayStore:'Play 스토어',Notes:'삼성 노트',Calculator:'계산기',Internet:'인터넷',Folder:'내 파일',Clock:'시계',Calendar:'캘린더'} as Record<string,string>)[app] || app;
                     const isSwiping = recentSwipe?.index === i;
                     const dy = isSwiping ? Math.min(0, recentSwipe!.dy) : 0;
                     return (
@@ -1188,7 +1116,7 @@ export default function AndroidExplorer() {
                             onClick={(e) => { e.stopPropagation(); setRecentApps(prev => prev.filter((_, idx) => idx !== i)); }}
                             className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm active:scale-90"
                           >×</button>
-                          <div className="text-7xl font-black mb-3">{label}</div>
+                          <GalaxyAppIcon appName={app} time={time} className="mb-3" style={{width:68,height:68}} />
                           <div className="text-lg font-bold">{name}</div>
                           <div className="absolute bottom-3 text-[10px] opacity-60">위로 밀어 닫기</div>
                         </div>
@@ -1197,11 +1125,12 @@ export default function AndroidExplorer() {
                           <button
                             onClick={() => {
                               const other = recentApps.find(a => a !== app) || PLAYSTORE_APPS[0].id;
-                              setSplitScreen({ top: app, bottom: other });
+                              setSplitScreen({ top: 'Calculator', bottom: 'Notes' });
+                              advanceQuest('split-screen-open');
                               setRecentAppsOpen(false);
                             }}
                             className="flex-1 py-2 rounded-xl bg-purple-600 text-white text-sm font-bold active:scale-95"
-                          >분할</button>
+                          >계산기 + 노트 분할</button>
                         </div>
                       </div>
                     );
@@ -1223,13 +1152,13 @@ export default function AndroidExplorer() {
                 <div className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-6"/>
                 <div className="grid grid-cols-3 gap-4">
                   <button onClick={() => { setHomeMenuOpen(false); setWidgetPickerOpen(true); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
-                    <div className="text-3xl">🧩</div><div className="text-sm font-medium">위젯</div>
+                    <PanelsTopLeft size={30} strokeWidth={1.8}/><div className="text-sm font-medium">위젯</div>
                   </button>
                   <button onClick={() => { setHomeMenuOpen(false); setCurrentApp('Settings'); setSettingsMenu('wallpaper'); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
-                    <div className="text-3xl">🖼️</div><div className="text-sm font-medium">배경화면</div>
+                    <ImageIcon size={30} strokeWidth={1.8}/><div className="text-sm font-medium">배경화면</div>
                   </button>
                   <button onClick={() => { setHomeMenuOpen(false); setCurrentApp('Settings'); setSettingsMenu('wallpaper'); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#2c2c2e] active:scale-95">
-                    <div className="text-3xl">🎨</div><div className="text-sm font-medium">테마</div>
+                    <Palette size={30} strokeWidth={1.8}/><div className="text-sm font-medium">테마</div>
                   </button>
                 </div>
               </div>
@@ -1277,10 +1206,10 @@ export default function AndroidExplorer() {
                 <div className="text-sm text-gray-400 mb-4">사용 가능한 기기를 검색했어요. 연결할 기기를 선택하세요.</div>
                 <div className="space-y-2">
                   {[
-                    { id: 'bt-device-buds', name: '무선 이어버드', sub: '오디오 · 미연결', icon: '🎧' },
-                    { id: 'bt-device-keyboard', name: '무선 키보드', sub: '키보드 · 미연결', icon: '⌨️' },
-                    { id: 'bt-device-watch', name: '스마트워치', sub: '웨어러블 · 미연결', icon: '⌚' },
-                    { id: 'bt-device-speaker', name: '블루투스 스피커', sub: '오디오 · 미연결', icon: '🔈' },
+                    { id: 'bt-device-buds', name: '무선 이어버드', sub: '오디오 · 미연결' },
+                    { id: 'bt-device-keyboard', name: '무선 키보드', sub: '키보드 · 미연결' },
+                    { id: 'bt-device-watch', name: '스마트워치', sub: '웨어러블 · 미연결' },
+                    { id: 'bt-device-speaker', name: '블루투스 스피커', sub: '오디오 · 미연결' },
                   ].map(dev => {
                     const connected = connectedBtDevice === dev.name;
                     return (
@@ -1294,7 +1223,7 @@ export default function AndroidExplorer() {
                         }}
                         className={`p-4 rounded-2xl flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all ${connected ? 'bg-blue-600' : 'bg-[#2c2c2e] hover:bg-[#3a3a3c]'}`}
                       >
-                        <div className="text-3xl">{dev.icon}</div>
+                        <BluetoothDeviceIcon deviceId={dev.id}/>
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold truncate">{dev.name}</div>
                           <div className="text-xs text-gray-400 truncate">{connected ? '연결됨' : dev.sub}</div>
@@ -1314,7 +1243,7 @@ export default function AndroidExplorer() {
             <div className="absolute inset-0 z-[120] bg-black/80 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]" onClick={() => setBtPairingDevice(null)}>
               <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="text-4xl">{btPairingDevice.icon}</div>
+                  <BluetoothDeviceIcon deviceId={btPairingDevice.id} size={32}/>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-lg truncate">{btPairingDevice.name}</div>
                     <div className="text-xs text-gray-400">Bluetooth 페어링 요청</div>
@@ -1432,7 +1361,7 @@ export default function AndroidExplorer() {
                         id="google-email-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                         disableClickAdvance={true}
                         onClick={() => {
-                          if (googleEmail.trim().toLowerCase() === 'wttest@tamhem.com') {
+                          if (googleEmail.trim().toLowerCase() === 'student@example.invalid') {
                             setGoogleError(''); setGoogleLoginStep('password');
                             advanceQuest('google-email-next');
                           } else {
@@ -1481,7 +1410,7 @@ export default function AndroidExplorer() {
                         id="google-password-next" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
                         disableClickAdvance={true}
                         onClick={() => {
-                          if (googlePassword === 'Ghkdlxld1!') {
+                          if (googlePassword === 'Practice123!') {
                             setGoogleError(''); setGoogleLoginStep('consent');
                             advanceQuest('google-password-next');
                           } else {
@@ -1569,8 +1498,8 @@ export default function AndroidExplorer() {
                 {(googleLoginStep === 'email' || googleLoginStep === 'password') && (
                   <div className="mt-8 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900 leading-relaxed">
                     <div className="font-bold mb-1">💡 학습용 안내</div>
-                    아이디: <span className="font-mono font-bold">wttest@tamhem.com</span><br/>
-                    비밀번호: <span className="font-mono font-bold">Ghkdlxld1!</span>
+                    아이디: <span className="font-mono font-bold">student@example.invalid</span><br/>
+                    비밀번호: <span className="font-mono font-bold">Practice123!</span>
                   </div>
                 )}
               </div>
@@ -1606,27 +1535,6 @@ export default function AndroidExplorer() {
         </div>
       </div>
 
-      {showExpMenu && (
-        <MissionCenter
-          dragRef={expMenuRef}
-          pos={expPos}
-          onDragStart={handleDragStartExp}
-          themeColor={themeColor}
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-          missionListOpen={missionListOpen}
-          setMissionListOpen={setMissionListOpen}
-          isCompact={isCompact}
-          setIsCompact={setIsCompact}
-          setShowExpMenu={setShowExpMenu}
-          exp={exp}
-          questIdx={questIdx}
-          completedQuests={completedQuests}
-          gotoQuest={gotoQuest}
-          resetProgress={resetProgress}
-        />
-      )}
-
       {/* App icon long-press context menu */}
       {appContextMenu && (
         <div
@@ -1635,9 +1543,9 @@ export default function AndroidExplorer() {
         >
           <div className="bg-[#1c1c1e] text-white rounded-3xl w-[280px] overflow-hidden shadow-2xl animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
             <div className="p-5 border-b border-white/10 flex items-center gap-3">
-              <div className="w-12 h-12"><AppIcon appName={appContextMenu.appName} index={-99} time={time} notifications={notifications} currentTargetId={currentTargetId} advanceQuest={advanceQuest} isEditMode={isEditMode} dragInfo={dragInfo} onOpenApp={openApp} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} handleAppPressStart={handleAppPressStart} handleAppPressEnd={handleAppPressEnd} /></div>
+              <GalaxyAppIcon appName={appContextMenu.appName} time={time} style={{width:48,height:48,flexShrink:0}} />
               <div className="flex-1 min-w-0">
-                <div className="font-bold truncate">{appContextMenu.appName}</div>
+                <div className="font-bold truncate">{GALAXY_APP_LABELS[appContextMenu.appName] || appContextMenu.appName}</div>
                 <div className="text-[11px] text-white/50">길게 눌러서 옵션 표시</div>
               </div>
             </div>
@@ -1652,7 +1560,7 @@ export default function AndroidExplorer() {
                 className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
                 onClick={() => { setAppContextMenu(null); setWidgetPickerOpen(true); }}
               >
-                <span className="text-blue-400">🧩</span> 위젯 추가
+                <PanelsTopLeft size={18} strokeWidth={1.8} className="text-blue-400"/> 위젯 추가
               </button>
               <button
                 className="w-full px-5 py-3 text-left text-sm hover:bg-white/5 active:bg-white/10 flex items-center gap-3 transition-colors"
@@ -1676,7 +1584,7 @@ export default function AndroidExplorer() {
       )}
 
 
-      {!showExpMenu && (
+      {!isPhone && !showExpMenu && (
         <div className="fixed md:absolute bottom-4 right-4 md:bottom-8 md:right-8 w-14 h-14 md:w-16 md:h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:bg-blue-700 active:scale-90 transition-all z-[300] animate-bounce" onClick={() => setShowExpMenu(true)}>
           <Check size={28} className="text-white" />
         </div>
@@ -1685,6 +1593,7 @@ export default function AndroidExplorer() {
       {/* === 미션 목록 팝업 (12번) === */}
       {missionListOpen && (
         <MissionListOverlay
+          isPhone={isPhone}
           dragRef={missionListRef}
           pos={missionListPos}
           onDragStart={handleDragStartList}
@@ -1699,7 +1608,7 @@ export default function AndroidExplorer() {
       )}
 
       {/* === 미션 목록 플로팅 버튼 (미션 센터가 닫혀 있을 때) === */}
-      {!showExpMenu && !missionListOpen && (
+      {!isPhone && !showExpMenu && !missionListOpen && (
         <button
           onClick={() => setMissionListOpen(true)}
           className="fixed md:absolute bottom-4 right-[5.5rem] md:bottom-8 md:right-28 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-2xl cursor-pointer active:scale-90 transition-all z-[300] text-white"

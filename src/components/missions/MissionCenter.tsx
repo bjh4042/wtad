@@ -1,9 +1,13 @@
 import React from 'react';
 import { Sun, Moon, Grid, ChevronUp, ChevronLeft, Minus, X, Check, GripHorizontal, RefreshCcw } from 'lucide-react';
-import { QUESTS } from '@/data/quests';
+import { CHAPTERS, QUESTS } from '@/data/quests';
+import FinalSafetyCheck from './FinalSafetyCheck';
+import { formatLessonText } from './lessonText';
+import { getQuestFrontier } from '@/hooks/useQuestEngine';
 import type { Upd } from '@/components/device/HomeScreen';
 
 export interface MissionCenterProps {
+  isPhone?: boolean;
   dragRef: React.MutableRefObject<any>;
   pos: { x: number; y: number };
   onDragStart: (e: any) => void;
@@ -20,24 +24,36 @@ export interface MissionCenterProps {
   completedQuests: number[];
   gotoQuest: (idx: number) => void;
   resetProgress: () => void;
+  advanceQuest: (target: string) => void;
 }
 
 export default function MissionCenter({
+  isPhone = false,
   dragRef, pos, onDragStart, themeColor, darkMode, setDarkMode,
   missionListOpen, setMissionListOpen, isCompact, setIsCompact, setShowExpMenu,
-  exp, questIdx, completedQuests, gotoQuest, resetProgress,
+  exp, questIdx, completedQuests, gotoQuest, resetProgress, advanceQuest,
 }: MissionCenterProps) {
+  const quest = QUESTS[questIdx];
+  const chapter = CHAPTERS.find(item => item.id === quest?.chapter);
+  const frontier = getQuestFrontier(completedQuests);
+  const instruction = formatLessonText(quest?.text, isPhone);
+  const tip = formatLessonText(quest?.tip, isPhone);
+  const [mobileExpanded, setMobileExpanded] = React.useState(false);
+  React.useEffect(() => {
+    if (isPhone && quest?.targetId === 'final-safety-check') setMobileExpanded(true);
+  }, [isPhone, quest?.targetId]);
+  const compact = isPhone ? !mobileExpanded : isCompact;
   return (
     /* 위치(top/left)는 이 래퍼가 담당하고, 드래그 중 transform 은 ref 로만 조작한다 */
-    <div ref={dragRef} className="fixed md:absolute z-[300]" style={{ top: pos.y, left: pos.x }}>
+    <div ref={dragRef} className={isPhone ? 'relative w-full min-w-0' : 'fixed md:absolute z-[300]'} role="region" aria-label="현재 학습 미션" style={isPhone ? { transform: 'none' } : { top: pos.y, left: pos.x }}>
       <div
-        className="bg-white rounded-2xl md:rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border w-[calc(100vw-16px)] max-w-[380px] overflow-hidden transition-all duration-300"
+        className={`bg-white rounded-2xl md:rounded-3xl border overflow-y-auto transition-all duration-300 ${isPhone ? 'w-full shadow-sm max-h-[70dvh]' : 'shadow-[0_10px_40px_rgba(0,0,0,0.3)] w-[calc(100vw-16px)] max-w-[380px] max-h-[90dvh]'}`}
         style={{ borderColor: `${themeColor}55` }}
       >
-          <div className="text-white p-3 md:p-4 flex justify-between items-center cursor-move" style={{ background: themeColor }} onMouseDown={onDragStart} onTouchStart={onDragStart}>
-            <div className="flex items-center gap-2 font-bold text-base md:text-lg"><GripHorizontal size={20}/> 미션 센터</div>
+          <div className={`text-white flex justify-between items-center ${isPhone ? 'px-3 py-1.5 gap-2' : 'p-3 md:p-4 cursor-move'}`} style={{ background: themeColor }} onMouseDown={isPhone ? undefined : onDragStart} onTouchStart={isPhone ? undefined : onDragStart}>
+            <div className={`flex items-center gap-2 font-bold ${isPhone ? 'text-xs' : 'text-base md:text-lg'}`}>{!isPhone && <GripHorizontal size={20}/>} {isPhone ? `미션 ${questIdx + 1}/${QUESTS.length}` : '미션 센터'}</div>
             <div className="flex items-center gap-1">
-              <button
+              {!isPhone && <button
                 onClick={(e) => { e.stopPropagation(); setDarkMode(d => !d); }}
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
@@ -45,7 +61,7 @@ export default function MissionCenter({
                 title={darkMode ? '라이트 모드' : '다크 모드'}
               >
                 {darkMode ? <Sun size={16}/> : <Moon size={16}/>}
-              </button>
+              </button>}
               <button
                 onClick={(e) => { e.stopPropagation(); setMissionListOpen(o => !o); }}
                 onMouseDown={(e) => e.stopPropagation()}
@@ -56,11 +72,12 @@ export default function MissionCenter({
                 <Grid size={16}/>
               </button>
               <button
-                onClick={() => setIsCompact(c => !c)}
+                onClick={() => isPhone ? setMobileExpanded(value => !value) : setIsCompact(c => !c)}
                 className="p-1.5 rounded-lg hover:bg-white/20 active:bg-white/30 transition-colors"
-                title={isCompact ? '확대' : '축소'}
+                title={compact ? '미션 자세히' : '미션 접기'}
+                aria-expanded={!compact}
               >
-                {isCompact ? <ChevronUp size={16}/> : <Minus size={16}/>}
+                {isPhone ? <span className="text-[11px]">{compact ? '자세히' : '접기'}</span> : compact ? <ChevronUp size={16}/> : <Minus size={16}/>}
               </button>
               <button
                 onClick={() => setShowExpMenu(false)}
@@ -71,8 +88,10 @@ export default function MissionCenter({
               </button>
             </div>
           </div>
-          {!isCompact ? (
+          {!compact ? (
             <div className="p-3 md:p-5" style={{ background: `${themeColor}0d` }}>
+              <div className="text-[10px] font-medium text-gray-500 mb-1">{isPhone ? '갤럭시 스마트폰' : '갤럭시탭'} · One UI 9 / Android 17 화면 기준</div>
+              <div className="text-xs font-bold text-indigo-700 mb-3">{chapter?.title}</div>
               {/* 레벨 + EXP */}
               <div className="flex justify-between items-end mb-2">
                 <span className="text-base md:text-xl font-bold text-gray-800">레벨 {Math.floor(exp / 100) + 1}</span>
@@ -118,9 +137,13 @@ export default function MissionCenter({
                   )}
                 </div>
                 <div className="text-gray-800 font-bold text-sm md:text-[17px] leading-relaxed break-keep">
-                  {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
+                  {instruction || "모든 미션을 완료했습니다! 🎉"}
                 </div>
               </div>
+              {tip && <details className="mt-2 rounded-xl bg-white/70 p-2 text-xs text-gray-600"><summary className="cursor-pointer font-bold text-gray-700 py-1">실제 기기에서도 기억하기</summary><p className="mt-1 leading-relaxed">{tip}</p></details>}
+              {quest?.targetId === 'final-safety-check' && <FinalSafetyCheck key={quest.id} onComplete={() => advanceQuest('final-safety-check')}/>}
+              {quest?.targetId === null && completedQuests.length === QUESTS.length && <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800 leading-relaxed">연습 완료! 이 결과는 웹앱 안에서의 수행 기록이에요. 실제 기기에서 Wi-Fi 연결, 사진 촬영·복원, 자료 찾기, 화면 캡처를 직접 해보며 한 번 더 확인해요.</p>}
+              {questIdx !== frontier && <button onClick={() => gotoQuest(frontier)} className="mt-3 w-full rounded-xl bg-indigo-50 py-2 text-xs font-bold text-indigo-700">하던 미션으로 돌아가기</button>}
               {/* Mission navigation controls */}
               <div className="flex items-center gap-2 mt-3">
                 <button
@@ -147,13 +170,13 @@ export default function MissionCenter({
                 </button>
               </div>
               <div className="text-[10px] text-gray-500 mt-2 text-center">
-                ◀▶ 로 완료한 미션을 다시 연습할 수 있어요
+                완료한 미션은 다시 연습할 수 있어요 · 진행 기록은 이 브라우저에 저장돼요
               </div>
             </div>
 
           ) : (
-            <div className="p-3 md:p-4" style={{ background: `${themeColor}0d` }}>
-              <div className="flex items-center justify-between">
+            <div className={isPhone ? 'px-3 py-2.5' : 'p-3 md:p-4'} style={{ background: `${themeColor}0d` }}>
+              {!isPhone && <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md" style={{ background: themeColor }}>
                     L{Math.floor(exp / 100) + 1}
@@ -166,9 +189,9 @@ export default function MissionCenter({
                 {completedQuests.includes(questIdx) && (
                   <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-1"><Check size={10}/> 완료</div>
                 )}
-              </div>
-              <div className="mt-2 text-sm font-bold text-gray-800 line-clamp-2 leading-snug">
-                {QUESTS[questIdx]?.text || "모든 미션을 완료했습니다! 🎉"}
+              </div>}
+              <div className={`${isPhone ? 'text-[13px] leading-relaxed' : 'mt-2 text-sm line-clamp-2 leading-snug'} font-bold text-gray-800 break-keep`}>
+                {instruction || "모든 미션을 완료했습니다! 🎉"}
               </div>
             </div>
           )}

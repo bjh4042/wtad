@@ -263,3 +263,103 @@
   50% { transform: translateY(-6px); opacity: 0.95; }
 }
 .oneui-hint-up { animation: oneuiHintUp 1.8s var(--oneui-ease) infinite; }
+
+/* Phone home uses its own flow layout, rather than shrinking the 8 × 5 tablet grid. */
+.oneui-phone-home {
+  --oneui-home-pad-x: 16px;
+  --oneui-home-icon-size: clamp(44px, 14vw, 56px);
+  --oneui-home-label-size: 11px;
+  --oneui-home-grid-gap-x: 6px;
+  --oneui-home-grid-gap-y: 18px;
+  --oneui-taskbar-icon-size: clamp(44px, 14vw, 54px);
+  --oneui-phone-dock-h: 70px;
+  --oneui-finder-h: 44px;
+  --oneui-indicator-h: 44px;
+  --oneui-home-reserve: calc(var(--oneui-phone-dock-h) + var(--oneui-finder-h) + var(--oneui-indicator-h) + 18px);
+  --oneui-drawer-icon-size: clamp(44px, 13.5vw, 54px);
+  --oneui-drawer-pad-x: 16px;
+  --oneui-drawer-gap-x: 6px;
+  --oneui-drawer-gap-y: 24px;
+  --oneui-drawer-reserve: 76px;
+}
+.oneui-phone-home .oneui-home-page {
+  padding-top: calc(var(--oneui-statusbar-h) + 12px);
+  padding-bottom: var(--oneui-home-reserve);
+  gap: 18px;
+}
+.oneui-phone-home .oneui-home-page.is-editing { padding-top: calc(var(--oneui-statusbar-h) + 54px); }
+.oneui-phone-home .oneui-home-widgets {
+  position: relative;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-inline: var(--oneui-home-pad-x);
+  flex-shrink: 0;
+  max-height: 170px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.oneui-phone-home .oneui-home-widgets:empty { display: none; }
+.oneui-phone-home .oneui-home-widgets > div {
+  min-width: 0;
+  min-height: 68px;
+  padding: 10px 8px;
+  border-radius: 20px;
+  justify-content: center;
+}
+.oneui-phone-home .oneui-home-widgets > div > svg { width: 22px; height: 22px; flex-shrink: 0; }
+.oneui-phone-home .oneui-phone-widget-md { grid-column: span 2; }
+.oneui-phone-home .oneui-phone-widget-lg { grid-column: span 3; }
+.oneui-phone-home .oneui-home-apps {
+  justify-content: flex-start;
+  padding-top: 0 !important;
+  padding-bottom: 8px !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.oneui-phone-home .oneui-home-grid { align-content: start; }
+.oneui-phone-home .oneui-app-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow: hidden;
+  line-height: 14px;
+  min-height: 28px;
+  max-height: 28px;
+  word-break: keep-all;
+}
+.oneui-phone-page-dot { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.oneui-phone-home .oneui-home-finder { width: calc(100% - 32px); min-width: 0; max-width: 320px; }
+.oneui-phone-dock { height: var(--oneui-phone-dock-h); padding: 2px 16px 10px; z-index: 12; }
+.oneui-phone-home .oneui-home-edit-toolbar { top: calc(var(--oneui-statusbar-h) + 4px); gap: 4px; padding-inline: 6px; }
+.oneui-phone-home .oneui-home-edit-toolbar > button { flex: 1; min-width: 0; min-height: 40px; padding-inline: 5px; font-size: 11px; white-space: nowrap; }
+.oneui-phone-home .oneui-apps-drawer { padding-top: calc(var(--oneui-statusbar-h) + 66px) !important; }
+.oneui-phone-home .oneui-drawer-close { width: 44px; height: 44px; right: 16px; }
+.oneui-phone-home .oneui-drawer-grid-scroll { overscroll-behavior: contain; scrollbar-width: none; }
+.oneui-phone-home .oneui-drawer-finder { bottom: 10px !important; }
+.oneui-phone-home .oneui-drawer-finder > div { width: calc(100% - 32px); min-width: 0; max-width: 320px; }
+.oneui-phone-home .oneui-drawer-finder input { font-size: 16px; }
+.oneui-phone-home .oneui-home-apps::-webkit-scrollbar,
+.oneui-phone-home .oneui-home-widgets::-webkit-scrollbar,
+.oneui-phone-home .oneui-drawer-grid-scroll::-webkit-scrollbar { display: none; }
+
+/* Keep the default three home rows fully visible on a 320px phone/webview.
+   App and page-control targets stay at least 44px; only visual spacing shrinks. */
+@media (max-width: 360px) {
+  .oneui-phone-home {
+    --oneui-home-pad-x: 14px;
+    --oneui-home-grid-gap-y: 8px;
+    --oneui-home-label-size: 10.5px;
+    --oneui-drawer-gap-y: 16px;
+  }
+  .oneui-phone-home .oneui-home-page { gap: 12px; }
+  .oneui-phone-home .oneui-home-widgets { gap: 6px; }
+  .oneui-phone-home .oneui-home-widgets > div { min-height: 64px; padding: 8px 6px; }
+  .oneui-phone-home .oneui-app-label { line-height: 12px; min-height: 24px; max-height: 24px; }
+}

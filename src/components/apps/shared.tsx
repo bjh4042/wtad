@@ -36,7 +36,7 @@ export const CuteStudent = ({ seed }: { seed: number }) => {
 export interface ActionTargetProps {
   id: string;
   children?: React.ReactNode;
-  onClick?: (e: any) => void;
+  onClick?: (e: any) => void | boolean;
   onTouchStart?: (e: any) => void;
   onTouchEnd?: (e: any) => void;
   onTouchMove?: (e: any) => void;
@@ -55,6 +55,65 @@ export interface ActionTargetProps {
   extraTargetIds?: string[];
   tooltipPosition?: 'top' | 'bottom' | 'left' | 'top-left';
   tooltipText?: string;
+}
+
+function TargetHint({ position, text, className, arrowClassName }: {
+  position: NonNullable<ActionTargetProps['tooltipPosition']>;
+  text: string;
+  className: string;
+  arrowClassName: string;
+}) {
+  const hintRef = React.useRef<HTMLDivElement>(null);
+  const [mobilePlacement, setMobilePlacement] = React.useState<React.CSSProperties | null>(null);
+  React.useLayoutEffect(() => {
+    const hint = hintRef.current;
+    const target = hint?.parentElement;
+    if (!hint || !target) return;
+    const screen = target.closest('[data-device-screen]');
+    let frame = 0;
+    const update = () => {
+      const isPhone = !!target.closest('[data-device="phone"]') || window.matchMedia('(max-width: 767px)').matches;
+      if (!isPhone) { setMobilePlacement(null); return; }
+      const bounds = screen?.getBoundingClientRect();
+      const targetBounds = target.getBoundingClientRect();
+      const leftEdge = Math.max(8, (bounds?.left ?? 0) + 10);
+      const rightEdge = Math.min(window.innerWidth - 8, (bounds?.right ?? window.innerWidth) - 10);
+      const topEdge = Math.max(8, (bounds?.top ?? 0) + 8);
+      const bottomEdge = Math.min(window.innerHeight - 8, (bounds?.bottom ?? window.innerHeight) - 8);
+      const width = Math.max(100, Math.min(220, rightEdge - leftEdge));
+      const height = hint.offsetHeight;
+      const centered = targetBounds.left + (targetBounds.width - width) / 2;
+      const left = Math.max(leftEdge, Math.min(centered, rightEdge - width)) - targetBounds.left;
+      const above = targetBounds.top - height - 10;
+      const below = targetBounds.bottom + 10;
+      const preferBelow = position === 'bottom' || above < topEdge;
+      const desiredTop = preferBelow && below + height <= bottomEdge ? below : above;
+      const top = Math.max(topEdge, Math.min(desiredTop, bottomEdge - height)) - targetBounds.top;
+      const visibility = targetBounds.bottom < topEdge || targetBounds.top > bottomEdge ? 'hidden' : 'visible';
+      setMobilePlacement(previous => previous?.left === left && previous?.top === top && previous?.width === width && previous?.visibility === visibility ? previous : {
+        left, top, width, right: 'auto', bottom: 'auto', margin: 0, transform: 'none', translate: 'none',
+        visibility,
+      });
+    };
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(update); };
+    update();
+    const observer = new ResizeObserver(schedule);
+    observer.observe(hint);
+    observer.observe(target);
+    if (screen) observer.observe(screen);
+    window.addEventListener('resize', schedule);
+    window.addEventListener('scroll', schedule, true);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', schedule, true);
+    };
+  }, [position, text]);
+  return <div ref={hintRef} data-learning-hint style={mobilePlacement ?? undefined} className={`${className} bg-blue-600 text-white text-[11px] md:text-[13px] px-3 md:px-4 py-2 rounded-xl shadow-xl w-max max-w-[220px] md:max-w-none whitespace-normal md:whitespace-nowrap break-keep z-[110] pointer-events-none font-bold leading-relaxed`}>
+    {text}
+    <div className={`${arrowClassName} hidden md:block`} />
+  </div>;
 }
 
 export const ActionTarget = ({
@@ -76,7 +135,16 @@ export const ActionTarget = ({
     : 'absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-blue-600';
   return (
     <div
-      onClick={(e) => { if(onClick) onClick(e); if(!disableClickAdvance) advanceQuest(id); }}
+      data-action-target={id}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        // Nested targets must not run a second operation in a parent wrapper.
+        if (target.closest('[data-action-target]') !== e.currentTarget) return;
+        if (target.closest('button:disabled, input:disabled, [aria-disabled="true"]')) return;
+        const result = onClick?.(e);
+        // A failed validation can explicitly decline mission completion.
+        if (!disableClickAdvance && result !== false && !e.defaultPrevented) advanceQuest(id);
+      }}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchMove={onTouchMove}
       onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseLeave}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
@@ -84,10 +152,7 @@ export const ActionTarget = ({
       style={style}
     >
       {isTarget && (
-        <div className={`${tooltipClasses} bg-blue-600 text-white text-[13px] px-4 py-2 rounded-xl shadow-xl whitespace-nowrap z-[110] pointer-events-none font-bold`}>
-          {tooltipText}
-          <div className={arrowClasses}></div>
-        </div>
+        <TargetHint position={tooltipPosition} text={tooltipText} className={tooltipClasses} arrowClassName={arrowClasses}/>
       )}
       {children}
     </div>

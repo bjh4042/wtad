@@ -1,28 +1,10 @@
 import React from 'react';
 import {
-  Sun, Camera, Settings, Search, ChevronUp, Trash2, X, Mic,
+  Sun, Search, Trash2, X, Mic, Music2, Footprints,
 } from 'lucide-react';
-import iconStore from '@/assets/icons/store.png';
-import iconGallery from '@/assets/icons/gallery.png';
-import iconPlayStore from '@/assets/icons/playstore.png';
-import iconFolder from '@/assets/icons/folder.png';
-import iconMessages from '@/assets/icons/messages.png';
-import iconInternet from '@/assets/icons/internet.png';
-import iconCamera from '@/assets/icons/camera.png';
-import iconPhone from '@/assets/icons/phone.png';
 import { ActionTarget } from '@/components/apps/shared';
 import { PLAYSTORE_APPS } from '@/data/appCatalog';
-
-export const APP_ICON_IMAGES: Record<string, string> = {
-  Store: iconStore,
-  Gallery: iconGallery,
-  PlayStore: iconPlayStore,
-  Folder: iconFolder,
-  Messages: iconMessages,
-  Internet: iconInternet,
-  Camera: iconCamera,
-  Phone: iconPhone,
-};
+import { GalaxyAppIcon, GALAXY_APP_LABELS } from './GalaxyAppIcon';
 
 /** setState 호환 업데이터 (값 또는 콜백) */
 export type Upd<T> = (v: T | ((prev: T) => T)) => void;
@@ -47,14 +29,9 @@ export interface DragInfo {
 
 export type AppIconVariant = 'home' | 'drawer' | 'taskbar';
 
-/** 앱스 화면에 아이콘을 그릴 수 있는 앱 목록 (아이콘이 없는 항목이 투명 히트박스로 남지 않게 함) */
-const DRAWER_KNOWN_APPS = [
-  'Calculator', 'GameLauncher', 'Store', 'Camera', 'Gallery', 'Wearable', 'Calendar',
-  'Clock', 'Health', 'Folder', 'Notes', 'Messages', 'Internet', 'PlayStore',
-  'YouTube', 'KakaoTalk', 'Naver', 'Settings',
-];
 /** 전용 앱 화면이 구현된 앱 (그 외는 시뮬레이션 안내로 처리 — 검은 화면 방지) */
-const DRAWER_APPS_WITH_SCREEN = ['Settings', 'Camera', 'Gallery', 'PlayStore', 'Notes', 'Calculator', 'Internet'];
+const DRAWER_APPS_WITH_SCREEN = ['Settings', 'Camera', 'Gallery', 'PlayStore', 'Notes', 'Calculator', 'Internet', 'Folder', 'Clock', 'Calendar'];
+const APP_LABELS: Record<string, string> = { Settings: '설정', Camera: '카메라', Gallery: '갤러리', PlayStore: 'Play 스토어 플레이 스토어 앱 설치', Notes: 'Samsung Notes 삼성 노트 메모', Calculator: '계산기', Internet: '삼성 인터넷', Folder: '내 파일 다운로드', Clock: '시계 알람 타이머', Calendar: '캘린더 일정', math: '똑똑수학탐험대 수학탐험대' };
 
 export interface AppIconProps {
   appName: string;
@@ -83,177 +60,7 @@ export function AppIcon({
   isEditMode, dragInfo, hideWhenDragging = true, variant = 'home', onOpenApp,
   onPointerDown, onPointerMove, onPointerUp, handleAppPressStart, handleAppPressEnd,
 }: AppIconProps) {
-    let content = null;
-    let name = '';
-    // One UI 스쿼클 (과도한 그림자 제거)
-    const sq = "w-full h-full rounded-[22%] flex items-center justify-center overflow-hidden shadow-[0_2px_6px_rgba(0,0,0,0.18)]";
-
-    switch(appName) {
-      case 'Calculator': name = '계산기';
-        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#1f2937 0%,#0f172a 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-[68%] h-[68%]">
-            <rect x="18" y="10" width="64" height="80" rx="10" fill="#f8fafc"/>
-            <rect x="24" y="16" width="52" height="18" rx="3" fill="#0f172a"/>
-            <text x="71" y="29" textAnchor="end" fill="#fbbf24" fontSize="13" fontFamily="monospace" fontWeight="700">96</text>
-            {[0,1,2,3].map(r => [0,1,2,3].map(c => {
-              const isOp = c === 3;
-              return <rect key={`${r}-${c}`} x={24+c*14} y={40+r*12} width="11" height="9" rx="2" fill={isOp ? '#f97316' : '#e2e8f0'}/>;
-            }))}
-          </svg></div>); break;
-
-      case 'GameLauncher': name = 'Game Launcher';
-        content = (<div className={`${sq}`} style={{ background: 'linear-gradient(135deg,#7c3aed 0%,#4f46e5 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
-            <rect x="10" y="35" width="55" height="35" rx="17" fill="#fff" opacity="0.95"/>
-            <circle cx="25" cy="52" r="4" fill="#7c3aed"/><circle cx="38" cy="52" r="4" fill="#7c3aed"/>
-            <circle cx="78" cy="40" r="6" fill="#fff"/><circle cx="85" cy="58" r="6" fill="#fff"/>
-          </svg></div>); break;
-      case 'Store': name = 'Galaxy Store';
-        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#a855f7 0%,#ec4899 50%,#f97316 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
-            <path d="M 20 45 Q 50 -5 80 45 L 80 80 Q 50 95 20 80 Z" fill="#fff"/>
-            <path d="M 35 60 L 50 75 L 70 50" stroke="#a855f7" strokeWidth="7" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg></div>); break;
-      case 'Camera': name = '카메라';
-        content = (<div className={sq} style={{ background: 'linear-gradient(160deg,#f8fafc 0%,#cbd5e1 100%)' }}>
-          <div className="relative w-[62%] h-[62%]">
-            <div className="absolute inset-0 rounded-full bg-[#1f2937] shadow-inner flex items-center justify-center">
-              <div className="w-[55%] h-[55%] rounded-full bg-gradient-to-br from-[#60a5fa] to-[#1e3a8a] border-2 border-[#0f172a]"></div>
-            </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#fbbf24] rounded-full shadow"></div>
-          </div>
-        </div>); break;
-      case 'Gallery': name = '갤러리';
-        content = (<div className={sq} style={{ background: '#fff' }}>
-          <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
-            <g transform="translate(50,50)">
-              <ellipse cx="0" cy="-26" rx="14" ry="22" fill="#fbbf24"/>
-              <ellipse cx="0" cy="26" rx="14" ry="22" fill="#ec4899"/>
-              <ellipse cx="-26" cy="0" rx="22" ry="14" fill="#3b82f6"/>
-              <ellipse cx="26" cy="0" rx="22" ry="14" fill="#22c55e"/>
-              <circle cx="0" cy="0" r="9" fill="#fff"/>
-            </g>
-          </svg></div>); break;
-      case 'Wearable': name = 'Galaxy Wear';
-        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#1e293b 0%,#475569 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-3/5 h-3/5">
-            <rect x="28" y="22" width="44" height="56" rx="14" fill="none" stroke="#fff" strokeWidth="6"/>
-            <circle cx="50" cy="50" r="10" fill="#3b82f6"/>
-          </svg></div>); break;
-      case 'Calendar': name = '캘린더';
-        content = (<div className={`${sq} flex-col`} style={{ background: '#fff' }}>
-          <div className="w-full h-[28%] bg-[#ef4444] flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold tracking-wider">{time ? time.toLocaleDateString('ko-KR', { weekday: 'short' }).toUpperCase() : 'SUN'}</span>
-          </div>
-          <div className="flex-1 flex items-center justify-center">
-            <span className="text-[#111] font-black text-[28px] leading-none">{time ? time.getDate() : 1}</span>
-          </div></div>); break;
-      case 'Clock': name = '시계';
-        content = (<div className={sq} style={{ background: '#fff' }}>
-          <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
-            <circle cx="50" cy="50" r="44" fill="#fff" stroke="#111" strokeWidth="5"/>
-            {[0,1,2,3,4,5,6,7,8,9,10,11].map(i => {
-              // 서버/클라이언트 부동소수 직렬화 차이로 hydration mismatch 가 발생하므로 고정 소수점으로 반올림
-              const r3 = (v: number) => Number(v.toFixed(3));
-              const a = (i*30)*Math.PI/180;
-              const x1 = r3(50+Math.sin(a)*38); const y1 = r3(50-Math.cos(a)*38);
-              const x2 = r3(50+Math.sin(a)*42); const y2 = r3(50-Math.cos(a)*42);
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#111" strokeWidth="2"/>;
-            })}
-            <line x1="50" y1="50" x2="50" y2="22" stroke="#111" strokeWidth="5" strokeLinecap="round"/>
-            <line x1="50" y1="50" x2="72" y2="62" stroke="#111" strokeWidth="3.5" strokeLinecap="round"/>
-            <line x1="50" y1="50" x2="34" y2="68" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx="50" cy="50" r="3.5" fill="#ef4444"/></svg></div>); break;
-      case 'Health': name = '건강';
-        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#fff 0%,#f1f5f9 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
-            <path d="M 50 82 C 18 60, 18 30, 38 28 C 46 28, 50 34, 50 38 C 50 34, 54 28, 62 28 C 82 30, 82 60, 50 82 Z" fill="#f97316"/>
-            <path d="M 25 55 L 38 55 L 44 42 L 52 68 L 58 50 L 75 50" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg></div>); break;
-      case 'Folder': name = '탐험대';
-        content = (<div className={`${sq} grid grid-cols-2 grid-rows-2 gap-1.5 p-3.5`} style={{ background: '#fff' }}>
-          <div className="rounded-full" style={{ background: '#4285F4' }}></div>
-          <div className="rounded-full" style={{ background: '#EA4335' }}></div>
-          <div className="rounded-full" style={{ background: '#FBBC05' }}></div>
-          <div className="rounded-full" style={{ background: '#34A853' }}></div></div>); break;
-      case 'Notes': name = '메모';
-        content = (<div className={sq} style={{ background: 'linear-gradient(160deg,#fde68a 0%,#fbbf24 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-[62%] h-[62%]">
-            <path d="M 22 12 L 62 12 L 82 32 L 82 88 L 22 88 Z" fill="#fff"/>
-            <path d="M 62 12 L 62 32 L 82 32 Z" fill="#fcd34d"/>
-            <path d="M 32 48 L 70 48 M 32 60 L 70 60 M 32 72 L 58 72" stroke="#92400e" strokeWidth="4.5" strokeLinecap="round"/>
-          </svg></div>); break;
-      case 'Messages': name = '메시지';
-        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#22c55e 0%,#16a34a 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-[68%] h-[68%]">
-            <path d="M 14 36 Q 14 14 50 14 Q 86 14 86 36 L 86 58 Q 86 78 50 78 L 32 88 L 36 76 Q 14 70 14 36 Z" fill="#ffffff"/>
-            <circle cx="34" cy="46" r="5.5" fill="#22c55e"/><circle cx="50" cy="46" r="5.5" fill="#22c55e"/><circle cx="66" cy="46" r="5.5" fill="#22c55e"/>
-          </svg></div>); break;
-      case 'Internet': name = '인터넷';
-        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#3b82f6 0%,#6366f1 100%)' }}>
-          <svg viewBox="0 0 100 100" className="w-[72%] h-[72%]">
-            <circle cx="50" cy="50" r="30" fill="#fff"/>
-            <ellipse cx="50" cy="50" rx="30" ry="12" fill="none" stroke="#3b82f6" strokeWidth="3"/>
-            <ellipse cx="50" cy="50" rx="12" ry="30" fill="none" stroke="#3b82f6" strokeWidth="3"/>
-            <circle cx="50" cy="50" r="30" fill="none" stroke="#3b82f6" strokeWidth="3"/>
-          </svg></div>); break;
-      case 'PlayStore': name = '앱 마켓';
-        content = (<div className={sq} style={{ background: '#fff' }}>
-          <svg viewBox="0 0 100 100" className="w-[60%] h-[60%]">
-            <defs>
-              <linearGradient id="ps-g" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#00C2A8"/><stop offset="1" stopColor="#00897B"/>
-              </linearGradient>
-              <linearGradient id="ps-b" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#2196F3"/><stop offset="1" stopColor="#0D47A1"/>
-              </linearGradient>
-              <linearGradient id="ps-r" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0" stopColor="#EA4335"/><stop offset="1" stopColor="#C62828"/>
-              </linearGradient>
-              <linearGradient id="ps-y" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0" stopColor="#FBBC05"/><stop offset="1" stopColor="#F57F17"/>
-              </linearGradient>
-            </defs>
-            <path d="M 20 10 L 55 50 L 20 90 Z" fill="url(#ps-b)"/>
-            <path d="M 20 10 L 85 50 L 70 58 Z" fill="url(#ps-r)"/>
-            <path d="M 20 90 L 85 50 L 70 42 Z" fill="url(#ps-y)"/>
-            <path d="M 55 50 L 70 42 L 85 50 L 70 58 Z" fill="url(#ps-g)"/>
-          </svg></div>); break;
-      case 'YouTube': name = '튜브';
-        content = (<div className={sq} style={{ background: '#fff' }}>
-          <svg viewBox="0 0 100 100" className="w-[78%] h-[78%]">
-            <rect x="8" y="26" width="84" height="48" rx="14" fill="#FF0000"/>
-            <path d="M 42 38 L 66 50 L 42 62 Z" fill="#fff"/>
-          </svg></div>); break;
-      case 'KakaoTalk': name = '톡톡';
-        content = (<div className={sq} style={{ background: '#FAE100' }}>
-          <svg viewBox="0 0 100 100" className="w-[70%] h-[70%]">
-            <path d="M 50 18 C 26 18, 12 32, 12 48 C 12 60, 20 70, 32 75 L 28 88 L 44 80 C 46 80, 48 80, 50 80 C 74 80, 88 66, 88 50 C 88 32, 74 18, 50 18 Z" fill="#3A1D1D"/>
-          </svg></div>); break;
-      case 'Naver': name = '검색';
-        content = (<div className={sq} style={{ background: '#03C75A' }}>
-          <svg viewBox="0 0 100 100" className="w-[60%] h-[60%]">
-            <path d="M 22 22 L 42 22 L 60 56 L 60 22 L 78 22 L 78 78 L 58 78 L 40 44 L 40 78 L 22 78 Z" fill="#fff"/>
-          </svg></div>); break;
-      case 'Settings': name = '설정';
-        content = (<div className={sq} style={{ background: 'linear-gradient(135deg,#e0e7ff 0%,#c7d2fe 100%)' }}>
-          <Settings size={42} className="text-[#1e3a8a]" strokeWidth={2}/></div>); break;
-    }
-    // 이미지 아이콘이 있는 앱은 SVG 대신 생성된 이미지로 대체
-    if (APP_ICON_IMAGES[appName]) {
-      content = (
-        <img
-          src={APP_ICON_IMAGES[appName]}
-          alt={name || appName}
-          loading="lazy"
-          width={512}
-          height={512}
-          draggable={false}
-          className="w-full h-full object-contain drop-shadow-[0_2px_5px_rgba(0,0,0,0.2)] select-none pointer-events-none"
-        />
-      );
-    }
-    if (!content) return null;
+    const name = GALAXY_APP_LABELS[appName] ?? appName;
     const hasNotif = appName === 'KakaoTalk' && notifications.some(n => n.app === 'KakaoTalk');
     const isTaskbar = variant === 'taskbar';
     const isHome = variant === 'home';
@@ -265,7 +72,7 @@ export function AppIcon({
     return (
       <ActionTarget
         key={index}
-        id={`app-icon-${appName}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+        id={`app-icon-${appName}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance
         extraTargetIds={appName === 'Camera' ? ['app-icon-Camera-long-press', 'drag-camera'] : []}
         tooltipText={
           appName === 'Camera' && currentTargetId === 'app-icon-Camera-long-press' ? '꾹~ 길게 누르세요'
@@ -275,6 +82,7 @@ export function AppIcon({
         onClick={() => {
           if (isEditMode) return;
           onOpenApp(appName);
+          advanceQuest(`app-icon-${appName}`);
         }}
 
         {...(isHome ? {
@@ -290,9 +98,9 @@ export function AppIcon({
         } : {})}
 
         className={`flex flex-col items-center cursor-pointer group oneui-press ${isTaskbar ? '' : 'gap-1.5'} ${isEditMode ? 'animate-wiggle touch-none' : ''}`}
-        style={{ width: isTaskbar ? iconSizeVar : `calc(${iconSizeVar} + 22px)` }}
+        style={{ width: isTaskbar ? iconSizeVar : `calc(${iconSizeVar} + 48px)`, maxWidth: '100%' }}
       >
-        <div
+        <div role="button" tabIndex={isEditMode ? -1 : 0} aria-label={`${name} 열기`} onKeyDown={(e) => { if (!isEditMode && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpenApp(appName); advanceQuest(`app-icon-${appName}`); } }}
           className={`relative transition-transform ${!isEditMode ? 'md:group-hover:scale-105' : 'ring-2 ring-white/50 rounded-[1.25rem] bg-white/10'}`}
           style={{
             width: iconSizeVar,
@@ -300,7 +108,7 @@ export function AppIcon({
             visibility: hideWhenDragging && dragInfo.isDragging && dragInfo.index === index ? 'hidden' : 'visible',
           }}
         >
-          {content}
+          <GalaxyAppIcon appName={appName} time={time}/>
           {hasNotif && !isEditMode && (
             <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center border border-white/70 z-10">
               {notifications.filter(n => n.app === 'KakaoTalk').length}
@@ -309,7 +117,7 @@ export function AppIcon({
         </div>
         {!isTaskbar && (
           <span
-            className="text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight"
+            className="oneui-app-label text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight"
             style={{ fontSize: 'var(--oneui-home-label-size)' }}
           >{name}</span>
         )}
@@ -444,8 +252,9 @@ export default function HomeScreen({
   };
 
   /** 작업표시줄: 고정 앱(홈 1페이지 상위 앱) + 기존 recentApps */
-  const taskbarPinned = ['Internet', 'Messages', 'Gallery', 'Camera', 'Settings'].filter(a => homePages.some(p => p.includes(a)));
+  const taskbarPinned = ['Internet', 'Notes', 'Gallery', 'Camera', 'Settings'].filter(a => homePages.some(p => p.includes(a)));
   const taskbarRecents = recentApps.filter(a => !taskbarPinned.includes(a)).slice(0, 3);
+  const phoneDockApps = ['Internet', 'Notes', 'Gallery', 'Camera'];
 
 
   const cycleWidgetSize = (id: string) => {
@@ -457,6 +266,7 @@ export default function HomeScreen({
   };
   const widgetSizeClass = (id: string) => {
     const s = widgetSizes[id] ?? 'sm';
+    if (isPhone) return `oneui-phone-widget-${s}`;
     if (s === 'lg') return 'scale-125 origin-top-left';
     if (s === 'md') return 'scale-110 origin-top-left';
     return '';
@@ -465,7 +275,8 @@ export default function HomeScreen({
   return (
     <div
       key={`home-flash-${homeFlashKey}`}
-      className="oneui flex-1 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0 animate-app-enter"
+      className={`oneui flex-1 relative flex flex-col transition-all duration-500 overflow-hidden min-h-0 animate-app-enter ${isPhone ? 'oneui-phone-home' : ''}`}
+      data-home-layout={isPhone ? 'phone' : 'tablet'}
       style={{ background: wallpaper, backgroundSize: 'cover' }}
       onContextMenu={(e) => { e.preventDefault(); if (appDrawerOpen) return; setHomeMenuOpen(true); }}
       onMouseDown={(e) => {
@@ -521,7 +332,7 @@ export default function HomeScreen({
     >
       {/* Edit mode top bar */}
       {isEditMode && (
-        <div className="absolute top-2 left-0 right-0 z-[20] flex items-center justify-center gap-2 px-3 animate-[fadeIn_0.2s_ease-out]">
+        <div className="oneui-home-edit-toolbar absolute top-2 left-0 right-0 z-[20] flex items-center justify-center gap-2 px-3 animate-[fadeIn_0.2s_ease-out]">
           <button onClick={() => setWidgetPickerOpen(true)} className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur text-white text-xs font-medium active:scale-95">＋ 위젯</button>
           <button onClick={() => { setHomePages(p => [...p, Array(40).fill(null)]); setWidgetPages(p => [...p, []]); setCurrentPage(homePages.length); }} className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur text-white text-xs font-medium active:scale-95">＋ 페이지</button>
           {homePages.length > 1 && (
@@ -538,7 +349,7 @@ export default function HomeScreen({
 
       {/* Page slider wrapper — animates between pages */}
       <div
-        className="absolute inset-0 flex flex-col transition-transform"
+        className={`oneui-home-page absolute inset-0 flex flex-col transition-transform ${isEditMode ? 'is-editing' : ''}`}
         style={{
           transform: `translateX(${pageSwipeStart ? pageSwipeDX * 0.4 : 0}px)`,
           transitionDuration: pageSwipeStart ? '0ms' : '250ms',
@@ -546,7 +357,7 @@ export default function HomeScreen({
       >
       {/* Home widgets row */}
       <div
-        className={`absolute flex gap-2 md:gap-4 flex-wrap z-[5] ${isEditMode ? '' : 'pointer-events-none'}`}
+        className={`oneui-home-widgets absolute flex gap-2 md:gap-4 flex-wrap z-[5] ${isEditMode ? '' : 'pointer-events-none'}`}
         style={{
           top: 'calc(var(--oneui-statusbar-h) + var(--oneui-home-pad-top))',
           left: 'var(--oneui-home-pad-x)',
@@ -580,13 +391,13 @@ export default function HomeScreen({
         )}
         {widgets.includes('music') && (
           <div onClick={() => isEditMode && cycleWidgetSize('music')} className={`group relative bg-gradient-to-br from-pink-500/40 to-purple-600/40 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/10 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('music')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
-            <div className="text-2xl">🎵</div><div className="text-xs">재생 중</div>
+            <Music2 size={27} aria-hidden="true"/><div className="text-xs">재생 중</div>
             {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'music')); }}>×</button>}
           </div>
         )}
         {widgets.includes('fitness') && (
           <div onClick={() => isEditMode && cycleWidgetSize('fitness')} className={`group relative bg-gradient-to-br from-green-500/40 to-emerald-600/40 backdrop-blur-md rounded-2xl px-3 py-2 border border-white/10 text-white pointer-events-auto flex items-center gap-2 transition-transform ${widgetSizeClass('fitness')} ${isEditMode ? 'cursor-pointer animate-wiggle' : ''}`}>
-            <div className="text-2xl">👟</div><div className="text-xs">5,280 걸음</div>
+            <Footprints size={27} aria-hidden="true"/><div className="text-xs">5,280 걸음</div>
             {isEditMode && <button className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow-lg" onClick={(e) => { e.stopPropagation(); setWidgets(w => w.filter(x => x !== 'fitness')); }}>×</button>}
           </div>
         )}
@@ -595,14 +406,14 @@ export default function HomeScreen({
       {/* App grid — One UI tablet home grid */}
       <div
         key={`page-${currentPage}`}
-        className="flex-1 flex flex-col justify-center min-h-0 animate-[fadeIn_0.25s_ease-out]"
+        className="oneui-home-apps flex-1 flex flex-col justify-center min-h-0 animate-[fadeIn_0.25s_ease-out]"
         style={{
           paddingTop: 'calc(var(--oneui-statusbar-h) + var(--oneui-home-pad-top) + 78px)',
           paddingBottom: 'var(--oneui-home-reserve)',
         }}
       >
         <div
-          className={`grid w-full max-w-[1240px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}
+          className={`oneui-home-grid grid w-full max-w-[1240px] justify-items-center self-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}
           style={{
             columnGap: 'var(--oneui-home-grid-gap-x)',
             rowGap: 'var(--oneui-home-grid-gap-y)',
@@ -620,9 +431,16 @@ export default function HomeScreen({
               if (i >= 0) slots[i] = ex; else slots.push(ex);
             }
             const iconBox = { width: 'var(--oneui-home-icon-size)', height: 'var(--oneui-home-icon-size)' } as const;
-            const cellBox = { width: 'calc(var(--oneui-home-icon-size) + 22px)' } as const;
+            const cellBox = { width: 'calc(var(--oneui-home-icon-size) + 48px)', maxWidth: '100%' } as const;
             const labelStyle = { fontSize: 'var(--oneui-home-label-size)' } as const;
-            return slots.map((appName, index) => {
+            // Reflow tablet storage slots on a phone without changing their identity.
+            // Rendering 40 empty-inclusive slots as 10 rows pushed the first icons
+            // above the screen. Edit mode retains real spare slots for drag/drop.
+            const indexedSlots = slots.map((appName, index) => ({ appName, index }));
+            const displaySlots = isPhone
+              ? [...indexedSlots.filter(slot => slot.appName), ...indexedSlots.filter(slot => !slot.appName).slice(0, isEditMode ? 4 : 0)]
+              : indexedSlots;
+            return displaySlots.map(({ appName, index }) => {
               if (appName === '__math') {
                 return (
                   <ActionTarget
@@ -631,8 +449,8 @@ export default function HomeScreen({
                     className="flex flex-col items-center gap-1.5 cursor-pointer group oneui-press"
                     style={cellBox}
                   >
-                    <div style={iconBox} className="bg-yellow-400 rounded-[22%] flex items-center justify-center font-black text-white text-2xl shadow-[0_2px_6px_rgba(0,0,0,0.18)]">1+2</div>
-                    <span style={labelStyle} className="text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight">수학탐험대</span>
+                    <div style={iconBox}><GalaxyAppIcon appName="math"/></div>
+                    <span style={labelStyle} className="oneui-app-label text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight">수학탐험대</span>
                   </ActionTarget>
                 );
               }
@@ -642,12 +460,12 @@ export default function HomeScreen({
                 if (!app) return null;
                 return (
                   <div key={`ps-${index}`} onClick={() => alert(`${app.name} 앱이 실행되었어요! (시뮬레이션)`)} style={cellBox} className="flex flex-col items-center gap-1.5 cursor-pointer group oneui-press">
-                    <div style={{ ...iconBox, background: app.color }} className="rounded-[22%] flex items-center justify-center font-black text-white text-2xl shadow-[0_2px_6px_rgba(0,0,0,0.18)]">{app.label}</div>
-                    <span style={labelStyle} className="text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight">{app.name}</span>
+                    <div style={iconBox}><GalaxyAppIcon appName={app.id}/></div>
+                    <span style={labelStyle} className="oneui-app-label text-white font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] truncate w-full text-center leading-tight">{app.name}</span>
                   </div>
                 );
               }
-              if (appName) return <div key={index} data-slot-idx={index}>{renderAppIcon(appName, index)}</div>;
+              if (appName) return <div key={index} data-slot-idx={index} className={isPhone ? 'min-w-0 w-full flex justify-center' : undefined}>{renderAppIcon(appName, index)}</div>;
               return (
                 <ActionTarget
                   key={index} id={`empty-slot-${index}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
@@ -663,8 +481,8 @@ export default function HomeScreen({
 
       {/* ── 하단 chrome: page indicator → Finder → Taskbar (서로 겹치지 않는 safe area) ── */}
       <div
-        className="absolute left-0 right-0 z-[10] flex flex-col items-center pointer-events-none"
-        style={{ bottom: 'var(--oneui-taskbar-h)' }}
+        className="oneui-home-chrome absolute left-0 right-0 z-[10] flex flex-col items-center pointer-events-none"
+        style={{ bottom: isPhone ? 'var(--oneui-phone-dock-h)' : 'var(--oneui-taskbar-h)' }}
       >
         {/* Page indicator — One UI 처럼 작은 dot */}
         <div className="flex items-center justify-center gap-1.5 pointer-events-auto" style={{ height: 'var(--oneui-indicator-h)' }}>
@@ -673,21 +491,23 @@ export default function HomeScreen({
               key={i}
               aria-label={`홈 ${i + 1}페이지`}
               onClick={(e) => { e.stopPropagation(); setCurrentPage(i); }}
-              className={`rounded-full transition-colors ${i === currentPage ? 'w-[7px] h-[7px] bg-white' : 'w-[6px] h-[6px] bg-white/35'}`}
-            />
+              className={isPhone ? 'oneui-phone-page-dot' : `rounded-full transition-colors ${i === currentPage ? 'w-[7px] h-[7px] bg-white' : 'w-[6px] h-[6px] bg-white/35'}`}
+              aria-current={i === currentPage ? 'page' : undefined}
+            >{isPhone && <span className={`block rounded-full transition-colors ${i === currentPage ? 'w-[7px] h-[7px] bg-white' : 'w-[6px] h-[6px] bg-white/35'}`}/>}</button>
           ))}
         </div>
 
         {/* Finder (Samsung 검색 pill) */}
-        <div
-          className="pointer-events-auto mt-1.5 mb-2 w-[min(46%,440px)] min-w-[220px] bg-black/25 backdrop-blur-sm rounded-full flex items-center gap-2 px-4 border border-white/15 oneui-press cursor-pointer"
+        <button
+          type="button" aria-label="앱 검색 및 앱스 열기"
+          className="oneui-home-finder pointer-events-auto mt-1.5 mb-2 w-[min(46%,440px)] min-w-[220px] bg-black/25 backdrop-blur-sm rounded-full flex items-center gap-2 px-4 border border-white/15 oneui-press cursor-pointer text-left"
           style={{ height: 'var(--oneui-finder-h)' }}
           onClick={() => setAppDrawerOpen(true)}
         >
           <Search size={16} className="text-white/80 shrink-0" />
           <span className="text-white/80 text-[13px] flex-1 truncate">검색</span>
           <Mic size={15} className="text-white/70 shrink-0" />
-        </div>
+        </button>
       </div>
 
       {/* Galaxy Tab Taskbar — NavigationBar 와 분리된 별도 영역 */}
@@ -731,11 +551,11 @@ export default function HomeScreen({
         </div>
       )}
 
-      {/* 홈 화면 위로 swipe → 앱스 화면 (모바일 하단 핸들) */}
+      {/* Galaxy phone dock, kept clear of Finder and the navigation buttons. */}
       {isPhone && (
         <div
-          className="absolute bottom-0 left-0 right-0 h-10 flex items-end justify-center pb-1 cursor-pointer group"
-          onClick={() => setAppDrawerOpen(true)}
+          className="oneui-phone-dock absolute bottom-0 left-0 right-0 grid grid-cols-4 items-center justify-items-center"
+          aria-label="즐겨찾는 앱"
           onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
           onTouchMove={(e) => {
             if (drawerSwipeStart !== null && drawerSwipeStart - e.touches[0].clientY > 60) {
@@ -745,7 +565,7 @@ export default function HomeScreen({
           }}
           onTouchEnd={() => setDrawerSwipeStart(null)}
         >
-          <ChevronUp size={22} className="text-white/60 oneui-hint-up" />
+          {phoneDockApps.map(app => <div key={`phone-dock-${app}`}>{renderAppIcon(app, -1, false, 'taskbar')}</div>)}
         </div>
       )}
 
@@ -759,7 +579,7 @@ export default function HomeScreen({
       {/* App Drawer overlay */}
       {appDrawerOpen && (
         <div
-          className="absolute inset-0 z-[90] bg-black/80 backdrop-blur-xl animate-[slideUp_0.3s_ease-out] flex flex-col"
+          className="oneui-apps-drawer absolute inset-0 z-[90] bg-black/80 backdrop-blur-xl animate-[slideUp_0.3s_ease-out] flex flex-col"
           style={{ paddingTop: 'calc(var(--oneui-statusbar-h) + var(--oneui-drawer-pad-top))' }}
           onTouchStart={(e) => setDrawerSwipeStart(e.touches[0].clientY)}
           onTouchMove={(e) => {
@@ -774,7 +594,7 @@ export default function HomeScreen({
           {/* 닫기 (기존 동작 유지) */}
           <button
             aria-label="앱스 화면 닫기"
-            className="absolute right-5 w-9 h-9 rounded-full bg-white/10 md:hover:bg-white/20 flex items-center justify-center text-white oneui-press z-[2]"
+            className="oneui-drawer-close absolute right-5 w-9 h-9 rounded-full bg-white/10 md:hover:bg-white/20 flex items-center justify-center text-white oneui-press z-[2]"
             style={{ top: 'calc(var(--oneui-statusbar-h) + 8px)' }}
             onClick={() => { setAppDrawerOpen(false); setDrawerSearch(''); }}
           >
@@ -783,7 +603,7 @@ export default function HomeScreen({
 
           {/* App Grid */}
           <div
-            className="flex-1 overflow-y-auto"
+            className="oneui-drawer-grid-scroll flex-1 overflow-y-auto min-h-0"
             style={{
               paddingLeft: 'var(--oneui-drawer-pad-x)',
               paddingRight: 'var(--oneui-drawer-pad-x)',
@@ -791,33 +611,28 @@ export default function HomeScreen({
             }}
           >
             {(() => {
-              const all = homeApps
-                .filter((a: any): a is string => typeof a === 'string' && DRAWER_KNOWN_APPS.includes(a))
-                .concat(installedApps.includes('math') ? ['math'] : []);
+              const all = [...new Set([...DRAWER_APPS_WITH_SCREEN, ...homePages.flat().filter((a: any): a is string => typeof a === 'string' && DRAWER_APPS_WITH_SCREEN.includes(a)), ...installedApps.filter(a => a === 'math')])];
               const filtered = drawerSearch
-                ? all.filter(a => a.toLowerCase().includes(drawerSearch.toLowerCase()))
+                ? all.filter(a => `${a} ${APP_LABELS[a] ?? ''}`.toLowerCase().replace(/\s/g, '').includes(drawerSearch.toLowerCase().replace(/\s/g, '')))
                 : all;
               return (
             <div
-              className="grid grid-cols-4 md:grid-cols-8 justify-items-center"
+              className={`oneui-drawer-grid grid justify-items-center ${isPhone ? 'grid-cols-4' : 'grid-cols-4 md:grid-cols-8'}`}
               style={{ columnGap: 'var(--oneui-drawer-gap-x)', rowGap: 'var(--oneui-drawer-gap-y)' }}
             >
               {filtered.map((appName, i) => (
                 <div
                   key={`drawer-${appName}-${i}`}
-                  className="flex flex-col items-center cursor-pointer group oneui-press"
+                  className="min-w-0 w-full flex flex-col items-center cursor-pointer group oneui-press"
                   onClick={() => {
                     cancelDrawerLongPress();
                     // 명확한 스와이프 동작은 앱 실행으로 처리하지 않는다
                     if (drawerPressMoved.current) { drawerPressMoved.current = false; return; }
-                    if (appName === 'math') { setMathAppOpen(true); setAppDrawerOpen(false); return; }
+                    if (appName === 'math') { setMathAppOpen(true); setAppDrawerOpen(false); advanceQuest('app-icon-math'); return; }
                     setAppDrawerOpen(false);
                     setDrawerSearch('');
-                    if (DRAWER_APPS_WITH_SCREEN.includes(appName)) {
-                      onOpenApp(appName);
-                    } else {
-                      alert(`${appName} 앱이 실행되었어요! (시뮬레이션)`);
-                    }
+                    onOpenApp(appName);
+                    advanceQuest(`app-icon-${appName}`);
                   }}
                   onPointerDown={(e) => {
                     drawerPressStart.current = { x: e.clientX, y: e.clientY };
@@ -837,14 +652,11 @@ export default function HomeScreen({
                   }}
                   onTouchCancel={cancelDrawerLongPress}
                 >
-                  <div className="pointer-events-none flex flex-col items-center">
+                  <div className="pointer-events-none min-w-0 w-full flex flex-col items-center">
                     {appName === 'math' ? (
                       <div className="flex flex-col items-center gap-1.5">
-                        <div
-                          className="bg-yellow-400 rounded-[1.25rem] flex items-center justify-center font-black text-white text-2xl"
-                          style={{ width: 'var(--oneui-drawer-icon-size)', height: 'var(--oneui-drawer-icon-size)' }}
-                        >1+2</div>
-                        <span className="text-white truncate w-full text-center leading-tight" style={{ fontSize: 'var(--oneui-home-label-size)' }}>똑똑수학탐험대</span>
+                        <div style={{ width: 'var(--oneui-drawer-icon-size)', height: 'var(--oneui-drawer-icon-size)' }}><GalaxyAppIcon appName="math"/></div>
+                        <span className="oneui-app-label text-white truncate w-full text-center leading-tight" style={{ fontSize: 'var(--oneui-home-label-size)' }}>똑똑수학탐험대</span>
                       </div>
                     ) : renderAppIcon(appName, -1, false, 'drawer')}
                   </div>
@@ -857,7 +669,7 @@ export default function HomeScreen({
 
           {/* Drawer Finder — 홈 Finder 와 동일한 pill 디자인 */}
           <div
-            className="absolute left-0 right-0 z-[2] flex justify-center pointer-events-none"
+            className="oneui-drawer-finder absolute left-0 right-0 z-[2] flex justify-center pointer-events-none"
             style={{ bottom: 'calc(var(--oneui-taskbar-h) + 8px)' }}
           >
             <div
@@ -868,7 +680,7 @@ export default function HomeScreen({
               <input
                 value={drawerSearch}
                 onChange={(e) => setDrawerSearch(e.target.value)}
-                placeholder="검색"
+                aria-label="앱 이름 검색" placeholder="앱 이름 검색"
                 className="flex-1 bg-transparent border-0 text-white placeholder-white/60 text-[13px] focus:outline-none min-w-0"
               />
               <Mic size={15} className="text-white/70 shrink-0"/>
@@ -887,30 +699,31 @@ export default function HomeScreen({
                 setUninstallTarget(null);
               }}
             >
-              <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-[340px] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-[#1c1c1e] text-white rounded-3xl p-6 w-[340px] max-w-[calc(100%_-_24px)] max-h-[90%] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-3">
                   <Trash2 size={24} className="text-red-400"/>
-                  <div className="text-lg font-bold">앱 삭제</div>
+                  <div className="text-lg font-bold">{uninstallTarget === 'math' ? '앱 삭제' : '기본 앱'}</div>
                 </div>
                 <div className="text-sm text-gray-300 mb-6 leading-relaxed">
-                  <span className="font-bold text-white">{uninstallTarget}</span> 앱을 정말 삭제하시겠어요? 시스템 앱은 사용 중지됩니다.
+                  <span className="font-bold text-white">{APP_LABELS[uninstallTarget]?.split(' ')[0] ?? uninstallTarget}</span>{uninstallTarget === 'math' ? ' 앱을 삭제할까요? 앱에 저장한 연습 자료도 사라질 수 있어요.' : '은(는) 기본 앱이에요. 이 연습에서는 삭제하지 않아요. 홈 화면에서 아이콘을 없애는 것과 앱 삭제는 달라요.'}
                 </div>
                 <div className="flex gap-2">
                   <button
                     className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all font-medium"
                     onClick={() => setUninstallTarget(null)}
                   >취소</button>
-                  <button
+                  {uninstallTarget === 'math' && <button
                     className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 active:scale-95 transition-all font-bold"
                     onClick={() => {
                       if (uninstallTarget === 'math') {
                         setInstalledApps(prev => prev.filter(a => a !== 'math'));
+                        advanceQuest('app-uninstall');
                       } else {
                         setHomeApps(prev => prev.map(a => a === uninstallTarget ? null : a));
                       }
                       setUninstallTarget(null);
                     }}
-                  >삭제</button>
+                  >삭제</button>}
                 </div>
               </div>
             </div>

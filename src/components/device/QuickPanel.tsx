@@ -1,16 +1,20 @@
 import React from 'react';
 import {
-  Wifi, Bluetooth, Volume2, VolumeX, Vibrate, Sun, Camera, Settings, Play,
-  BatteryCharging, X, RefreshCcw, Plane, Flashlight, MapPin,
-  ImageIcon, Sliders, Moon, ChevronUp, BellOff, Bell, ChevronLeft, ChevronRight,
+  Wifi, Bluetooth, Volume2, VolumeX, Vibrate, Sun, Settings, BatteryCharging,
+  X, RotateCcw, Plane, MapPin, Moon, ChevronUp, BellOff, Bell,
+  ChevronLeft, ChevronRight, Pencil, Power, LockKeyhole, Eye, ScanLine,
+  Check,
 } from 'lucide-react';
 import { ActionTarget } from '@/components/apps/shared';
+import { GalaxyAppIcon } from '@/components/device/GalaxyAppIcon';
 import { WIFI_NETWORKS } from '@/data/appCatalog';
 import type { NotificationItem, Upd } from '@/components/device/HomeScreen';
+import './quick-panel.css';
 
 export type PanelMode = 'quick' | 'notifications' | null;
 
 export interface QuickPanelProps {
+  isPhone?: boolean;
   currentTargetId: string | null;
   advanceQuest: (id: string) => void;
   quickPanelOpen: boolean;
@@ -48,467 +52,265 @@ export interface QuickPanelProps {
   soundMode: string;
   setSoundMode: React.Dispatch<React.SetStateAction<any>>;
   setPhotos: Upd<any[]>;
+  onScreenshot?: () => void;
+  onPowerMenu?: () => void;
   setCurrentApp: React.Dispatch<React.SetStateAction<any>>;
   setSettingsMenu: React.Dispatch<React.SetStateAction<any>>;
 }
 
-/** One UI 시스템 패널 공통 헤더 (시간 / 날짜 / 편집 / 설정) */
-function PanelHeader({
-  title, onSettings, right,
-}: { title: string; onSettings?: () => void; right?: React.ReactNode }) {
-  const [now, setNow] = React.useState<{ t: string; d: string } | null>(null);
+type TargetProps = Pick<QuickPanelProps, 'currentTargetId' | 'advanceQuest'>;
+
+function PanelHeader({ onSettings, onEdit, onPower }: {
+  onSettings: () => void; onEdit: () => void; onPower: () => void;
+}) {
+  const [now, setNow] = React.useState<Date | null>(null);
   React.useEffect(() => {
-    const tick = () => {
-      const d = new Date();
-      setNow({
-        t: d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }),
-        d: d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }),
-      });
-    };
-    tick();
-    const iv = setInterval(tick, 20000);
-    return () => clearInterval(iv);
+    setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 20000);
+    return () => clearInterval(timer);
   }, []);
   return (
-    <div className="flex items-end justify-between text-white/95" style={{ minHeight: 'var(--oneui-panel-header-h)' }}>
-      <div className="flex items-end gap-3 min-w-0">
-        <span className="text-[26px] font-semibold leading-none tabular-nums tracking-[-0.02em]">{now?.t ?? '--:--'}</span>
-        <span className="text-[13px] text-white/70 leading-none pb-0.5 truncate">{now?.d ?? ''}</span>
-        <span className="text-[13px] text-white/50 leading-none pb-0.5 hidden sm:inline">· {title}</span>
+    <header className="qp-header">
+      <div className="qp-clock">
+        <span>{now?.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) ?? '--:--'}</span>
+        <span>{now?.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' }) ?? ''}</span>
       </div>
-      <div className="flex items-center gap-1.5">
-        {right}
-        <button
-          type="button" title="편집 (시뮬레이션)" aria-label="편집"
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white/85 hover:bg-white/10 active:scale-90 transition"
-          onClick={(e) => e.stopPropagation()}
-        ><Sliders size={18} /></button>
-        <button
-          type="button" title="설정" aria-label="설정"
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white/85 hover:bg-white/10 active:scale-90 transition"
-          onClick={(e) => { e.stopPropagation(); onSettings?.(); }}
-        ><Settings size={18} /></button>
+      <div className="qp-header-actions">
+        <button type="button" className="qp-icon-button" aria-label="빠른 설정 편집" title="편집" onClick={onEdit}><Pencil size={19} /></button>
+        <button type="button" className="qp-icon-button" aria-label="전원 메뉴" title="전원 메뉴" onClick={onPower}><Power size={21} /></button>
+        <button type="button" className="qp-icon-button" aria-label="설정" title="설정" onClick={onSettings}><Settings size={21} /></button>
       </div>
-    </div>
+    </header>
   );
 }
 
+function ConnectionTile({ id, active, icon, label, detail, onClick, currentTargetId, advanceQuest }: TargetProps & {
+  id: string; active: boolean; icon: React.ReactNode; label: string; detail: string; onClick: () => void;
+}) {
+  return (
+    <ActionTarget id={id} currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance className="qp-connection-target" tooltipPosition="bottom">
+      <button type="button" className={`qp-connection ${active ? 'is-active' : ''}`} aria-label={`${label}: ${detail}`} aria-pressed={active} onClick={onClick}>
+        <span className="qp-connection-icon">{icon}</span>
+        <span className="qp-connection-copy"><strong>{label}</strong><span>{detail}</span></span>
+        <ChevronRight size={13} className="qp-connection-chevron" />
+      </button>
+    </ActionTarget>
+  );
+}
+
+function RoundControl({ id, extraTargetIds, active, icon, label, onClick, currentTargetId, advanceQuest }: TargetProps & {
+  id: string; extraTargetIds?: string[]; active: boolean; icon: React.ReactNode; label: string; onClick: () => void;
+}) {
+  return (
+    <ActionTarget id={id} extraTargetIds={extraTargetIds} currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance className="qp-control-target" tooltipPosition="bottom">
+      <button type="button" className={`qp-round-control ${active ? 'is-active' : ''}`} aria-label={label} aria-pressed={active} onClick={onClick}>
+        <span className="qp-control-disc">{icon}</span><span className="qp-control-label">{label}</span>
+      </button>
+    </ActionTarget>
+  );
+}
+
+function WifiSignal({ secure, signal = 4 }: { secure: boolean; signal?: number }) {
+  return <span className="qp-wifi-signal"><Wifi size={25} strokeWidth={1.85} style={{ opacity: signal < 3 ? .58 : 1 }} />{secure && <LockKeyhole size={10} strokeWidth={2.7} className="qp-wifi-lock" />}</span>;
+}
+
 export default function QuickPanel({
-  currentTargetId, advanceQuest, quickPanelOpen, setQuickPanelOpen,
-  panelMode, setPanelMode,
+  isPhone = false,
+  currentTargetId, advanceQuest, quickPanelOpen, setQuickPanelOpen, panelMode, setPanelMode,
   notifications, setNotifications, notifDrag, setNotifDrag, readNotifIds, setReadNotifIds,
-  wifi, setWifi, wifiConnected, setWifiConnected,
-  wifiModalOpen, setWifiModalOpen, wifiPasswordInput, setWifiPasswordInput, wifiPassword, setWifiPassword,
+  wifi, setWifi, wifiConnected, setWifiConnected, wifiModalOpen, setWifiModalOpen,
+  wifiPasswordInput, setWifiPasswordInput, wifiPassword, setWifiPassword,
   bluetooth, setBluetooth, connectedBtDevice, setBluetoothModalOpen,
   airplane, setAirplane, darkMode, setDarkMode, brightness, setBrightness,
-  volume, setVolume, soundMode, setSoundMode, setPhotos, setCurrentApp, setSettingsMenu,
+  volume, setVolume, soundMode, setSoundMode, onScreenshot, onPowerMenu, setCurrentApp, setSettingsMenu,
 }: QuickPanelProps) {
-  const mode: Exclude<PanelMode, null> = panelMode === 'notifications' ? 'notifications' : 'quick';
-  const goMode = (m: Exclude<PanelMode, null>) => setPanelMode?.(m);
-
+  const beforeAirplane = React.useRef<{ wifi: boolean; wifiConnected: string | null; bluetooth: boolean } | null>(null);
+  React.useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('android-explorer-airplane-v1') || 'null');
+      if (saved && typeof saved.wifi === 'boolean' && typeof saved.bluetooth === 'boolean' && (saved.wifiConnected === null || typeof saved.wifiConnected === 'string')) beforeAirplane.current = saved;
+    } catch { /* No previous practice state. */ }
+  }, []);
+  const [autoRotate, setAutoRotate] = React.useState(false);
+  const [locationEnabled, setLocationEnabled] = React.useState(false);
+  const [powerSaving, setPowerSaving] = React.useState(false);
+  const [eyeComfort, setEyeComfort] = React.useState(false);
+  const [editPanel, setEditPanel] = React.useState(false);
+  const [showExtraControls, setShowExtraControls] = React.useState(true);
+  const [soundOptionsOpen, setSoundOptionsOpen] = React.useState(false);
+  const [wifiError, setWifiError] = React.useState('');
+  const [showWifiPassword, setShowWifiPassword] = React.useState(false);
+  const [panelNotice, setPanelNotice] = React.useState('');
+  const [expandedNotification, setExpandedNotification] = React.useState<number | null>(null);
+  const mode = panelMode === 'notifications' ? 'notifications' : 'quick';
+  const targetProps = { currentTargetId, advanceQuest };
   const closePanel = () => { setQuickPanelOpen(false); setPanelMode?.(null); };
-  const openSettings = () => { setCurrentApp('Settings'); setSettingsMenu('connections'); closePanel(); };
-
-  /* ---- 패널 좌우 전환 제스처 (slider/toggle 위에서는 시작하지 않음) ---- */
-  const swipe = React.useRef<{ x: number; y: number } | null>(null);
-  const isInteractive = (target: EventTarget | null) => {
-    const el = target as HTMLElement | null;
-    return !!el?.closest?.('input, button, [role="slider"]');
-  };
-  const onSwipeDown = (e: React.PointerEvent) => {
-    if (isInteractive(e.target)) { swipe.current = null; return; }
-    swipe.current = { x: e.clientX, y: e.clientY };
-  };
-  const onSwipeUp = (e: React.PointerEvent) => {
-    const s = swipe.current;
-    swipe.current = null;
-    if (!s) return;
-    const dx = e.clientX - s.x;
-    const dy = e.clientY - s.y;
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
-      if (dx > 0) goMode('notifications');
-      else goMode('quick');
-      return;
-    }
-    if (dy < -60 && Math.abs(dy) > Math.abs(dx)) {
-      closePanel();
-      advanceQuest('quick-panel-bg');
-    }
-  };
-
+  const closeWifi = () => { setWifiModalOpen(false); setWifiPasswordInput(''); setWifiError(''); };
+  const openSettings = (menu = 'connections') => { setCurrentApp('Settings'); setSettingsMenu(menu); closeWifi(); closePanel(); };
+  const goMode = (next: 'notifications' | 'quick') => { setPanelMode?.(next); advanceQuest(next === 'notifications' ? 'notification-trigger' : 'swipe-trigger'); };
   const soundLabel = soundMode === 'vibrate' ? '진동' : soundMode === 'mute' ? '무음' : '소리';
   const SoundIcon = soundMode === 'vibrate' ? Vibrate : soundMode === 'mute' ? VolumeX : Volume2;
+  const showSoundOptions = soundOptionsOpen || ['quick-sound-vibrate', 'quick-sound-mute', 'quick-sound-sound'].includes(currentTargetId ?? '');
+  const showAuxiliary = showExtraControls || ['quick-darkmode', 'quick-location', 'quick-power-saving', 'quick-eye-comfort'].includes(currentTargetId ?? '');
 
-  /* ---- 큰 toggle 타일 ---- */
-  const Tile = ({
-    id, on, icon, label, sub, onClick, extraTarget,
-  }: { id?: string; on: boolean; icon: React.ReactNode; label: string; sub?: string; onClick: () => void; extraTarget?: boolean }) => {
-    const inner = (
-      <div
-        className="h-[74px] flex items-center gap-3 cursor-pointer select-none active:scale-[0.98] transition-transform"
-        style={{
-          background: on ? 'var(--oneui-panel-tile-on)' : 'var(--oneui-panel-tile)',
-          color: on ? '#101114' : '#fff',
-          borderRadius: '999px',
-          paddingLeft: 16, paddingRight: 20,
-        }}
-      >
-        <div
-          className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
-          style={{ background: on ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.14)' }}
-        >{icon}</div>
-        <div className="flex flex-col leading-tight min-w-0">
-          <span className="text-[14px] font-semibold truncate">{label}</span>
-          <span className={`text-[11px] truncate ${on ? 'opacity-60' : 'opacity-70'}`}>{sub}</span>
-        </div>
-      </div>
-    );
-    return id ? (
-      <ActionTarget id={id} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={onClick} className="block">
-        {inner}
-      </ActionTarget>
-    ) : (
-      <div onClick={onClick}>{inner}</div>
-    );
+  React.useEffect(() => {
+    if (!quickPanelOpen) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (wifiPasswordInput === 'open') setWifiPasswordInput('');
+      else if (wifiModalOpen) setWifiModalOpen(false);
+      else { setQuickPanelOpen(false); setPanelMode?.(null); advanceQuest('quick-panel-bg'); }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [quickPanelOpen, wifiModalOpen, wifiPasswordInput, setWifiPasswordInput, setWifiModalOpen, setQuickPanelOpen, setPanelMode, advanceQuest]);
+
+  const swipe = React.useRef<{ x: number; y: number } | null>(null);
+  const onSwipeDown = (event: React.PointerEvent) => {
+    if ((event.target as HTMLElement).closest('input, button, [role="slider"], [data-action-target]')) { swipe.current = null; return; }
+    swipe.current = { x: event.clientX, y: event.clientY };
+  };
+  const onSwipeUp = (event: React.PointerEvent) => {
+    const start = swipe.current;
+    swipe.current = null;
+    if (!start) return;
+    const dx = event.clientX - start.x, dy = event.clientY - start.y;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) goMode(dx > 0 ? 'notifications' : 'quick');
+    else if (dy < -60 && Math.abs(dy) > Math.abs(dx)) { closePanel(); advanceQuest('quick-panel-bg'); }
+  };
+  const toggleAirplane = () => {
+    const next = !airplane;
+    setAirplane(next);
+    if (next) {
+      beforeAirplane.current = { wifi, wifiConnected, bluetooth };
+      try { localStorage.setItem('android-explorer-airplane-v1', JSON.stringify(beforeAirplane.current)); } catch { /* Keep in-memory state. */ }
+      setWifi(false); setWifiConnected(null); setBluetooth(false);
+    } else if (beforeAirplane.current) {
+      setWifi(beforeAirplane.current.wifi); setWifiConnected(beforeAirplane.current.wifiConnected); setBluetooth(beforeAirplane.current.bluetooth);
+      setPanelNotice('비행기 탑승 모드를 껐어요. 이전 무선 연결 상태로 돌아왔어요.');
+    } else setPanelNotice('비행기 탑승 모드를 껐어요. Wi-Fi에서 학교 네트워크에 다시 연결해요.');
+    advanceQuest(next ? 'quick-airplane' : 'quick-airplane-off');
+  };
+  const chooseSound = (next: string) => {
+    setSoundMode(next);
+    advanceQuest(next === 'vibrate' ? 'quick-sound-vibrate' : next === 'mute' ? 'quick-sound-mute' : 'quick-sound-sound');
+  };
+  const connectWifi = () => {
+    if (wifiPassword !== 'tablet1234') { setWifiError('비밀번호가 달라요. tablet1234를 확인해 다시 입력해요.'); return; }
+    setWifi(true); setWifiConnected('탐험대_WiFi'); setWifiPassword(''); closeWifi(); advanceQuest('wifi-connect-btn');
+  };
+  const openTrainingNetwork = () => {
+    setWifi(true); setWifiPasswordInput('open'); setWifiPassword(''); setWifiError(''); advanceQuest('wifi-net-0');
   };
 
-  const MiniTile = ({
-    id, on, icon, label, onClick,
-  }: { id?: string; on: boolean; icon: React.ReactNode; label: string; onClick?: () => void }) => {
-    const inner = (
-      <div className="flex flex-col items-center gap-1.5 cursor-pointer active:scale-90 transition-transform">
-        <div
-          className="w-[52px] h-[52px] rounded-full flex items-center justify-center"
-          style={{ background: on ? 'var(--oneui-panel-tile-on)' : 'var(--oneui-panel-tile)', color: on ? '#101114' : '#fff' }}
-        >{icon}</div>
-        <span className="text-[10.5px] text-white/80">{label}</span>
-      </div>
-    );
-    return id ? (
-      <ActionTarget id={id} currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={onClick}>{inner}</ActionTarget>
-    ) : (
-      <div onClick={onClick}>{inner}</div>
-    );
-  };
-
-  const renderNotifCard = (n: NotificationItem) => {
-    const drag = notifDrag && notifDrag.id === n.id ? notifDrag.dx : 0;
-    const opacity = Math.max(0, 1 - Math.abs(drag) / 200);
-    const isRead = readNotifIds.includes(n.id);
+  const renderNotification = (notification: NotificationItem) => {
+    const drag = notifDrag?.id === notification.id ? notifDrag.dx : 0;
+    const isRead = readNotifIds.includes(notification.id);
     return (
-      <ActionTarget
-        key={n.id}
-        id={`notif-tap-${n.id}`}
-        currentTargetId={currentTargetId}
-        advanceQuest={advanceQuest}
-        extraTargetIds={[`notif-dismiss-${n.id}`]}
-        disableClickAdvance={true}
-        onClick={(e: any) => {
-          e.stopPropagation();
-          if (Math.abs(drag) > 5) return;
-          setReadNotifIds(prev => prev.includes(n.id) ? prev : [...prev, n.id]);
-          advanceQuest(`notif-tap-${n.id}`);
-        }}
-        tooltipPosition="bottom"
-        tooltipText={currentTargetId === `notif-dismiss-${n.id}` ? '← 옆으로 스와이프해서 지우기' : '탭해서 확인'}
-        onPointerDown={(e: any) => {
-          e.stopPropagation();
-          setNotifDrag({ id: n.id, startX: e.clientX, dx: 0 });
-        }}
-        onPointerMove={(e: any) => {
-          if (!notifDrag || notifDrag.id !== n.id) return;
-          setNotifDrag({ ...notifDrag, dx: e.clientX - notifDrag.startX });
-        }}
-        onPointerUp={(e: any) => {
-          e.stopPropagation?.();
-          if (!notifDrag || notifDrag.id !== n.id) { setNotifDrag(null); return; }
-          const d = notifDrag.dx;
-          setNotifDrag(null);
-          if (Math.abs(d) > 100) {
-            setNotifications(prev => prev.filter(x => x.id !== n.id));
-            advanceQuest(`notif-dismiss-${n.id}`);
-          }
-        }}
-        className="rounded-[22px] px-4 py-3 flex items-start gap-3 cursor-pointer select-none touch-none text-white"
-        style={{
-          background: 'rgba(255,255,255,0.10)',
-          transform: `translateX(${drag}px)`,
-          opacity,
-          transition: notifDrag && notifDrag.id === n.id ? 'none' : 'transform 0.2s, opacity 0.2s',
-        }}
-      >
-        <div className={`w-9 h-9 rounded-full ${n.color} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-          {n.app === 'KakaoTalk' ? '💬' : n.app === 'Messages' ? '✉️' : n.app === 'Gmail' ? 'M' : '!'}
+      <ActionTarget key={notification.id} id={`notif-tap-${notification.id}`} extraTargetIds={[`notif-dismiss-${notification.id}`]} {...targetProps} disableClickAdvance
+        className="qp-notification" tooltipPosition="bottom"
+        tooltipText={currentTargetId === `notif-dismiss-${notification.id}` ? '옆으로 밀어 알림 지우기' : '알림 확인하기'}
+        style={{ transform: `translateX(${drag}px)`, opacity: Math.max(0, 1 - Math.abs(drag) / 200), transition: notifDrag?.id === notification.id ? 'none' : 'transform .2s, opacity .2s' }}
+        onClick={(event) => { event.stopPropagation(); if (Math.abs(drag) > 5) return; setReadNotifIds(prev => prev.includes(notification.id) ? prev : [...prev, notification.id]); setExpandedNotification(expandedNotification === notification.id ? null : notification.id); advanceQuest(`notif-tap-${notification.id}`); }}
+        onPointerDown={(event) => { event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId); setNotifDrag({ id: notification.id, startX: event.clientX, dx: 0 }); }}
+        onPointerMove={(event) => { if (notifDrag?.id === notification.id) setNotifDrag({ ...notifDrag, dx: event.clientX - notifDrag.startX }); }}
+        onPointerUp={(event) => { event.stopPropagation(); const distance = notifDrag?.id === notification.id ? notifDrag.dx : 0; setNotifDrag(null); if (Math.abs(distance) > 100) { setNotifications(prev => prev.filter(item => item.id !== notification.id)); advanceQuest(`notif-dismiss-${notification.id}`); } }}>
+        <span className="qp-notification-icon"><GalaxyAppIcon appName={notification.app} /></span>
+        <div className="qp-notification-copy">
+          <div className="qp-notification-meta">{notification.appName}<span> · 방금 전{isRead ? ' · 읽음' : ''}</span></div>
+          <strong>{notification.title}</strong>
+          <p className={expandedNotification === notification.id ? 'is-expanded' : ''}>{notification.body}</p>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 text-[11px] text-white/60 mb-0.5">
-            <span className="font-semibold text-white/80">{n.appName}</span>
-            <span>· 방금 전</span>
-            {isRead && <span className="text-sky-300 font-medium">· 읽음</span>}
-          </div>
-          <div className="text-[14px] font-semibold truncate">{n.title}</div>
-          <div className="text-[12.5px] text-white/70 truncate">{n.body}</div>
-        </div>
+        <button type="button" aria-label={`${notification.appName} 알림 지우기`} className="qp-icon-button qp-dismiss-notification" onPointerDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); setNotifications(prev => prev.filter(item => item.id !== notification.id)); advanceQuest(`notif-dismiss-${notification.id}`); }}><X size={15} /></button>
       </ActionTarget>
     );
   };
 
   return (
-    <div
-      className={`absolute inset-0 z-[90] transition-opacity ${quickPanelOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-      style={{
-        transitionDuration: 'var(--oneui-duration)',
-        transitionTimingFunction: 'var(--oneui-ease)',
-        background: 'var(--oneui-panel-scrim)',
-        backdropFilter: 'blur(var(--oneui-overlay-blur))',
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) { closePanel(); advanceQuest('quick-panel-bg'); } }}
-    >
-      {/* 상단에서 내려오는 시스템 패널 */}
-      <div
-        key={mode}
-        className="oneui oneui-panel-enter absolute left-0 right-0 top-0 mx-auto flex flex-col text-white z-[91]"
-        style={{
-          maxWidth: 'min(1120px, 94%)',
-          maxHeight: 'calc(100% - var(--oneui-navbar-h) - 16px)',
-          background: 'var(--oneui-panel-bg)',
-          backdropFilter: 'blur(var(--oneui-overlay-blur))',
-          borderBottomLeftRadius: 'var(--oneui-panel-radius)',
-          borderBottomRightRadius: 'var(--oneui-panel-radius)',
-          padding: 'var(--oneui-panel-pad)',
-          gap: 'var(--oneui-panel-gap)',
-          boxShadow: '0 18px 48px rgba(0,0,0,0.42)',
-        }}
-        onPointerDown={onSwipeDown}
-        onPointerUp={onSwipeUp}
-      >
-        <PanelHeader
-          title={mode === 'quick' ? '빠른 설정' : '알림'}
-          onSettings={openSettings}
-          right={
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); goMode(mode === 'quick' ? 'notifications' : 'quick'); }}
-              className="h-9 px-3 rounded-full bg-white/12 hover:bg-white/20 active:scale-95 transition flex items-center gap-1.5 text-[12px] font-medium"
-            >
-              {mode === 'quick'
-                ? <><ChevronRight size={14} /> 알림{notifications.length > 0 ? ` ${notifications.length}` : ''}</>
-                : <><ChevronLeft size={14} /> 빠른 설정</>}
-            </button>
-          }
-        />
-
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--oneui-panel-gap)' }}>
-          {mode === 'quick' ? (
-            <>
-              {/* 주요 연결 toggle */}
-              <div className="grid grid-cols-2 gap-3">
-                <Tile
-                  id="quick-wifi-toggle" on={wifi}
-                  icon={<Wifi size={22} />} label="Wi-Fi"
-                  sub={wifiConnected || (wifi ? '연결 대기' : '사용 안 함')}
-                  onClick={() => {
-                    if (!wifi) { setWifi(true); setTimeout(() => setWifiModalOpen(true), 260); }
-                    else { setWifi(false); setWifiConnected(null); }
-                  }}
-                />
-                <Tile
-                  id="quick-bluetooth" on={bluetooth}
-                  icon={<Bluetooth size={22} />} label="블루투스"
-                  sub={connectedBtDevice || (bluetooth ? '켜짐' : '꺼짐')}
-                  onClick={() => { if (!bluetooth) setBluetooth(true); setBluetoothModalOpen(true); }}
-                />
-                <Tile
-                  id="quick-airplane" on={airplane}
-                  icon={<Plane size={22} />} label="비행기 탑승 모드"
-                  sub={airplane ? '켜짐 · 통신 차단' : '꺼짐'}
-                  onClick={() => setAirplane(!airplane)}
-                />
-                <Tile
-                  on={soundMode === 'sound'}
-                  icon={<SoundIcon size={22} />} label="소리 모드" sub={soundLabel}
-                  onClick={() => setSoundMode(soundMode === 'sound' ? 'vibrate' : soundMode === 'vibrate' ? 'mute' : 'sound')}
-                />
+    <div aria-hidden={!quickPanelOpen} inert={!quickPanelOpen} className={`qp-overlay ${quickPanelOpen ? 'is-open' : ''}`}
+      onClick={event => { if (event.target === event.currentTarget) { closePanel(); advanceQuest('quick-panel-bg'); } }}>
+      <div className={`qp-shell ${mode === 'notifications' ? 'qp-shell-notifications' : ''}`} inert={wifiModalOpen}>
+        <section aria-label={mode === 'quick' ? '빠른 설정' : '알림'} className={`qp-panel ${eyeComfort ? 'qp-eye-comfort' : ''}`} onPointerDown={onSwipeDown} onPointerUp={onSwipeUp}>
+          <PanelHeader onSettings={() => openSettings()} onEdit={() => setEditPanel(!editPanel)} onPower={() => { if (onPowerMenu) { closePanel(); onPowerMenu(); } else setPanelNotice('태블릿의 측면 버튼과 음량 아래 버튼을 길게 누르면 전원 메뉴가 열려요.'); }} />
+          <div className="qp-scroll-body">
+            {editPanel && <div className="qp-edit-panel"><div><strong>빠른 설정 편집</strong><span>보조 버튼 표시</span></div><button type="button" role="switch" aria-label="보조 버튼 표시" aria-checked={showExtraControls} className={`qp-switch ${showExtraControls ? 'is-on' : ''}`} onClick={() => setShowExtraControls(!showExtraControls)}><span /></button><button type="button" className="qp-text-button" onClick={() => setEditPanel(false)}>완료</button></div>}
+            {panelNotice && <div className="qp-notice" role="status"><span>{panelNotice}</span><button type="button" aria-label="안내 닫기" className="qp-icon-button" onClick={() => setPanelNotice('')}><X size={14} /></button></div>}
+            {mode === 'quick' ? <>
+              <div className="qp-connections">
+                <ConnectionTile {...targetProps} id="quick-wifi-toggle" active={wifi} icon={<Wifi size={24} />} label="Wi-Fi" detail={wifiConnected || (wifi ? '사용 중' : '사용 안 함')} onClick={() => { setWifi(true); setWifiModalOpen(true); setWifiPasswordInput(''); setWifiError(''); advanceQuest('quick-wifi-toggle'); }} />
+                <ConnectionTile {...targetProps} id="quick-bluetooth" active={bluetooth} icon={<Bluetooth size={23} />} label="블루투스" detail={connectedBtDevice || (bluetooth ? '사용 중' : '사용 안 함')} onClick={() => { if (!bluetooth) setBluetooth(true); setBluetoothModalOpen(true); advanceQuest('quick-bluetooth'); }} />
               </div>
-
-              {/* 소리 모드 상세 (진동 quest 대상 유지) */}
-              <div className="grid grid-cols-3 gap-2.5">
-                <div onClick={() => setSoundMode('sound')} className={`h-12 rounded-full flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition ${soundMode === 'sound' ? 'bg-white text-[#101114]' : 'bg-white/12 text-white/90'}`}>
-                  <Volume2 size={17} /><span className="text-[12px] font-medium">소리</span>
-                </div>
-                <ActionTarget
-                  id="quick-sound-vibrate" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  onClick={() => setSoundMode('vibrate')}
-                  className={`h-12 rounded-full flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition ${soundMode === 'vibrate' ? 'bg-white text-[#101114]' : 'bg-white/12 text-white/90'}`}
-                >
-                  <Vibrate size={17} /><span className="text-[12px] font-medium">진동</span>
+              <div className="qp-control-group">
+                <RoundControl {...targetProps} id="quick-sound-mode" active={soundMode !== 'mute'} icon={<SoundIcon size={23} />} label={soundLabel} onClick={() => { chooseSound(soundMode === 'sound' ? 'vibrate' : soundMode === 'vibrate' ? 'mute' : 'sound'); setSoundOptionsOpen(true); }} />
+                <RoundControl {...targetProps} id="quick-rotation-auto" active={autoRotate} icon={autoRotate ? <RotateCcw size={23} /> : <LockKeyhole size={22} />} label={autoRotate ? '자동 회전' : isPhone ? '세로' : '가로'} onClick={() => { setAutoRotate(!autoRotate); if (!autoRotate) advanceQuest('quick-rotation-auto'); setPanelNotice(autoRotate ? `화면 방향을 ${isPhone ? '세로' : '가로'}로 고정했어요.` : '자동 회전을 켰어요. 실제 갤럭시 기기를 돌리면 화면 방향이 바뀌어요.'); }} />
+                <RoundControl {...targetProps} id="quick-airplane" extraTargetIds={['quick-airplane-off']} active={airplane} icon={<Plane size={23} />} label="비행기 탑승 모드" onClick={toggleAirplane} />
+                <RoundControl {...targetProps} id="quick-screenshot" active={false} icon={<ScanLine size={23} />} label="화면 캡처" onClick={() => { if (onScreenshot) onScreenshot(); else setPanelNotice('측면 버튼과 음량 아래 버튼을 동시에 짧게 눌러 화면을 캡처해요.'); }} />
+                {showAuxiliary && <>
+                  <RoundControl {...targetProps} id="quick-darkmode" active={darkMode} icon={<Moon size={22} />} label="다크 모드" onClick={() => { setDarkMode(!darkMode); advanceQuest('quick-darkmode'); }} />
+                  <RoundControl {...targetProps} id="quick-eye-comfort" active={eyeComfort} icon={<Eye size={23} />} label="편안하게 화면 보기" onClick={() => { setEyeComfort(!eyeComfort); if (!eyeComfort) advanceQuest('quick-eye-comfort'); }} />
+                  <RoundControl {...targetProps} id="quick-location" active={locationEnabled} icon={<MapPin size={23} />} label="위치" onClick={() => { setLocationEnabled(!locationEnabled); advanceQuest('quick-location'); setPanelNotice('위치는 지도처럼 필요한 앱을 사용할 때만 켜요.'); }} />
+                  <RoundControl {...targetProps} id="quick-power-saving" active={powerSaving} icon={<BatteryCharging size={24} />} label="절전 모드" onClick={() => { setPowerSaving(!powerSaving); if (!powerSaving) advanceQuest('quick-power-saving'); setPanelNotice(powerSaving ? '절전 모드를 껐어요.' : '절전 모드를 켰어요. 백그라운드 활동을 줄여 배터리를 아껴요.'); }} />
+                </>}
+              </div>
+              <div className="qp-slider-group">
+                <ActionTarget {...targetProps} id="quick-brightness-slider" disableClickAdvance className="qp-slider" style={{ '--qp-level': `${(brightness - 10) / 90 * 100}%` } as React.CSSProperties} tooltipPosition="bottom">
+                  <span className="qp-slider-fill" /><Sun size={21} className="qp-slider-icon" /><span className="qp-slider-number">{brightness}%</span>
+                  <input type="range" min="10" max="100" value={brightness} aria-label="밝기" aria-valuetext={`${brightness}%`} onChange={event => { setBrightness(Number(event.target.value)); advanceQuest('quick-brightness-slider'); }} />
                 </ActionTarget>
-                <div onClick={() => setSoundMode('mute')} className={`h-12 rounded-full flex items-center justify-center gap-2 cursor-pointer active:scale-95 transition ${soundMode === 'mute' ? 'bg-white text-[#101114]' : 'bg-white/12 text-white/90'}`}>
-                  <VolumeX size={17} /><span className="text-[12px] font-medium">무음</span>
-                </div>
-              </div>
-
-              {/* 밝기 / 음량 */}
-              <div className="flex flex-col" style={{ gap: 'var(--oneui-panel-gap)' }}>
-                <div className="rounded-full h-[52px] flex items-center px-5 gap-4" style={{ background: 'var(--oneui-panel-tile)' }}>
-                  <Sun size={19} className="text-white/90 shrink-0" />
-                  <input
-                    type="range" min="10" max="100" value={brightness} aria-label="밝기"
-                    onChange={(e) => setBrightness(e.target.value)}
-                    className="flex-1 accent-white h-2.5 bg-white/25 rounded-full appearance-none cursor-pointer"
-                  />
-                  <span className="text-[11px] text-white/70 w-8 text-right tabular-nums">{brightness}</span>
-                </div>
-                <ActionTarget
-                  id="quick-volume-slider" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  className="rounded-full h-[52px] flex items-center px-5 gap-4"
-                  style={{ background: 'var(--oneui-panel-tile)' }}
-                >
-                  <VolumeX size={19} className="text-white/90 shrink-0" />
-                  <input
-                    type="range" min="0" max="100" value={volume} aria-label="음량"
-                    onChange={(e) => { setVolume(e.target.value); advanceQuest('quick-volume-slider'); }}
-                    className="flex-1 accent-white h-2.5 bg-white/25 rounded-full appearance-none cursor-pointer"
-                  />
-                  <Volume2 size={19} className="text-white/90 shrink-0" />
+                <ActionTarget {...targetProps} id="quick-volume-slider" disableClickAdvance className="qp-slider" style={{ '--qp-level': `${volume}%` } as React.CSSProperties} tooltipPosition="bottom">
+                  <span className="qp-slider-fill" /><Volume2 size={21} className="qp-slider-icon" /><span className="qp-slider-number">{volume}%</span>
+                  <input type="range" min="0" max="100" value={volume} aria-label="음량" aria-valuetext={`${volume}%`} onChange={event => { setVolume(Number(event.target.value)); advanceQuest('quick-volume-slider'); }} />
                 </ActionTarget>
               </div>
-
-              {/* 보조 control */}
-              <div className="rounded-[24px] p-4" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                <div className="grid grid-cols-5 gap-y-4 justify-items-center">
-                  <MiniTile on={darkMode} id="quick-darkmode" icon={<Moon size={20} />} label="다크 모드" onClick={() => setDarkMode(!darkMode)} />
-                  <MiniTile
-                    on={false} id="quick-screenshot" icon={<Camera size={20} />} label="스크린샷"
-                    onClick={() => {
-                      const flash = document.createElement('div');
-                      flash.className = 'fixed inset-0 bg-white z-[200] pointer-events-none opacity-90';
-                      document.body.appendChild(flash);
-                      setTimeout(() => flash.remove(), 200);
-                      setPhotos(prev => [...prev, { id: Date.now(), seed: Math.floor(Math.random() * 1000) }]);
-                    }}
-                  />
-                  <MiniTile on={true} icon={<RefreshCcw size={20} />} label="자동 회전" />
-                  <MiniTile on={false} icon={<Flashlight size={20} />} label="손전등" />
-                  <MiniTile on={true} icon={<MapPin size={20} />} label="위치" />
-                  <MiniTile on={false} icon={<BatteryCharging size={20} />} label="절전" />
-                  <MiniTile on={false} icon={<ImageIcon size={20} />} label="눈 편한 화면" />
-                  <MiniTile on={!airplane} icon={<Play size={20} />} label="미디어" />
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {notifications.length > 0 ? (
-                <>
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-white/75 text-[12px] font-semibold">알림 {notifications.length}개</span>
-                    <ActionTarget
-                      id="notif-clear-all" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                      onClick={() => { setNotifications([]); }}
-                      tooltipPosition="left" tooltipText="모두 지우기"
-                      className="text-white/85 text-[12px] font-medium px-3.5 py-1.5 rounded-full bg-white/12 hover:bg-white/20 active:scale-95 cursor-pointer transition"
-                    >
-                      모두 지우기
-                    </ActionTarget>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {notifications.map(renderNotifCard)}
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-2.5 py-12 text-white/60">
-                  <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center"><BellOff size={24} /></div>
-                  <div className="text-[13px]">알림이 없어요</div>
-                </div>
-              )}
-              <div className="flex items-center justify-between rounded-[22px] px-5 h-[52px] mt-1" style={{ background: 'var(--oneui-panel-tile)' }}>
-                <div className="flex items-center gap-2.5 text-white/85"><Bell size={17} /><span className="text-[13px] font-medium">알림 설정</span></div>
-                <button
-                  type="button"
-                  className="text-[12px] text-white/70 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition"
-                  onClick={(e) => { e.stopPropagation(); openSettings(); }}
-                >설정 열기</button>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* 좌우 전환 안내 (학습용) */}
-        <div className="flex items-center justify-center gap-2 pt-0.5 text-[11px] text-white/50">
-          <span className={mode === 'quick' ? 'text-white' : ''}>빠른 설정</span>
-          <span>↔ 좌우로 스와이프 ↔</span>
-          <span className={mode === 'notifications' ? 'text-white' : ''}>알림</span>
-        </div>
+              {showSoundOptions && <div className="qp-sound-options" aria-label="소리 모드">
+                {([{ value: 'sound', label: '소리', Icon: Volume2 }, { value: 'vibrate', label: '진동', Icon: Vibrate }, { value: 'mute', label: '무음', Icon: VolumeX }]).map(({ value, label, Icon }) => <ActionTarget key={value} {...targetProps} id={`quick-sound-${value}`} disableClickAdvance className="qp-sound-target" tooltipPosition="bottom"><button type="button" aria-pressed={soundMode === value} className={soundMode === value ? 'is-active' : ''} onClick={() => chooseSound(value)}><Icon size={17} />{label}</button></ActionTarget>)}
+              </div>}
+            </> : <>
+              <div className="qp-notification-heading"><h2>알림 <span>{notifications.length}</span></h2>{notifications.length > 0 && <ActionTarget {...targetProps} id="notif-clear-all" className="qp-clear-target" tooltipPosition="bottom" onClick={() => setNotifications([])}><button type="button" className="qp-text-button">모두 지우기</button></ActionTarget>}</div>
+              {notifications.length ? <div className="qp-notification-list">{notifications.map(renderNotification)}</div> : <div className="qp-empty"><BellOff size={30} /><p>알림이 없어요</p></div>}
+              <button type="button" className="qp-notification-settings" onClick={() => openSettings('notifications')}><Bell size={18} /><span>알림 설정</span><ChevronRight size={17} /></button>
+            </>}
+          </div>
+          <footer className="qp-footer">
+            <button type="button" className="qp-mode-button" onClick={() => goMode(mode === 'quick' ? 'notifications' : 'quick')}>{mode === 'quick' ? <><Bell size={15} />알림{notifications.length > 0 && <span>{notifications.length}</span>}</> : <><ChevronLeft size={15} />빠른 설정</>}</button>
+            <ActionTarget {...targetProps} id="quick-panel-bg" disableClickAdvance className="qp-close-target" tooltipPosition="top-left" tooltipText="패널 닫기"><button type="button" className="qp-close-button" aria-label="빠른 설정 또는 알림 닫기" onClick={() => { closePanel(); advanceQuest('quick-panel-bg'); }}><ChevronUp size={18} /><span>닫기</span></button></ActionTarget>
+          </footer>
+        </section>
+        <p className="qp-learning-caption">좌우로 밀어 빠른 설정과 알림을 전환해요.<br />화면 캡처: 측면 버튼 + 음량 아래 버튼을 짧게 누르기.<br />버튼 구성과 진동 지원은 기종에 따라 달라요.</p>
       </div>
 
-      {quickPanelOpen && (
-        <ActionTarget
-          id="quick-panel-bg"
-          currentTargetId={currentTargetId}
-          advanceQuest={advanceQuest}
-          onClick={() => closePanel()}
-          tooltipPosition="top"
-          tooltipText="여기를 눌러 퀵패널 닫기"
-          className="absolute bottom-[calc(var(--oneui-navbar-h)+14px)] left-1/2 -translate-x-1/2 z-[92] px-6 py-2 rounded-full bg-white/15 backdrop-blur-md text-white text-[13px] font-medium flex items-center gap-2 cursor-pointer active:scale-95 shadow-lg"
-        >
-          <ChevronUp size={16} /> 닫기 (위로 스와이프)
-        </ActionTarget>
-      )}
-
-      {wifiModalOpen && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-[#1c1c1e] rounded-3xl p-6 text-[#f5f5f5] shadow-2xl z-[95] border border-gray-700/50 animate-[fadeIn_0.2s_ease-out]">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-xl tracking-wide">Wi-Fi</h3>
-            <X size={24} onClick={() => setWifiModalOpen(false)} className="cursor-pointer text-gray-400 hover:text-white bg-gray-800 rounded-full p-1 active:scale-90 transition-transform" />
-          </div>
-          {wifiConnected ? (
-            <div className="p-4 bg-[#2c2c2e] rounded-2xl mb-2 flex items-center text-blue-400">
-              <Wifi size={20} className="mr-4" />
-              <div className="flex-1"><div className="font-semibold">탐험대_WiFi</div><div className="text-sm text-blue-400/80">연결됨</div></div>
+      {wifiModalOpen && <div className="qp-dialog-overlay" onClick={event => { if (event.target === event.currentTarget) closeWifi(); }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="qp-wifi-title" className="qp-wifi-dialog">
+          <header className="qp-dialog-header"><h2 id="qp-wifi-title">{wifiPasswordInput === 'open' ? '탐험대_WiFi' : 'Wi-Fi'}</h2><button type="button" className="qp-icon-button" aria-label="Wi-Fi 닫기" onClick={closeWifi}><X size={20} /></button></header>
+          {wifiPasswordInput === 'open' ? <>
+            <form className="qp-password-body" id="qp-wifi-form" onSubmit={event => { event.preventDefault(); connectWifi(); }}>
+              <div className="qp-password-help"><span>연습 비밀번호</span><strong>tablet1234</strong><p>실제 학교나 집의 비밀번호는 입력하지 않아요.</p></div>
+              <label htmlFor="practice-wifi-password" className="qp-field-label">비밀번호</label>
+              <ActionTarget {...targetProps} id="wifi-pw-input" disableClickAdvance className="qp-password-target" tooltipPosition="bottom">
+                <input id="practice-wifi-password" autoComplete="off" spellCheck={false} type={showWifiPassword ? 'text' : 'password'} value={wifiPassword} onChange={event => { setWifiPassword(event.target.value); setWifiError(''); if (event.target.value === 'tablet1234') advanceQuest('wifi-pw-input'); }} placeholder="비밀번호 입력" aria-invalid={!!wifiError} aria-describedby={wifiError ? 'qp-wifi-error' : undefined} />
+              </ActionTarget>
+              <label className="qp-password-checkbox"><input type="checkbox" checked={showWifiPassword} onChange={event => setShowWifiPassword(event.target.checked)} />비밀번호 표시</label>
+              {wifiError && <p id="qp-wifi-error" role="alert" className="qp-wifi-error">{wifiError}</p>}
+            </form>
+            <footer className="qp-dialog-footer"><button type="button" onClick={() => { setWifiPasswordInput(''); setWifiError(''); }}>취소</button><ActionTarget {...targetProps} id="wifi-connect-btn" disableClickAdvance className="qp-connect-target"><button type="submit" form="qp-wifi-form" disabled={!wifiPassword}>연결</button></ActionTarget></footer>
+          </> : <>
+            <div className="qp-wifi-toggle-row"><span>{wifi ? '사용 중' : '사용 안 함'}</span><button type="button" role="switch" aria-label="Wi-Fi" aria-checked={wifi} className={`qp-switch ${wifi ? 'is-on' : ''}`} onClick={() => { setWifi(!wifi); if (wifi) setWifiConnected(null); }}><span /></button></div>
+            <div className="qp-network-scroll">
+              {!wifi ? <div className="qp-wifi-disabled"><Wifi size={32} /><p>Wi-Fi를 켜면 주변 네트워크를 찾을 수 있어요.</p></div> : <>
+                {wifiConnected && <><p className="qp-network-section-label">현재 네트워크</p><ActionTarget {...targetProps} id={WIFI_NETWORKS.find(network => network.name === wifiConnected)?.id ?? 'wifi-current-network'} disableClickAdvance className="qp-network-target" tooltipPosition="bottom"><button type="button" className="qp-network-row qp-network-connected" onClick={() => { if (wifiConnected === '탐험대_WiFi') openTrainingNetwork(); else openSettings('connections'); }}><WifiSignal secure /><span className="qp-network-copy"><strong>{wifiConnected}</strong><span>연결됨</span></span><Check size={19} /></button></ActionTarget></>}
+                <p className="qp-network-section-label">사용 가능한 네트워크</p>
+                {wifiError && <p role="status" className="qp-wifi-network-notice">{wifiError}</p>}
+                {WIFI_NETWORKS.filter(network => network.name !== wifiConnected).map(network => <ActionTarget key={network.id} {...targetProps} id={network.id} disableClickAdvance className="qp-network-target" tooltipPosition="bottom">
+                  <button type="button" className="qp-network-row" onClick={() => { if (network.id === 'wifi-net-0') openTrainingNetwork(); else { setWifiError('학교에서 안내한 탐험대_WiFi에 연결해요. 모르는 네트워크에는 연결하지 않아요.'); } }}>
+                    <WifiSignal secure={network.secure} signal={network.signal} /><span className="qp-network-copy"><strong>{network.name}</strong><span>{network.secure ? '보안 네트워크' : '공개 네트워크'}</span></span>
+                  </button>
+                </ActionTarget>)}
+              </>}
             </div>
-          ) : (
-            <div className="space-y-3 h-64 overflow-y-auto pr-2">
-              {WIFI_NETWORKS.map((net, i) => (
-                <ActionTarget
-                  key={i} id={net.id} currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  onClick={() => { if (net.id === 'wifi-net-0') { setWifiPasswordInput('open'); setWifiPassword(''); } }}
-                  className="p-4 bg-[#2c2c2e] rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-[#3a3a3c] transition-all active:scale-[0.98]"
-                >
-                  <Wifi size={22} className="text-gray-300" />
-                  <div className="flex-1"><div className="font-semibold text-[17px]">{net.name}</div><div className="text-sm text-gray-400">{net.secure ? '비밀번호로 보호됨' : '저장됨'}</div></div>
-                </ActionTarget>
-              ))}
-            </div>
-          )}
-
-          {wifiPasswordInput === 'open' && (
-            <div className="absolute inset-0 p-6 bg-[#1c1c1e] rounded-3xl z-10 flex flex-col justify-center animate-[fadeIn_0.2s_ease-out]">
-              <h3 className="font-bold text-xl mb-4">탐험대_WiFi</h3>
-              <div className="text-sm mb-2 text-gray-400 font-medium">비밀번호 입력</div>
-              <div className="mb-8 w-full">
-                <ActionTarget id="wifi-pw-input" currentTargetId={currentTargetId} advanceQuest={advanceQuest} className="w-full block">
-                  <input type="password" value={wifiPassword}
-                    onChange={(e) => { setWifiPassword(e.target.value); if (e.target.value.length > 0) advanceQuest('wifi-pw-input'); }}
-                    placeholder="비밀번호 타이핑"
-                    className="w-full bg-[#2c2c2e] border border-blue-500/50 rounded-xl p-4 text-white outline-none text-lg shadow-inner focus:ring-2 focus:ring-blue-500 m-0 block transition-all" />
-                </ActionTarget>
-              </div>
-              <div className="flex gap-4">
-                <button className="flex-1 py-4 bg-[#3a3a3c] hover:bg-[#4a4a4c] active:scale-95 rounded-xl font-bold text-lg transition-all" onClick={() => setWifiPasswordInput('')}>취소</button>
-                <ActionTarget
-                  id="wifi-connect-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  disableClickAdvance={wifiPassword.length === 0}
-                  className={`flex-1 ${wifiPassword.length === 0 ? 'pointer-events-none' : ''}`}
-                  onClick={() => { if (wifiPassword.length > 0) { setWifiConnected('탐험대_WiFi'); setWifiPasswordInput(''); setTimeout(() => setWifiModalOpen(false), 800); } }}
-                >
-                  <button className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${wifiPassword.length > 0 ? 'bg-blue-600 text-white active:scale-95 cursor-pointer' : 'bg-gray-600 text-gray-400 pointer-events-none'}`}>연결</button>
-                </ActionTarget>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+            <footer className="qp-dialog-footer"><button type="button" onClick={() => openSettings('connections')}>상세설정</button><button type="button" onClick={closeWifi}>완료</button></footer>
+          </>}
+        </section>
+      </div>}
     </div>
   );
 }

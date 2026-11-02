@@ -1,107 +1,106 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from 'react';
 import { QUESTS } from '@/data/quests';
 import type { Quest } from '@/types/quest';
 
-export interface RewardToast {
-  exp: number;
-  key: number;
-}
+export interface RewardToast { exp: number; key: number; }
 
-/**
- * 퀘스트 진행 엔진.
- * - questIdx(배열 인덱스) <-> questId 매핑
- * - 완료 처리 / 다음 퀘스트 이동 / EXP 지급
- * - 중복 완료 및 중복 EXP 방지
- * - 마지막(요약) 퀘스트 자동 완료
- * 문구·EXP·targetId·순서는 src/data/quests.ts 값을 그대로 사용한다.
- */
+/** The first unfinished lesson is the only unfinished lesson a learner can open. */
+export const getQuestFrontier = (completed: readonly number[]): number => {
+  const done = new Set(completed);
+  const first = QUESTS.findIndex((_, index) => !done.has(index));
+  return first < 0 ? QUESTS.length - 1 : first;
+};
+
+export const canVisitQuest = (index: number, completed: readonly number[]): boolean =>
+  Number.isInteger(index) && index >= 0 && index < QUESTS.length &&
+  (completed.includes(index) || index === getQuestFrontier(completed));
+
+/** Outcome events advance one lesson; duplicate events cannot award duplicate EXP. */
 export const useQuestEngine = () => {
-  const [questIdx, setQuestIdx] = useState<number>(0);
-  const [exp, setExp] = useState<number>(0);
-  /** 완료 퀘스트의 배열 인덱스 목록 */
-  const [completedQuests, setCompletedQuests] = useState<number[]>([]);
-
-  // 리워드 효과
+  const [questIdx, updateQuestIdx] = useState(0);
+  const [exp, updateExp] = useState(0);
+  const [completedQuests, updateCompleted] = useState<number[]>([]);
+  const questRef = useRef(0);
+  const expRef = useRef(0);
+  const completedRef = useRef<number[]>([]);
   const [confettiKey, setConfettiKey] = useState(0);
   const [rewardToast, setRewardToast] = useState<RewardToast | null>(null);
   const [levelUpFlash, setLevelUpFlash] = useState(0);
-  const prevLevelRef = useRef<number>(1);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const currentQuest: Quest | undefined = QUESTS[questIdx];
-  const currentTargetId = currentQuest?.targetId;
-  const currentQuestId = currentQuest?.id ?? 0;
-  const level = Math.floor(exp / 100) + 1;
-
-  useEffect(() => {
-    prevLevelRef.current = Math.max(prevLevelRef.current, Math.floor(exp / 100) + 1);
-  }, [exp]);
+  // These compatible setters also cover the existing storage hydration API.
+  const setQuestIdx = useCallback((action: SetStateAction<number>) => {
+    const value = typeof action === 'function' ? action(questRef.current) : action;
+    questRef.current = Math.max(0, Math.min(QUESTS.length - 1, Math.floor(value) || 0));
+    updateQuestIdx(questRef.current);
+  }, []);
+  const setExp = useCallback((action: SetStateAction<number>) => {
+    const value = typeof action === 'function' ? action(expRef.current) : action;
+    expRef.current = Number.isFinite(value) ? Math.max(0, value) : 0;
+    updateExp(expRef.current);
+  }, []);
+  const setCompletedQuests = useCallback((action: SetStateAction<number[]>) => {
+    const value = typeof action === 'function' ? action(completedRef.current) : action;
+    completedRef.current = [...new Set(value.filter(index => Number.isInteger(index) && index >= 0 && index < QUESTS.length))].sort((a,b) => a-b);
+    updateCompleted(completedRef.current);
+  }, []);
 
   useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
 
   const grantReward = useCallback((gained: number) => {
-    setExp((prev) => {
-      const newExp = prev + gained;
-      const newLevel = Math.floor(newExp / 100) + 1;
-      if (newLevel > prevLevelRef.current) {
-        prevLevelRef.current = newLevel;
-        setLevelUpFlash((f) => f + 1);
-      }
-      return newExp;
-    });
-    setConfettiKey((k) => k + 1);
+    const previousLevel = Math.floor(expRef.current / 100) + 1;
+    const nextExp = expRef.current + gained;
+    setExp(nextExp);
+    if (Math.floor(nextExp / 100) + 1 > previousLevel) setLevelUpFlash(value => value + 1);
+    setConfettiKey(value => value + 1);
     setRewardToast({ exp: gained, key: Date.now() });
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setRewardToast(null), 3400);
-  }, []);
+  }, [setExp]);
 
-  /** targetId 가 현재 퀘스트와 일치할 때만 완료 처리 후 다음으로 이동 */
   const advanceQuest = useCallback((targetId: string) => {
-    if (QUESTS[questIdx]?.targetId !== targetId) return;
-    // 중복 완료 방지 가드: 이미 완료된 퀘스트면 EXP 재지급 없이 인덱스만 이동
-    if (completedQuests.includes(questIdx)) {
-      setQuestIdx((q) => Math.min(q + 1, QUESTS.length - 1));
-      return;
+    // A stale handler (including a bubbling second click) belongs to the prior lesson.
+    if (questRef.current !== questIdx || QUESTS[questIdx]?.targetId !== targetId) return;
+    if (!canVisitQuest(questIdx, completedRef.current)) return;
+    if (!completedRef.current.includes(questIdx)) {
+      setCompletedQuests([...completedRef.current, questIdx]);
+      grantReward(QUESTS[questIdx].exp);
     }
-    grantReward(QUESTS[questIdx]?.exp ?? 0);
-    setCompletedQuests((prev) => (prev.includes(questIdx) ? prev : [...prev, questIdx]));
-    setQuestIdx((q) => Math.min(q + 1, QUESTS.length - 1));
-  }, [questIdx, completedQuests, grantReward]);
+    const next = Math.min(questIdx + 1, QUESTS.length - 1);
+    setQuestIdx(canVisitQuest(next, completedRef.current) ? next : getQuestFrontier(completedRef.current));
+  }, [questIdx, grantReward, setCompletedQuests, setQuestIdx]);
 
-  // 마지막(요약) 미션 자동 완료 및 최종 경험치 지급
   useEffect(() => {
     const lastIdx = QUESTS.length - 1;
-    if (questIdx !== lastIdx) return;
-    if (QUESTS[lastIdx]?.targetId !== null) return;
-    if (completedQuests.includes(lastIdx)) return;
-    grantReward(QUESTS[lastIdx]?.exp ?? 0);
-    setCompletedQuests((prev) => (prev.includes(lastIdx) ? prev : [...prev, lastIdx]));
-  }, [questIdx, completedQuests, grantReward]);
+    if (!canVisitQuest(questIdx, completedRef.current)) {
+      setQuestIdx(getQuestFrontier(completedRef.current));
+      return;
+    }
+    if (questIdx !== lastIdx || QUESTS[lastIdx]?.targetId !== null) return;
+    // Imported/legacy saves and review navigation must never unlock a false finish.
+    if (getQuestFrontier(completedRef.current) !== lastIdx) {
+      setQuestIdx(getQuestFrontier(completedRef.current));
+      return;
+    }
+    if (completedRef.current.includes(lastIdx)) return;
+    setCompletedQuests([...completedRef.current, lastIdx]);
+    grantReward(QUESTS[lastIdx].exp);
+  }, [questIdx, completedQuests, grantReward, setCompletedQuests, setQuestIdx]);
 
-  /** 완료한 퀘스트 범위 안에서만 이동 */
-  const gotoQuest = useCallback((idx: number) => {
-    const clamped = Math.max(0, Math.min(QUESTS.length - 1, idx));
-    setQuestIdx((cur) => {
-      if (clamped > cur && !completedQuests.includes(cur)) return cur;
-      return clamped;
-    });
-  }, [completedQuests]);
+  const gotoQuest = useCallback((index: number) => {
+    if (canVisitQuest(index, completedRef.current)) setQuestIdx(index);
+  }, [setQuestIdx]);
 
   const resetQuestProgress = useCallback(() => {
-    prevLevelRef.current = 1;
-    setQuestIdx(0);
-    setExp(0);
-    setCompletedQuests([]);
-    setRewardToast(null);
-  }, []);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setQuestIdx(0); setExp(0); setCompletedQuests([]); setRewardToast(null);
+  }, [setQuestIdx, setExp, setCompletedQuests]);
 
+  const currentQuest: Quest | undefined = QUESTS[questIdx];
   return {
-    questIdx, setQuestIdx,
-    exp, setExp,
-    completedQuests, setCompletedQuests,
-    currentQuest, currentQuestId, currentTargetId,
-    level,
-    advanceQuest, gotoQuest, resetQuestProgress,
-    confettiKey, rewardToast, levelUpFlash,
+    questIdx, setQuestIdx, exp, setExp, completedQuests, setCompletedQuests,
+    currentQuest, currentQuestId: currentQuest?.id ?? 0,
+    currentTargetId: currentQuest?.targetId ?? null, level: Math.floor(exp / 100) + 1,
+    advanceQuest, gotoQuest, resetQuestProgress, confettiKey, rewardToast, levelUpFlash,
   };
 };

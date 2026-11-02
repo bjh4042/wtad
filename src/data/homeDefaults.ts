@@ -6,14 +6,9 @@ export const DEFAULT_WALLPAPER =
 export const DEFAULT_HOME_APPS: (string | null)[] = (() => {
   // 8 columns × 5 rows tablet layout
   const a: (string | null)[] = Array(40).fill(null);
-  // Row 1
-  a[0] = 'PlayStore'; a[1] = 'Store'; a[2] = 'Notes'; a[3] = 'Folder';
-  a[4] = 'Internet'; a[5] = 'GameLauncher'; a[6] = 'Camera'; a[7] = 'Gallery';
-  // Row 2
-  a[8] = 'Messages'; a[9] = 'KakaoTalk'; a[10] = 'YouTube'; a[11] = 'Naver';
-  a[12] = 'Calculator'; a[13] = 'Calendar'; a[14] = 'Clock'; a[15] = 'Settings';
-  // Row 3
-  a[16] = 'Health'; a[17] = 'Wearable'; a[18] = 'Gmail';
+  a[0] = 'PlayStore'; a[1] = 'Notes'; a[2] = 'Folder'; a[3] = 'Internet';
+  a[4] = 'Camera'; a[5] = 'Gallery'; a[6] = 'Calculator'; a[7] = 'Settings';
+  a[8] = 'Calendar'; a[9] = 'Clock';
   return a;
 })();
 

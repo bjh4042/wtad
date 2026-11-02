@@ -1,11 +1,14 @@
-import React from 'react';
-import { Search, ChevronLeft, Check } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, ChevronLeft, Check, ShieldCheck, X, Trash2, ArrowBigUp, Delete } from 'lucide-react';
 import { ActionTarget } from './shared';
 import { PLAYSTORE_APPS, TARGET_SEQUENCE } from '@/data/appCatalog';
+import { GalaxyAppIcon } from '@/components/device/GalaxyAppIcon';
 
 export type AppUpdateStatus = 'pending' | 'downloading' | 'installing' | 'done';
 
 export interface PlayStoreAppProps {
+  onOpenApp?: (id: string) => void;
+  networkAvailable?: boolean;
   currentTargetId: string | null;
   advanceQuest: (id: string) => void;
   searchText: string;
@@ -39,325 +42,110 @@ export interface PlayStoreAppProps {
   setMathInstallProgress: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
+type StoreApp = { id: string; name: string; dev: string; color: string; label: React.ReactNode };
+const MATH_APP: StoreApp = { id: 'math', name: '똑똑수학탐험대', dev: '한국교육학술정보원(KERIS)', color: '#f7bf36', label: <GalaxyAppIcon appName="math"/> };
+const CATALOG = [MATH_APP, ...PLAYSTORE_APPS.filter(a=>a.id!=='toss')];
+const UPDATE_APPS = [{id:'internet',name:'삼성 인터넷',iconName:'Internet'}, {id:'notes',name:'Samsung Notes',iconName:'Notes'}, {id:'gallery',name:'갤러리',iconName:'Gallery'}];
+
 const PlayStoreApp = (props: PlayStoreAppProps) => {
-  const {
-    currentTargetId, advanceQuest, searchText, setSearchText, isSearched, setIsSearched,
-    keyboardOpen, setKeyboardOpen, keyboardShift, setKeyboardShift, typingIndex, setTypingIndex,
-    googleAccount, playStoreProfileOpen, setPlayStoreProfileOpen, playStoreView, setPlayStoreView,
-    appsUpdated, setAppsUpdated, updatingAll, setUpdatingAll, updateProgress, setUpdateProgress,
-    appUpdateStatus, setAppUpdateStatus, appUpdateProgress, setAppUpdateProgress,
-    installedApps, setInstalledApps, mathInstallProgress, setMathInstallProgress,
-  } = props;
-
-  const renderVirtualKeyboard = () => {
-    if (!keyboardOpen) return null;
-    const row1_base = ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'];
-    const row1_shift = ['ㅃ','ㅉ','ㄸ','ㄲ','ㅆ','ㅛ','ㅕ','ㅑ','ㅒ','ㅖ'];
-    const row2 = ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'];
-    const row3 = ['ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ'];
-    const row1 = keyboardShift ? row1_shift : row1_base;
-    const targetKey = TARGET_SEQUENCE[typingIndex]?.key;
-
-    const handleKeyClick = (key: string) => {
-      if (key === 'Shift') {
-        setKeyboardShift(!keyboardShift);
-        if (targetKey === 'Shift') { setSearchText(TARGET_SEQUENCE[typingIndex].display); setTypingIndex(prev => prev + 1); }
-        return;
-      }
-      if (key === targetKey) {
-        setSearchText(TARGET_SEQUENCE[typingIndex].display);
-        setTypingIndex(prev => prev + 1);
-        if (['ㄸ','ㅃ','ㅉ','ㄲ','ㅆ','ㅒ','ㅖ'].includes(key)) setKeyboardShift(false);
-        if (typingIndex + 1 === TARGET_SEQUENCE.length) advanceQuest('playstore-search-input');
-      }
-    };
-    const getKeyClass = (key: string) => {
-      const base = "flex items-center justify-center rounded-lg text-xl font-medium cursor-pointer transition-all active:scale-90 ";
-      const isTarget = key === targetKey;
-      return base + (isTarget ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.8)] ring-2 ring-blue-300 animate-pulse" : "bg-[#3a3a3c] hover:bg-[#4a4a4c] text-white");
-    };
-
-    return (
-      <div className="absolute bottom-0 w-full bg-[#1c1c1e] z-50 text-white shadow-[0_-10px_40px_rgba(0,0,0,0.5)] animate-[slideUp_0.3s_ease-out] select-none pb-4 border-t border-gray-800">
-        <div className="p-2 pt-4 flex flex-col gap-2 max-w-5xl mx-auto">
-          <div className="flex justify-center gap-1.5 px-1">
-            {row1.map((k, i) => (<div key={i} className={`flex-1 h-14 ${getKeyClass(k)}`} onClick={(e) => { e.stopPropagation(); handleKeyClick(k); }}>{k}</div>))}
-          </div>
-          <div className="flex justify-center gap-1.5 px-6">
-            {row2.map((k, i) => (<div key={i} className={`flex-1 h-14 ${getKeyClass(k)}`} onClick={(e) => { e.stopPropagation(); handleKeyClick(k); }}>{k}</div>))}
-            <div className="flex-[1.5] h-14 flex items-center justify-center bg-[#2c2c2e] hover:bg-[#3a3a3c] rounded-lg text-lg cursor-pointer active:scale-95 transition-all text-gray-300">⌫</div>
-          </div>
-          <div className="flex justify-center gap-1.5 px-2">
-            <div className={`flex-[1.5] h-14 flex items-center justify-center rounded-lg text-xl cursor-pointer transition-all active:scale-95 ${targetKey === 'Shift' ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.8)] ring-2 ring-blue-300 animate-pulse' : keyboardShift ? 'bg-white text-black' : 'bg-[#2c2c2e] hover:bg-[#3a3a3c] text-gray-300'}`} onClick={(e) => { e.stopPropagation(); handleKeyClick('Shift'); }}>⇧</div>
-            {row3.map((k, i) => (<div key={i} className={`flex-1 h-14 ${getKeyClass(k)}`} onClick={(e) => { e.stopPropagation(); handleKeyClick(k); }}>{k}</div>))}
-            <div className="flex-[0.8] h-14 flex items-center justify-center bg-[#3a3a3c] rounded-lg text-lg cursor-pointer active:scale-95 transition-all text-gray-300">,</div>
-            <div className="flex-[0.8] h-14 flex items-center justify-center bg-[#3a3a3c] rounded-lg text-lg cursor-pointer active:scale-95 transition-all text-gray-300">.</div>
-            <div className="flex-[0.8] h-14 flex items-center justify-center bg-[#3a3a3c] rounded-lg text-lg cursor-pointer active:scale-95 transition-all text-gray-300">?</div>
-            <div className="flex-[1.5] h-14 flex items-center justify-center bg-[#2c2c2e] hover:bg-[#3a3a3c] rounded-lg text-xl cursor-pointer active:scale-95 transition-all text-gray-300">↵</div>
-          </div>
-          <div className="flex justify-center gap-1.5 px-1 mt-1">
-            <div className="w-16 h-14 flex items-center justify-center bg-[#2c2c2e] hover:bg-[#3a3a3c] rounded-lg text-sm cursor-pointer font-medium text-gray-300 active:scale-95 transition-all">!#1</div>
-            <div className="w-16 h-14 flex items-center justify-center bg-[#2c2c2e] hover:bg-[#3a3a3c] rounded-lg text-sm cursor-pointer font-medium text-gray-300 active:scale-95 transition-all">한자</div>
-            <div className="flex-1 h-14 flex items-center justify-center bg-[#3a3a3c] hover:bg-[#4a4a4c] rounded-lg text-base text-gray-300 cursor-pointer active:scale-95 transition-all">한국어</div>
-            <div className="w-14 h-14 flex items-center justify-center bg-[#2c2c2e] hover:bg-[#3a3a3c] rounded-lg text-sm cursor-pointer font-bold text-gray-300 active:scale-95 transition-all">한/영</div>
-            <ActionTarget
-              id="playstore-search-submit" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-              onClick={(e) => { e.stopPropagation(); if(typingIndex === TARGET_SEQUENCE.length) { setIsSearched(true); setKeyboardOpen(false); } }}
-            >
-              <div className={`w-24 h-14 flex items-center justify-center rounded-lg text-lg font-bold shadow-lg cursor-pointer transition-all active:scale-95 ${typingIndex === TARGET_SEQUENCE.length && currentTargetId === 'playstore-search-submit' ? 'bg-blue-600 text-white ring-4 ring-yellow-400 animate-pulse' : 'bg-blue-600 text-white'}`}>검색</div>
-            </ActionTarget>
-          </div>
-        </div>
-      </div>
-    );
+  const { currentTargetId, advanceQuest, searchText, setSearchText, isSearched, setIsSearched, keyboardOpen, setKeyboardOpen, keyboardShift, setKeyboardShift, typingIndex, setTypingIndex, googleAccount, playStoreProfileOpen, setPlayStoreProfileOpen, playStoreView, setPlayStoreView, appsUpdated, setAppsUpdated, updatingAll, setUpdatingAll, updateProgress, setUpdateProgress, appUpdateStatus, setAppUpdateStatus, appUpdateProgress, setAppUpdateProgress, installedApps, setInstalledApps, mathInstallProgress, setMathInstallProgress, onOpenApp, networkAvailable = true } = props;
+  const [notice,setNotice] = useState('');
+  const [detail,setDetail] = useState<StoreApp | null>(null);
+  const [safety,setSafety] = useState<[boolean,boolean,boolean]>([false,false,false]);
+  const [removeApp,setRemoveApp] = useState<StoreApp | null>(null);
+  const [installing,setInstalling] = useState<string | null>(null);
+  const [installPercent,setInstallPercent] = useState(0);
+  const [keyboardError,setKeyboardError] = useState('');
+  const [help,setHelp] = useState<string | null>(null);
+  const timers = useRef(new Set<ReturnType<typeof setInterval>>());
+  const networkRef = useRef(networkAvailable);
+  networkRef.current = networkAvailable;
+  const advanceRef = useRef(advanceQuest); advanceRef.current = advanceQuest;
+  useEffect(()=>()=>{timers.current.forEach(clearInterval);setMathInstallProgress(null);setUpdatingAll(false);},[]);
+  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),5000);return()=>clearTimeout(t);},[notice]);
+  useEffect(()=>{ if (['playstore-manage','playstore-update-all','playstore-uninstall','playstore-uninstall-confirm'].includes(currentTargetId || '') && currentTargetId !== 'playstore-manage') setPlayStoreView('manage'); },[currentTargetId]);
+  const run = (id:string, fn:()=>void, children:React.ReactNode, className='') => <ActionTarget id={id} currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance className={className}><button onClick={fn} className="min-h-11 px-4 py-2 rounded-full font-semibold text-sm hover:bg-black/5 w-full">{children}</button></ActionTarget>;
+  const submitSearch = () => {
+    if (!searchText.trim()) {setNotice('앱 이름을 입력해 주세요.');return;}
+    if (!networkAvailable) {setNotice('Wi-Fi를 연결한 뒤 다시 검색해 주세요.');return;}
+    setIsSearched(true);setKeyboardOpen(false);setPlayStoreView('home');
+    if(searchText.replace(/\s|!/g,'')==='똑똑수학탐험대') advanceQuest('playstore-search-submit');
   };
-
-    const PENDING_UPDATES = [
-      { id: 'youtube', name: '튜브', dev: '탐험대', color: '#FF0000', label: '▶', size: '128 MB' },
-      { id: 'kakao', name: '톡톡', dev: '톡톡', color: '#FAE100', text: '#3A1D1D', label: '💬', size: '96 MB' },
-      { id: 'chrome', name: '웹브라우저', dev: '탐험대', color: '#1A73E8', label: 'C', size: '210 MB' },
-    ];
-    return (
-    <div className="flex-1 bg-white flex flex-col pt-8 text-[#202124] overflow-hidden min-h-0 relative animate-[fadeIn_0.3s_ease-out]">
-      <div className="p-4 px-8 border-b border-gray-200 flex gap-4 items-center shadow-sm relative z-10 bg-white shrink-0">
-        <Search size={24} className="text-gray-500" />
-        <ActionTarget id="playstore-search-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => setKeyboardOpen(true)} className="flex-1">
-          <input type="text" placeholder="앱 및 게임 검색 (터치 후 가상 키보드로 타이핑)" className="w-full outline-none text-xl bg-transparent pointer-events-none" value={searchText} readOnly />
-        </ActionTarget>
-        <ActionTarget
-          id="playstore-avatar" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-          onClick={() => setPlayStoreProfileOpen(true)}
-        >
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold cursor-pointer active:scale-90 transition shadow-md">
-            {googleAccount ? googleAccount[0].toUpperCase() : 'W'}
-          </div>
-        </ActionTarget>
-      </div>
-
-      {playStoreProfileOpen && (
-        <div className="absolute inset-0 z-[60] bg-black/40" onClick={() => setPlayStoreProfileOpen(false)}>
-          <div className="absolute right-3 top-16 bg-white rounded-2xl shadow-2xl w-80 overflow-hidden animate-[fadeIn_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
-            <div className="p-5 border-b border-gray-100 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">{googleAccount ? googleAccount[0].toUpperCase() : 'W'}</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold truncate">{googleAccount || '게스트'}</div>
-                <div className="text-xs text-gray-500 truncate">{googleAccount || '로그인되지 않음'}</div>
-              </div>
-            </div>
-            <ActionTarget
-              id="playstore-manage" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-              onClick={() => { setPlayStoreView('manage'); setPlayStoreProfileOpen(false); }}
-              className="p-4 hover:bg-gray-50 active:bg-gray-100 cursor-pointer flex items-center gap-3 transition"
-            >
-              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">📲</div>
-              <div className="flex-1">
-                <div className="font-medium text-sm">앱 및 기기 관리</div>
-                <div className="text-xs text-gray-500">업데이트 {PENDING_UPDATES.length}개 사용 가능</div>
-              </div>
-            </ActionTarget>
-            {['알림 및 설정', '결제 및 정기 결제', '도움말 및 의견'].map(s => (
-              <div key={s} className="p-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3 text-sm text-gray-700">
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">⚙</div>
-                {s}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 p-10 bg-white overflow-y-auto min-h-0 relative">
-        {playStoreView === 'manage' ? (
-          <div className="max-w-3xl mx-auto animate-[fadeIn_0.25s_ease-out]">
-            <button onClick={() => setPlayStoreView('home')} className="flex items-center gap-2 text-gray-600 mb-4 active:scale-95"><ChevronLeft size={20}/> 뒤로</button>
-            <h2 className="text-3xl font-bold mb-2">앱 및 기기 관리</h2>
-            <div className="text-sm text-gray-500 mb-6">최신 상태 유지를 위해 모든 앱을 업데이트하세요.</div>
-
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-6 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl">⬇</div>
-              <div className="flex-1">
-                <div className="font-bold text-lg">
-                  {appsUpdated ? '모든 앱이 최신 상태입니다' : `업데이트 사용 가능 (${PENDING_UPDATES.length}개)`}
-                </div>
-                <div className="text-xs text-gray-600 mt-1">
-                  {updatingAll ? `업데이트 중… ${updateProgress}%` : appsUpdated ? '마지막 확인: 방금 전' : '총 434 MB · Wi-Fi 권장'}
-                </div>
-                {updatingAll && (
-                  <div className="w-full h-1.5 bg-blue-100 rounded-full mt-2 overflow-hidden">
-                    <div className="h-full bg-blue-600 transition-all" style={{ width: `${updateProgress}%` }}/>
-                  </div>
-                )}
-              </div>
-              {!appsUpdated && !updatingAll && (
-                <ActionTarget
-                  id="playstore-update-all" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
-                  onClick={() => {
-                    setUpdatingAll(true); setUpdateProgress(0);
-                    // 초기 상태: 모두 pending
-                    const initStatus: Record<string, 'pending'|'downloading'|'installing'|'done'> = {};
-                    const initProg: Record<string, number> = {};
-                    PENDING_UPDATES.forEach(a => { initStatus[a.id] = 'pending'; initProg[a.id] = 0; });
-                    setAppUpdateStatus(initStatus);
-                    setAppUpdateProgress(initProg);
-
-                    // 앱별 순차 업데이트
-                    let appIdx = 0;
-                    const updateNextApp = () => {
-                      if (appIdx >= PENDING_UPDATES.length) {
-                        setUpdateProgress(100);
-                        setTimeout(() => { setUpdatingAll(false); setAppsUpdated(true); }, 500);
-                        return;
-                      }
-                      const currentApp = PENDING_UPDATES[appIdx];
-                      setAppUpdateStatus(s => ({ ...s, [currentApp.id]: 'downloading' }));
-                      const iv = setInterval(() => {
-                        setAppUpdateProgress(p => {
-                          const cur = p[currentApp.id] || 0;
-                          const next = Math.min(100, cur + Math.floor(Math.random()*10) + 6);
-                          // 전체 진행률 갱신
-                          const totalDone = appIdx * 100 + next;
-                          setUpdateProgress(Math.floor(totalDone / PENDING_UPDATES.length));
-                          if (next >= 100) {
-                            clearInterval(iv);
-                            setAppUpdateStatus(s => ({ ...s, [currentApp.id]: 'installing' }));
-                            setTimeout(() => {
-                              setAppUpdateStatus(s => ({ ...s, [currentApp.id]: 'done' }));
-                              appIdx++;
-                              setTimeout(updateNextApp, 250);
-                            }, 500);
-                          }
-                          return { ...p, [currentApp.id]: next };
-                        });
-                      }, 180);
-                    };
-                    setTimeout(updateNextApp, 300);
-                  }}
-                >
-                  <button className="bg-[#01875f] hover:bg-[#01704e] text-white font-bold px-6 py-2.5 rounded-full text-sm active:scale-95 transition shadow">모두 업데이트</button>
-                </ActionTarget>
-              )}
-            </div>
-
-            <div className="text-sm font-bold text-gray-700 mb-3">대기 중인 업데이트</div>
-            <div className="space-y-3">
-              {PENDING_UPDATES.map(app => {
-                const status = appUpdateStatus[app.id] || 'pending';
-                const progress = appUpdateProgress[app.id] || 0;
-                const isDone = appsUpdated || status === 'done';
-                const isDownloading = status === 'downloading';
-                const isInstalling = status === 'installing';
-                const sizeMB = parseInt(app.size) || 100;
-                return (
-                  <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 transition">
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl shadow-md shrink-0" style={{ background: app.color, color: app.text || '#fff' }}>{app.label}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold truncate">{app.name}</div>
-                      <div className="text-xs text-gray-500 truncate">
-                        {isDone ? `${app.dev} · 설치됨` : isDownloading ? `다운로드 중… ${(sizeMB*progress/100).toFixed(1)} MB / ${sizeMB} MB` : isInstalling ? '설치 중…' : `${app.dev} · ${app.size}`}
-                      </div>
-                      {(isDownloading || isInstalling) && (
-                        <div className="w-full h-1 bg-gray-200 rounded-full mt-1.5 overflow-hidden">
-                          <div className="h-full bg-[#01875f] transition-all duration-200" style={{ width: isInstalling ? '100%' : `${progress}%` }}/>
-                        </div>
-                      )}
-                    </div>
-                    {isDone ? (
-                      <span className="text-xs text-green-600 font-bold flex items-center gap-1 px-3 py-1.5 bg-green-50 rounded-full"><Check size={14}/> 설치됨</span>
-                    ) : isDownloading || isInstalling ? (
-                      <div className="flex flex-col items-end gap-1">
-                        <div className="text-xs font-bold text-[#01875f] tabular-nums">{isInstalling ? '설치 중' : `${progress}%`}</div>
-                        <div className="w-4 h-4 border-2 border-[#01875f] border-t-transparent rounded-full animate-spin"/>
-                      </div>
-                    ) : (
-                      <button className="px-4 py-1.5 rounded-full border border-[#01875f] text-[#01875f] font-bold text-sm">업데이트</button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : isSearched && searchText === '똑똑수학탐험대' ? (
-
-          <div className="flex gap-8 max-w-3xl mx-auto mt-4 animate-[fadeIn_0.3s_ease-out]">
-            <div className="w-40 h-40 bg-yellow-400 rounded-[2.5rem] flex items-center justify-center text-white font-black text-5xl shadow-lg border border-yellow-300">1+2</div>
-            <div className="flex-1 flex flex-col justify-center gap-1">
-              <h2 className="text-4xl font-bold mb-2">똑똑수학탐험대</h2>
-              <p className="text-lg text-green-700 font-medium">교육부</p>
-              {installedApps.includes('math') ? (
-                <button className="bg-gray-100 text-gray-700 py-3.5 px-12 rounded-full font-bold self-start w-full max-w-[240px] text-lg active:scale-95 transition-transform">열기</button>
-              ) : mathInstallProgress !== null ? (
-                <div className="w-full max-w-[240px] self-start">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-[#01875f]">설치 중... {mathInstallProgress}%</span>
-                    <span className="text-xs text-gray-500">{(mathInstallProgress * 0.42).toFixed(1)}MB / 42MB</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#01875f] transition-all duration-200" style={{ width: `${mathInstallProgress}%` }} />
-                  </div>
-                  <div className="text-xs text-gray-400 mt-2">
-                    {mathInstallProgress < 30 ? '다운로드 중...' : mathInstallProgress < 80 ? '파일 압축 해제 중...' : '설치 마무리 중...'}
-                  </div>
-                </div>
-              ) : (
-                <ActionTarget id="playstore-install-btn" currentTargetId={currentTargetId} advanceQuest={advanceQuest} onClick={() => {
-                  if (mathInstallProgress !== null) return;
-                  setMathInstallProgress(0);
-                  const interval = setInterval(() => {
-                    setMathInstallProgress(p => {
-                      if (p === null) { clearInterval(interval); return null; }
-                      const next = p + Math.floor(Math.random() * 8) + 3;
-                      if (next >= 100) {
-                        clearInterval(interval);
-                        setTimeout(() => {
-                          setInstalledApps(prev => prev.includes('math') ? prev : [...prev, 'math']);
-                          setMathInstallProgress(null);
-                        }, 400);
-                        return 100;
-                      }
-                      return next;
-                    });
-                  }, 200);
-                }}>
-                  <button className="bg-[#01875f] hover:bg-[#01704e] text-white py-3.5 px-12 rounded-full font-bold self-start w-full max-w-[240px] transition-all active:scale-95 text-lg shadow-md pointer-events-none">설치</button>
-                </ActionTarget>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="max-w-3xl mx-auto">
-            <div className="text-2xl font-bold mb-4">추천 게임 및 앱</div>
-            <div className="text-sm text-gray-500 mb-6">아래 앱을 설치해보세요. 설치 후 홈 화면과 앱 서랍에 추가돼요.</div>
-            <div className="space-y-3">
-              {PLAYSTORE_APPS.map(app => {
-                const installed = installedApps.includes(app.id);
-                return (
-                  <div key={app.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-gray-50 active:bg-gray-100 transition-colors">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-3xl shadow-md shrink-0" style={{ background: app.color }}>{app.label}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-lg font-bold truncate">{app.name}</div>
-                      <div className="text-xs text-gray-500 truncate">{app.dev} · 4.{Math.floor(Math.random()*9)+1} ★</div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (installed) {
-                          setInstalledApps(prev => prev.filter(x => x !== app.id));
-                        } else {
-                          setInstalledApps(prev => [...prev, app.id]);
-                        }
-                      }}
-                      className={`px-6 py-2 rounded-full font-bold text-sm transition-all active:scale-95 shrink-0 ${installed ? 'bg-gray-200 text-gray-700' : 'bg-[#01875f] text-white hover:bg-[#01704e]'}`}
-                    >{installed ? '제거' : '설치'}</button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-8 text-center text-xs text-gray-400">상단 검색창에서 '똑똑수학탐험대'를 검색할 수도 있어요.</div>
-          </div>
-        )}
-
-      </div>
-      {renderVirtualKeyboard()}
-    </div>
-    );
+  const inputText = (value:string) => {
+    setSearchText(value);setIsSearched(false);setKeyboardError('');
+    if(value.replace(/\s|!/g,'')==='똑똑수학탐험대') advanceQuest('playstore-search-input');
+  };
+  const review = (app: StoreApp) => {setDetail(app);setSafety([false,false,false]);};
+  const startInstall = () => {
+    if(!detail||!safety.every(Boolean)||installing)return;
+    if(!networkAvailable){setNotice('Wi-Fi 연결이 필요해요. 연결 후 다시 설치하세요.');return;}
+    const app=detail;setDetail(null);setInstalling(app.id);setInstallPercent(0);if(app.id==='math')setMathInstallProgress(0);
+    let progress=0;
+    const timer=setInterval(()=>{
+      if(!networkRef.current){clearInterval(timer);timers.current.delete(timer);setInstalling(null);setMathInstallProgress(null);setNotice('연결이 끊겨 설치가 중단됐어요. Wi-Fi 연결 후 다시 시도하세요.');return;}
+      progress=Math.min(100,progress+20);setInstallPercent(progress);if(app.id==='math')setMathInstallProgress(progress);
+      if(progress===100){clearInterval(timer);timers.current.delete(timer);setInstalledApps(prev=>prev.includes(app.id)?prev:[...prev,app.id]);setInstalling(null);setMathInstallProgress(null);setNotice(`${app.name} 설치가 완료됐어요.`);if(app.id==='math')advanceRef.current('playstore-install-btn');}
+    },300);timers.current.add(timer);
+  };
+  const updateApps = (ids: string[]) => {
+    if(updatingAll)return;
+    if(!networkAvailable){setNotice('업데이트 전에 Wi-Fi를 연결해 주세요.');return;}
+    setUpdatingAll(true);setUpdateProgress(0);setAppUpdateStatus(s=>({...s,...Object.fromEntries(ids.map(id=>[id,'downloading']))}));
+    let progress=0;
+    const timer=setInterval(()=>{
+      if(!networkRef.current){clearInterval(timer);timers.current.delete(timer);setUpdatingAll(false);setAppUpdateStatus(s=>({...s,...Object.fromEntries(ids.map(id=>[id,'pending']))}));setNotice('네트워크 연결이 끊겼어요. 연결 후 업데이트를 다시 눌러 주세요.');return;}
+      progress=Math.min(100,progress+10);setUpdateProgress(progress);setAppUpdateProgress(s=>({...s,...Object.fromEntries(ids.map(id=>[id,progress]))}));
+      if(progress===80)setAppUpdateStatus(s=>({...s,...Object.fromEntries(ids.map(id=>[id,'installing']))}));
+      if(progress===100){clearInterval(timer);timers.current.delete(timer);setUpdatingAll(false);setAppUpdateStatus(s=>({...s,...Object.fromEntries(ids.map(id=>[id,'done']))}));const allDone=UPDATE_APPS.every(a=>ids.includes(a.id)||appUpdateStatus[a.id]==='done');if(allDone){setAppsUpdated(true);advanceRef.current('playstore-update-all');}setNotice('업데이트가 완료됐어요.');}
+    },200);timers.current.add(timer);
+  };
+  const uninstall = () => {
+    if(!removeApp||!installedApps.includes(removeApp.id))return;
+    setInstalledApps(prev=>prev.filter(id=>id!==removeApp.id));setNotice(`${removeApp.name} 앱을 제거했어요. 홈 화면에서 아이콘만 없애는 것과 달라요.`);setRemoveApp(null);advanceQuest('playstore-uninstall-confirm');
+  };
+  const openApp = (app:StoreApp) => {if(onOpenApp)onOpenApp(app.id);else setNotice('홈 화면으로 돌아가 설치한 앱 아이콘을 눌러 주세요.');};
+  const renderApp = (app:StoreApp) => {
+    const installed=installedApps.includes(app.id); const busy=installing===app.id;
+    return <article key={app.id} className="flex gap-3 items-center border-b border-gray-100 py-4">
+      <button aria-label={`${app.name} 앱 정보`} onClick={()=>review(app)} className="w-14 h-14 shrink-0"><GalaxyAppIcon appName={app.id}/></button>
+      <button onClick={()=>review(app)} className="min-w-0 flex-1 text-left"><h3 className="font-bold text-base sm:text-lg">{app.name}</h3><p className="text-xs text-gray-500 mt-1">{app.dev}</p><p className="text-xs text-gray-500">{installed?'설치됨':'교육용 설치 연습 · 무료'}</p></button>
+      {busy?<span className="text-green-700 text-sm font-bold">{installPercent}%</span>:installed?<div className="flex flex-col gap-1"><button className="text-green-700 bg-green-50 rounded-full px-4 py-2 text-sm font-bold min-h-11" onClick={()=>openApp(app)}>열기</button>{run('playstore-uninstall',()=>{setRemoveApp(app);advanceQuest('playstore-uninstall');},'제거')}</div>:<ActionTarget id={app.id==='math'?'playstore-install-btn':`playstore-install-${app.id}`} currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance><button disabled={!!installing} onClick={()=>review(app)} className="bg-[#087f5b] text-white rounded-full px-4 py-2 font-bold min-h-11 disabled:opacity-40">설치</button></ActionTarget>}
+    </article>;
+  };
+  const matches=CATALOG.filter(a=>a.name.replace(/\s|!/g,'').includes(searchText.replace(/\s|!/g,'')));
+  const keyInput = (key:string) => {
+    const target=TARGET_SEQUENCE[typingIndex];
+    if(key==='⌫'){const next=Math.max(0,typingIndex-1);setTypingIndex(next);setSearchText(next?TARGET_SEQUENCE[next-1].display:'');setKeyboardError('');return;}
+    if(key==='Shift'){setKeyboardShift(!keyboardShift);if(target?.key==='Shift')setTypingIndex(i=>i+1);return;}
+    if(key!==target?.key){setKeyboardError('파란색 자판을 찾아 보세요. 직접 입력하려면 위 검색창을 사용하세요.');return;}
+    setKeyboardError('');setSearchText(target.display);setTypingIndex(i=>i+1);if(['ㄸ','ㅃ','ㅉ','ㄲ','ㅆ'].includes(key))setKeyboardShift(false);if(typingIndex+1===TARGET_SEQUENCE.length)advanceQuest('playstore-search-input');
+  };
+  return <div className="flex-1 min-h-0 flex flex-col pt-8 bg-[#fdfdfd] text-[#202124] relative overflow-hidden">
+    {notice&&<div role="status" className="absolute top-10 left-1/2 -translate-x-1/2 w-[90%] max-w-lg bg-[#263238] text-white p-3 rounded-2xl z-[100] text-sm shadow-lg text-center">{notice}</div>}
+    <header className="px-3 sm:px-6 py-3 border-b border-gray-100 flex items-center gap-3 shrink-0">
+      <Search size={23} className="text-gray-500 shrink-0"/>
+      <ActionTarget id="playstore-search-bar" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance className="flex-1 min-w-0"><form onSubmit={e=>{e.preventDefault();submitSearch();}}><input aria-label="앱 및 게임 검색" value={searchText} className="w-full bg-gray-100 rounded-full px-4 py-3 outline-none text-base" placeholder="앱 및 게임 검색" onFocus={()=>advanceQuest('playstore-search-bar')} onChange={e=>inputText(e.target.value)} /></form></ActionTarget>
+      {run('playstore-avatar',()=>{setPlayStoreProfileOpen(true);advanceQuest('playstore-avatar');},<span aria-label="프로필" className="w-9 h-9 bg-[#d5e5ef] text-[#1b5268] flex items-center justify-center rounded-full">{googleAccount?.[0]?.toUpperCase()||'연'}</span>)}
+    </header>
+    <div className="px-4 py-2 flex items-center justify-between text-xs bg-[#f0f6f3] text-[#426353] gap-2 shrink-0"><span>Play 스토어 · 학습용 시뮬레이션</span><span>{networkAvailable?'Wi-Fi 연결됨':'오프라인'}</span></div>
+    <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-7">
+      {playStoreView==='manage'?<div className="max-w-3xl mx-auto"><button onClick={()=>setPlayStoreView('home')} className="flex gap-1 items-center min-h-11 text-gray-500 mb-3"><ChevronLeft size={20}/> Play 스토어</button><h2 className="text-2xl font-bold mb-5">앱 및 기기 관리</h2>
+        <div className="p-5 rounded-3xl bg-[#edf6ef] mb-5"><div className="flex gap-3 items-center"><ShieldCheck className="text-green-700"/><strong>Play 프로텍트</strong></div><p className="text-sm mt-2">공식 스토어를 사용하고, 모르는 APK 파일은 설치하지 않아요.</p></div>
+        <div className="flex items-center justify-between gap-3 mb-3"><div><h3 className="font-bold text-lg">{appsUpdated?'모든 앱이 최신 상태예요':'업데이트 사용 가능'}</h3><p className="text-xs text-gray-500 mt-1">{updatingAll?`업데이트 중 ${updateProgress}%`:'충전 상태와 Wi-Fi를 확인해요.'}</p></div>{!appsUpdated&&!updatingAll&&run('playstore-update-all',()=>updateApps(UPDATE_APPS.filter(a=>appUpdateStatus[a.id]!=='done').map(a=>a.id)),<span className="text-[#087f5b]">모두 업데이트</span>)}</div>
+        {UPDATE_APPS.map(app=><div key={app.id} className="flex items-center gap-3 py-3 border-b border-gray-100"><span className="w-11 h-11 shrink-0"><GalaxyAppIcon appName={app.iconName}/></span><div className="flex-1"><strong className="text-sm">{app.name}</strong><p className="text-xs text-gray-500">{appsUpdated||appUpdateStatus[app.id]==='done'?'최신 버전':appUpdateStatus[app.id]==='installing'?'설치 중…':appUpdateStatus[app.id]==='downloading'?`다운로드 중 ${appUpdateProgress[app.id]||0}%`:'업데이트 가능'}</p></div>{appsUpdated||appUpdateStatus[app.id]==='done'?<Check className="text-green-600"/>:<button disabled={updatingAll} className="text-green-700 text-sm min-h-11 px-3 disabled:opacity-40" onClick={()=>updateApps([app.id])}>업데이트</button>}</div>)}
+        <h3 className="text-lg font-bold mt-7">설치한 연습 앱</h3>{CATALOG.filter(a=>installedApps.includes(a.id)).map(renderApp)}{!CATALOG.some(a=>installedApps.includes(a.id))&&<p className="py-5 text-gray-500 text-sm">설치한 연습 앱이 없어요. 검색창에서 앱을 찾아 설치해 보세요.</p>}
+      </div>:<div className="max-w-3xl mx-auto"><h2 className="text-2xl font-bold mb-2">{isSearched?'검색 결과':'앱에서 시작하는 배움'}</h2><p className="text-sm text-gray-500 mb-5">이름과 개발자를 확인하고 선생님이 허용한 앱을 설치해요.</p>{(isSearched?matches:CATALOG).map(renderApp)}{isSearched&&!matches.length&&<p className="py-8 text-center text-gray-500">검색 결과가 없어요. 앱 이름을 다시 확인해 주세요.</p>}<div className="flex flex-wrap gap-2 mt-5">{run('playstore-search-submit',submitSearch,'검색')}<button onClick={()=>{setKeyboardOpen(!keyboardOpen);setTypingIndex(0);setSearchText('');setKeyboardShift(false);}} className="text-blue-700 min-h-11 px-3 text-sm">따라쓰기 키보드</button></div><p className="text-xs text-gray-400 mt-5">앱 정보·용량·업데이트는 학습 예시예요. 실제 스토어에서 다운로드하거나 결제하지 않아요.</p></div>}
+    </main>
+    {keyboardOpen&&<section aria-label="따라쓰기 키보드" className="bg-[#e3e5e9] p-2 border-t text-gray-900 shrink-0 max-h-[46%] overflow-y-auto">
+      <div className="flex justify-between items-center text-xs px-2 mb-2"><span>‘똑똑수학탐험대’ 따라쓰기 · 직접 입력도 가능</span><button aria-label="키보드 닫기" className="p-2" onClick={()=>setKeyboardOpen(false)}><X size={17}/></button></div>
+      {keyboardError&&<p role="status" className="text-xs text-red-700 text-center mb-1">{keyboardError}</p>}
+      {[keyboardShift?['ㅃ','ㅉ','ㄸ','ㄲ','ㅆ','ㅛ','ㅕ','ㅑ','ㅒ','ㅖ']:['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],['Shift','ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ','⌫']].map((row,i)=><div className="flex gap-1 justify-center mb-1 max-w-3xl mx-auto" key={i}>{row.map(key=><button key={key} aria-label={key==='Shift'?'쌍자음':key==='⌫'?'한 글자 지우기':key} onClick={()=>keyInput(key)} className={`flex-1 min-h-10 rounded-md shadow-sm text-lg ${TARGET_SEQUENCE[typingIndex]?.key===key?'bg-blue-500 text-white':'bg-white'}`}>{key==='Shift'?<ArrowBigUp size={21} strokeWidth={1.6} className="mx-auto" fill={keyboardShift?'currentColor':'none'}/>:key==='⌫'?<Delete size={21} strokeWidth={1.6} className="mx-auto"/>:key}</button>)}</div>)}
+      {run('playstore-search-submit',submitSearch,<span className="text-blue-700">검색</span>)}
+    </section>}
+    {playStoreProfileOpen&&<div className="absolute inset-0 z-[80] bg-black/30 p-4 flex items-start justify-end" onClick={()=>setPlayStoreProfileOpen(false)}><section className="mt-12 bg-[#f1f5f4] rounded-3xl w-full max-w-sm p-4 shadow-xl" onClick={e=>e.stopPropagation()}><div className="flex items-center justify-between mb-4"><strong className="break-all">{googleAccount||'연습 계정'}</strong><button aria-label="프로필 닫기" className="p-3" onClick={()=>setPlayStoreProfileOpen(false)}><X size={19}/></button></div><p className="text-xs text-gray-500 mb-4">실제 계정 로그인 없이 연습 중</p>{run('playstore-manage',()=>{setPlayStoreView('manage');setPlayStoreProfileOpen(false);advanceQuest('playstore-manage');},'앱 및 기기 관리')}{['Play 프로텍트','결제 및 정기 결제','도움말'].map(title=><button key={title} className="p-3 block w-full text-left text-sm min-h-11" onClick={()=>{setPlayStoreProfileOpen(false);setHelp(title);}}>{title}</button>)}</section></div>}
+    {detail&&<div role="dialog" aria-modal="true" aria-label="설치 전 앱 확인" className="absolute inset-0 z-[90] bg-black/40 flex items-center justify-center p-4"><section className="bg-white p-5 sm:p-7 rounded-3xl max-w-lg w-full max-h-[95%] overflow-y-auto shadow-2xl"><div className="flex justify-between items-center gap-3"><GalaxyAppIcon appName={detail.id} style={{width: 56, height: 56, flexShrink: 0}}/><h2 className="text-xl font-bold flex-1">{detail.name}</h2><button aria-label="앱 정보 닫기" onClick={()=>setDetail(null)} className="p-2"><X/></button></div><p className="text-sm text-green-700 my-2">{detail.dev}</p><div className="grid grid-cols-3 text-xs text-center bg-gray-50 p-3 rounded-xl my-4"><span>교육용 예시</span><span>무료</span><span>설치 연습</span></div><h3 className="font-bold">설치 전 확인</h3>{['선생님이 알려 준 앱 이름과 개발자가 맞아요.','유료 구매·광고·권한 정보를 확인했어요.','선생님이나 보호자가 설치를 허용했어요.'].map((label,i)=><label key={label} className="flex items-start gap-3 text-sm py-3"><input type="checkbox" checked={safety[i]} className="w-5 h-5 shrink-0" onChange={e=>{const next=[...safety] as [boolean,boolean,boolean];next[i]=e.target.checked;setSafety(next);if(next.every(Boolean))advanceQuest('playstore-review-safety');}}/>{label}</label>)}<p className="text-xs text-gray-500 mb-4">실제 앱에서는 ‘데이터 보안’과 필요한 권한도 살펴봐요. 필요 없는 권한은 허용하지 않아요.</p>{installedApps.includes(detail.id)?<button className="w-full bg-green-700 text-white rounded-full p-3 font-bold" onClick={()=>{const app=detail;setDetail(null);openApp(app);}}>열기</button>:<button disabled={!safety.every(Boolean)||!!installing} className="w-full bg-green-700 text-white rounded-full p-3 font-bold disabled:opacity-40" onClick={startInstall}>확인하고 설치</button>}</section></div>}
+    {removeApp&&<div role="dialog" aria-modal="true" aria-label="앱 제거 확인" className="absolute inset-0 z-[90] bg-black/40 flex items-center justify-center p-5"><section className="bg-white p-6 rounded-3xl max-w-sm"><Trash2 className="text-gray-500 mb-3"/><h3 className="font-bold text-lg">{removeApp.name} 앱을 제거할까요?</h3><p className="text-sm text-gray-600 mt-3 mb-5">앱과 기기에 저장된 앱 데이터가 지워질 수 있어요. 필요한지 먼저 확인해요.</p><div className="flex justify-end gap-3"><button className="p-3" onClick={()=>setRemoveApp(null)}>취소</button>{run('playstore-uninstall-confirm',uninstall,<span className="text-green-700">제거</span>)}</div></section></div>}
+    {help&&<div role="dialog" aria-modal="true" aria-label={help} className="absolute inset-0 z-[90] bg-black/40 flex items-center justify-center p-5"><section className="bg-white p-6 rounded-3xl max-w-md"><h3 className="font-bold text-xl mb-3">{help}</h3><p className="text-sm leading-7">{help==='결제 및 정기 결제'?'유료 앱과 정기 결제는 선생님이나 보호자에게 먼저 물어봐요. 무료 체험도 나중에 결제될 수 있어요. 이 연습 앱에서는 결제하지 않아요.':help==='Play 프로텍트'?'Play 프로텍트는 앱의 유해성을 검사하는 기능이에요. 공식 스토어를 이용하고, 출처를 모르는 설치 파일은 열지 않아요.':'앱 검색 → 개발자·가격·권한 확인 → 허락받고 설치 → 업데이트를 연습해요. 설치한 앱은 프로필의 앱 및 기기 관리에서 제거할 수 있어요.'}</p><button className="mt-5 p-3 w-full text-green-700 font-bold" onClick={()=>setHelp(null)}>확인</button></section></div>}
+  </div>;
 };
-
 export default PlayStoreApp;

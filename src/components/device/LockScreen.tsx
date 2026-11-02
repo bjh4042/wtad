@@ -1,4 +1,5 @@
 import React from 'react';
+import { MoveUp } from 'lucide-react';
 import { StatusIcons } from '@/components/device/StatusBar';
 
 export interface LockScreenProps {
@@ -72,8 +73,8 @@ export default function LockScreen({
 
         {/* 퀘스트 강조는 퀘스트가 실제로 이 단계일 때만 표시 */}
         {currentTargetId === 'lock-swipe' && (
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-[22%] bg-blue-600 text-white text-[13px] px-4 py-2 rounded-xl shadow-lg font-bold pointer-events-none">
-            👆 여기서부터 위로 스와이프!
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[22%] bg-blue-600 text-white text-[13px] px-4 py-2 rounded-xl shadow-lg font-bold pointer-events-none flex items-center gap-2">
+            <MoveUp size={18} strokeWidth={2} aria-hidden="true"/> 여기서부터 위로 스와이프!
           </div>
         )}
       </div>

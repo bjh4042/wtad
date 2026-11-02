@@ -8,6 +8,7 @@ export interface StatusBarProps {
   quickPanelOpen: boolean;
   setQuickPanelOpen: React.Dispatch<React.SetStateAction<any>>;
   handleSwipeStart: (e: any) => void;
+  setPanelMode?: React.Dispatch<React.SetStateAction<any>>;
   timeStr: string;
   notifications: NotificationItem[];
   airplane: boolean;
@@ -56,21 +57,19 @@ function IconVibrate() {
 
 function IconMute() {
   return (
-    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M11 4.8 6.8 8.4H3.6v7.2h3.2L11 19.2V4.8Z" />
-      <path d="M15 9.3l1-1 4.2 4.2-1 1L15 9.3Z" transform="translate(-0.6 -0.4)" />
-      <path d="M19.8 9.5l-1-1L14.6 12.7l1 1 4.2-4.2Z" />
-      <path d="M14.6 9.5l-1 1 4.2 4.2 1-1-4.2-4.2Z" />
+    <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m11 5-4 3.5H3.5v7H7L11 19V5Z" />
+      <path d="m16 9 5 6m0-6-5 6" />
     </svg>
   );
 }
 
+/** One UI 7+ displays the percentage inside the compact battery capsule. */
 function IconBattery() {
   return (
-    <svg width="24" height={ICON} viewBox="0 0 26 14" fill="none" aria-hidden="true">
-      <rect x="0.9" y="1.6" width="21.5" height="10.8" rx="2.6" stroke="currentColor" strokeWidth="1.3" opacity="0.9" />
-      <rect x="2.6" y="3.3" width="18.1" height="7.4" rx="1.5" fill="currentColor" />
-      <path d="M24 5.2c.9.3 1.5 1 1.5 1.8s-.6 1.5-1.5 1.8V5.2Z" fill="currentColor" opacity="0.9" />
+    <svg width="28" height={ICON} viewBox="0 0 30 16" role="img" aria-label="배터리 98퍼센트">
+      <rect x="0" y="1" width="30" height="14" rx="7" fill="currentColor" />
+      <text x="15" y="11.4" textAnchor="middle" fontSize="10.4" fontWeight="700" fontFamily="Arial, sans-serif" fill="#35363a">98</text>
     </svg>
   );
 }
@@ -87,46 +86,44 @@ export function StatusIcons({ airplane, wifiConnected, bluetooth, soundMode }: S
   return (
     <div className="flex items-center text-white/95" style={{ gap: 'var(--oneui-icon-gap)' }}>
       {airplane && <IconAirplane />}
-      {!airplane && wifiConnected && <IconWifi />}
+      {wifiConnected && <IconWifi />}
       {bluetooth && <IconBluetooth />}
       {soundMode === 'vibrate' && <IconVibrate />}
       {soundMode === 'mute' && <IconMute />}
-      <span className="text-[11px] font-semibold tabular-nums ml-0.5">98%</span>
       <IconBattery />
     </div>
   );
 }
 
 export default function StatusBar({
-  currentTargetId, advanceQuest, quickPanelOpen, setQuickPanelOpen, handleSwipeStart,
+  currentTargetId, advanceQuest, quickPanelOpen, setQuickPanelOpen, handleSwipeStart, setPanelMode,
   timeStr, notifications, airplane, wifiConnected, bluetooth, soundMode,
 }: StatusBarProps) {
+  const openPanel = (mode: 'quick' | 'notifications') => {
+    setPanelMode?.(mode);
+    setQuickPanelOpen(true);
+    advanceQuest(mode === 'quick' ? 'swipe-trigger' : 'notification-trigger');
+  };
   return (
-    <>
-      <ActionTarget
-        id="swipe-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest} disableClickAdvance={true}
-        onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
-        onClick={() => { if (!quickPanelOpen) { setQuickPanelOpen(true); advanceQuest('swipe-trigger'); } }}
-        tooltipPosition="bottom"
-        tooltipText="↓ 아래로 드래그(또는 탭)하세요"
-        className="oneui absolute top-0 w-full oneui-statusbar flex justify-between items-center text-white cursor-ns-resize z-[80] select-none"
-        style={{ paddingLeft: 'var(--oneui-screen-pad)', paddingRight: 'var(--oneui-screen-pad)' }}
-      >
-        <div className="flex items-center gap-1.5">
-          <span className="text-[12px] font-semibold tracking-[-0.01em] tabular-nums">{timeStr}</span>
-          {notifications.length > 0 && (
-            <span className="w-[5px] h-[5px] rounded-full bg-white/90" />
-          )}
-        </div>
-        <StatusIcons airplane={airplane} wifiConnected={wifiConnected} bluetooth={bluetooth} soundMode={soundMode} />
+    <div className="oneui absolute top-0 w-full oneui-statusbar flex items-center text-white z-[80] select-none"
+      style={{ paddingLeft: 'var(--oneui-screen-pad)', paddingRight: 'var(--oneui-screen-pad)' }}>
+      <ActionTarget id="notification-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+        disableClickAdvance onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
+        className="h-full flex-1" tooltipPosition="bottom" tooltipText="왼쪽 위에서 아래로 밀어 알림 열기">
+        <button type="button" aria-label="알림 열기, 화면 왼쪽 위" onClick={() => openPanel('notifications')}
+          className="h-full w-full flex items-center gap-1.5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+          <span className="text-[12px] font-semibold tabular-nums">{timeStr}</span>
+          {notifications.length > 0 && <span className="w-[5px] h-[5px] rounded-full bg-white/90" />}
+        </button>
       </ActionTarget>
-
-      {currentTargetId === 'swipe-trigger' && (
-        <div className="absolute top-9 left-1/2 -translate-x-1/2 z-[110] pointer-events-none flex flex-col items-center oneui-hint-up">
-          <div className="w-0.5 h-8 bg-yellow-400 rounded-full"></div>
-          <div className="w-3 h-3 border-r-[3px] border-b-[3px] border-yellow-400 rotate-45 -mt-1.5"></div>
-        </div>
-      )}
-    </>
+      <ActionTarget id="swipe-trigger" currentTargetId={currentTargetId} advanceQuest={advanceQuest}
+        disableClickAdvance onTouchStart={handleSwipeStart} onMouseDown={handleSwipeStart}
+        className="h-full flex-1" tooltipPosition="bottom" tooltipText="오른쪽 위에서 아래로 밀어 빠른 설정 열기">
+        <button type="button" aria-label="빠른 설정 열기, 화면 오른쪽 위" onClick={() => openPanel('quick')}
+          className="h-full w-full flex justify-end items-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+          <StatusIcons airplane={airplane} wifiConnected={wifiConnected} bluetooth={bluetooth} soundMode={soundMode} />
+        </button>
+      </ActionTarget>
+    </div>
   );
 }

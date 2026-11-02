@@ -3,8 +3,10 @@ import {
   Wifi, Volume2, Sun, Settings,
   ShieldCheck, User, Bell,
   Lock, ShieldAlert, AlertTriangle, HeartPulse, BatteryCharging,
-  Grid, Sliders, PaintBucket, MapPin, Home
+  Grid, Sliders, PaintBucket, MapPin, Home,
+  CloudSun, Music2, Footprints, Camera, Mic, HardDrive, Users
 } from 'lucide-react';
+import { GalaxyAppIcon } from '@/components/device/GalaxyAppIcon';
 
 export const SETTINGS_MENUS = [
   { id: 'account', icon: <User size={20} className="text-white"/>, title: '계정 및 백업', sub: '계정 관리 · Smart Switch', bg: 'bg-blue-500' },
@@ -35,22 +37,28 @@ export const WIFI_NETWORKS = [
 ];
 
 export const PLAYSTORE_APPS = [
-  { id: 'duolingo', name: '링고학습', dev: '링고', color: '#22c55e', label: '🦉' },
-  { id: 'minecraft', name: '블록월드', dev: '블록스튜디오', color: '#15803d', label: '⛏️' },
-  { id: 'classting', name: '학교톡', dev: '교실연구소', color: '#f97316', label: 'C' },
-  { id: 'toss', name: '간편페이', dev: '페이랩', color: '#2563eb', label: 'T' },
-  { id: 'melon', name: '뮤직박스', dev: '톡톡뮤직', color: '#10b981', label: '♪' },
+  { id: 'duolingo', name: '링고학습', dev: '링고', color: '#22c55e', label: <GalaxyAppIcon appName="duolingo"/> },
+  { id: 'minecraft', name: '블록월드', dev: '블록스튜디오', color: '#15803d', label: <GalaxyAppIcon appName="minecraft"/> },
+  { id: 'classting', name: '학교톡', dev: '교실연구소', color: '#f97316', label: <GalaxyAppIcon appName="classting"/> },
+  { id: 'toss', name: '간편페이', dev: '페이랩', color: '#2563eb', label: <GalaxyAppIcon appName="toss"/> },
+  { id: 'melon', name: '뮤직박스', dev: '톡톡뮤직', color: '#10b981', label: <GalaxyAppIcon appName="melon"/> },
 ];
 
 export const WIDGET_CATALOG = [
-  { id: 'clock', name: '시계', desc: '큰 시간 표시', icon: '🕐' },
-  { id: 'weather', name: '날씨', desc: '현재 날씨', icon: '☀️' },
-  { id: 'calendar', name: '캘린더', desc: '오늘 날짜', icon: '📅' },
-  { id: 'music', name: '음악', desc: '재생 컨트롤', icon: '🎵' },
-  { id: 'fitness', name: '걸음 수', desc: '오늘의 활동', icon: '👟' },
+  { id: 'clock', name: '시계', desc: '큰 시간 표시', icon: <GalaxyAppIcon appName="Clock" style={{width: 34, height: 34}}/> },
+  { id: 'weather', name: '날씨', desc: '현재 날씨', icon: <CloudSun size={32} strokeWidth={1.8}/> },
+  { id: 'calendar', name: '캘린더', desc: '오늘 날짜', icon: <GalaxyAppIcon appName="Calendar" style={{width: 34, height: 34}}/> },
+  { id: 'music', name: '음악', desc: '재생 컨트롤', icon: <Music2 size={30} strokeWidth={1.8}/> },
+  { id: 'fitness', name: '걸음 수', desc: '오늘의 활동', icon: <Footprints size={30} strokeWidth={1.8}/> },
 ];
 
-export const PERMISSION_ICONS: Record<string, string> = { 카메라: '📷', 마이크: '🎙️', 위치: '📍', 저장공간: '💾', 연락처: '👥' };
+export const PERMISSION_ICONS: Record<string, React.ReactNode> = {
+  카메라: <Camera size={22} strokeWidth={1.8}/>,
+  마이크: <Mic size={22} strokeWidth={1.8}/>,
+  위치: <MapPin size={22} strokeWidth={1.8}/>,
+  저장공간: <HardDrive size={22} strokeWidth={1.8}/>,
+  연락처: <Users size={22} strokeWidth={1.8}/>,
+};
 
 
 export const TARGET_SEQUENCE = [

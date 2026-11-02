@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_WALLPAPER } from '@/data/homeDefaults';
 
-export interface PhotoItem { id: number; seed: number }
+export interface PhotoItem { id: number; seed: number; kind?: 'photo' | 'screenshot' | 'video'; src?: string; name?: string }
 export interface NoteItem { id: number; paths: string[] }
 export type VolumeChannel = 'media' | 'ring' | 'notif';
 
@@ -40,10 +40,12 @@ export const useDeviceState = () => {
     volumeCloseTimer.current = setTimeout(() => setVolumePanelOpen(false), 2400);
   };
 
+  useEffect(() => () => { if (volumeCloseTimer.current) clearTimeout(volumeCloseTimer.current); }, []);
+
   // 콘텐츠 / 설치 앱 / 배경화면
   const [installedApps, setInstalledApps] = useState<string[]>([]);
   const [wallpaper, setWallpaper] = useState<string>(DEFAULT_WALLPAPER);
-  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [photos, setPhotos] = useState<PhotoItem[]>([{id:1001,seed:1001,name:"연습 사진 1"},{id:1002,seed:1002,name:"연습 사진 2"}]);
   const [notes, setNotes] = useState<NoteItem[]>([]);
 
   return {
@@ -59,7 +61,7 @@ export const useDeviceState = () => {
     notifVolume, setNotifVolume,
     volumePanelOpen, setVolumePanelOpen,
     volumePanelType, setVolumePanelType,
-    showVolumePanel,
+    showVolumePanel, volumeCloseTimer,
     installedApps, setInstalledApps,
     wallpaper, setWallpaper,
     photos, setPhotos,
